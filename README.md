@@ -1,0 +1,1 @@
+Installare Java JDK 20.0.2 qua https://www.oracle.com/java/technologies/javase/jdk20-archive-downloads.html
