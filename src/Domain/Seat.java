@@ -10,4 +10,12 @@ public class Seat {
         this.isVip = isVip;
         this.isBooked = isBooked;
     }
+
+    public boolean isBooked() {
+        return isBooked;
+    }
+
+    public void setBooked(boolean booked) {
+        isBooked = booked;
+    }
 }

@@ -8,15 +8,12 @@ public class Schedule {
     public Movie getMovieName() {
         return movieName;
     }
-
     public void setMovieName(Movie movieName) {
         this.movieName = movieName;
     }
-
     public LocalDateTime getDate() {
         return date;
     }
-
     public void setDate(LocalDateTime date) {
         this.date = date;
     }
