@@ -5,26 +5,28 @@ import java.util.Date;
 import java.util.UUID;
 
 public class Schedule {
-    public Movie getMovieName() {
-        return movieName;
+
+    public Schedule(Movie movie, Hall hall, LocalDateTime date){
+        this.movie = movie;
+        this.hall = hall;
+        this.date = date;
     }
-    public void setMovieName(Movie movieName) {
-        this.movieName = movieName;
+
+    private Movie movie;
+    private LocalDateTime date;
+    private Hall hall;
+
+
+    public Movie getMovie() {
+        return movie;
     }
+
     public LocalDateTime getDate() {
         return date;
     }
-    public void setDate(LocalDateTime date) {
-        this.date = date;
+
+    public Hall getHall() {
+        return hall;
     }
 
-    private Movie movieName;
-    private LocalDateTime date;
-    private UUID id;
-
-    public Schedule(Movie movieName, LocalDateTime date, UUID id) {
-        this.movieName = movieName;
-        this.date = date;
-        this.id = id;
-    }
 }

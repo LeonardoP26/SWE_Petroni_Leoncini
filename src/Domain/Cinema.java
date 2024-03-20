@@ -1,28 +1,28 @@
 package Domain;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
 public class Cinema {
-    public List<Hall> getHalls() {
+
+    private ArrayList<Hall> halls = new ArrayList<>();
+
+
+    public Cinema(){
+
+    }
+
+
+
+
+    public ArrayList<Hall> getHalls() {
         return halls;
     }
 
-    public String getName() {
-        return name;
-    }
-
-    public UUID getId() {
-        return id;
-    }
-
-    private List<Hall> halls;
-    private String name;
-    private UUID id;
-
-    public Cinema(List<Hall> halls, String name, UUID id) {
+    public void setHalls(ArrayList<Hall> halls) {
         this.halls = halls;
-        this.name = name;
-        this.id = id;
     }
+
+
 }

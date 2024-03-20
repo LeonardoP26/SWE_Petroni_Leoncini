@@ -1,15 +1,21 @@
 package Domain;
 
 public class Seat {
-    private boolean isBooked;
-    private int seatNumber;
-    private boolean isVip;
 
-    public Seat(int seatNumber, boolean isVip, boolean isBooked) {
-        this.seatNumber = seatNumber;
-        this.isVip = isVip;
+    public Seat(char row, int number){
+        this.number = number;
+        this.row = row;
+    }
+
+    public Seat(char row, int number, boolean isBooked){
+        this.number = number;
+        this.row = row;
         this.isBooked = isBooked;
     }
+
+    private boolean isBooked = false;
+    private char row;
+    private int number;
 
     public boolean isBooked() {
         return isBooked;
@@ -17,5 +23,13 @@ public class Seat {
 
     public void setBooked(boolean booked) {
         isBooked = booked;
+    }
+
+    public char getRow() {
+        return row;
+    }
+
+    public int getNumber() {
+        return number;
     }
 }

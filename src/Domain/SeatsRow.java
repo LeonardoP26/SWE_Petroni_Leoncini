@@ -1,34 +1,27 @@
 package Domain;
 
 import java.util.ArrayList;
-import java.util.List;
 
 public class SeatsRow {
-    private List<Seat> seats;
 
-    public List<Seat> getSeats() {
-        return seats;
-    }
 
-    public int getRowNumber() {
-        return rowNumber;
-    }
-
-    public int getNumberOfSeats() {
-        return numberOfSeats;
-    }
-
-    private int rowNumber;
-    private int numberOfSeats;
-
-    public SeatsRow(int rowNumber, int numberOfSeats, boolean isVip, boolean isBooked) {
-        this.rowNumber = rowNumber;
-        seats = new ArrayList<>(numberOfSeats);
-        for (int i = 0; i < numberOfSeats; i++) {
-            seats.add(new Seat(i, isVip, isBooked));
+    public SeatsRow(char row, int numSeats){
+        this.row = row;
+        seats = new ArrayList<>(numSeats);
+        for (int i = 1; i <= numSeats; i++){
+            seats.add(new Seat(row, i));
         }
     }
 
+    private char row;
+    private ArrayList<Seat> seats;
 
+    public char getRow() {
+        return row;
+    }
+
+    public ArrayList<Seat> getSeats() {
+        return seats;
+    }
 
 }
