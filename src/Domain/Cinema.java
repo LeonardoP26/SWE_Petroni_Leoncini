@@ -6,23 +6,16 @@ import java.util.UUID;
 
 public class Cinema {
 
-    private ArrayList<Hall> halls = new ArrayList<>();
+    private Integer id = null;
+
+    public Cinema() {}
 
 
-    public Cinema(){
-
+    public Cinema(int id){
+        this.id = id;
     }
 
-
-
-
-    public ArrayList<Hall> getHalls() {
-        return halls;
+    public Integer getId() {
+        return id;
     }
-
-    public void setHalls(ArrayList<Hall> halls) {
-        this.halls = halls;
-    }
-
-
 }
