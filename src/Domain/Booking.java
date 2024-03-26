@@ -1,11 +1,5 @@
 package Domain;
 
-import BusinessLogic.repositories.BookingRepository;
-import BusinessLogic.repositories.BookingRepositoryInterface;
-
-import java.sql.SQLException;
-import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.List;
 
 public class Booking {
@@ -17,10 +11,10 @@ public class Booking {
         this.usersId = usersId;
     }
 
-    private int bookingNumber;
-    private int showTimeId;
-    private List<Integer> seatsId;
-    private List<Integer> usersId;
+    private final int bookingNumber;
+    private final int showTimeId;
+    private final List<Integer> seatsId;
+    private final List<Integer> usersId;
 
     public int getBookingNumber() {
         return bookingNumber;
@@ -37,8 +31,6 @@ public class Booking {
     public List<Integer> getUsersId() {
         return usersId;
     }
-
-
 
 
 }

@@ -1,7 +1,6 @@
 package BusinessLogic.repositories;
 
 import BusinessLogic.Observer;
-import BusinessLogic.Subject;
 import BusinessLogic.UnableToOpenDatabaseException;
 import Domain.Seat;
 

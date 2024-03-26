@@ -24,12 +24,12 @@ public class ShowTime {
         this.date = date.truncatedTo(ChronoUnit.MINUTES);
     }
 
-    private int id;
-    private int movieId;
-    private LocalDateTime date;
-    private int hallId;
-    private HallRepositoryInterface hallRepo = HallRepository.getInstance();
-    private MovieRepositoryInterface movieRepo = MovieRepository.getInstance();
+    private final int id;
+    private final int movieId;
+    private final LocalDateTime date;
+    private final int hallId;
+    private final HallRepositoryInterface hallRepo = HallRepository.getInstance();
+    private final MovieRepositoryInterface movieRepo = MovieRepository.getInstance();
 
 
     public int getId() {

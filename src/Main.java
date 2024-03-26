@@ -1,7 +1,5 @@
 import BusinessLogic.CinemaDatabase;
 import BusinessLogic.UnableToOpenDatabaseException;
-import BusinessLogic.repositories.UserRepository;
-import Domain.*;
 
 import java.sql.SQLException;
 

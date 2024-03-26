@@ -7,7 +7,6 @@ import org.jetbrains.annotations.NotNull;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
-import java.sql.ResultSet;
 import java.sql.SQLException;
 
 public class ShowTimeDao implements ShowTimeDaoInterface {

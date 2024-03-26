@@ -3,8 +3,6 @@ package daos;
 import BusinessLogic.CinemaDatabase;
 import BusinessLogic.UnableToOpenDatabaseException;
 import Domain.Booking;
-import Domain.Seat;
-import Domain.User;
 import org.jetbrains.annotations.NotNull;
 
 import java.sql.*;

@@ -1,17 +1,11 @@
 package BusinessLogic.repositories;
 
 import BusinessLogic.UnableToOpenDatabaseException;
-import Domain.Movie;
 import Domain.ShowTime;
 import daos.ShowTimeDao;
 import daos.ShowTimeDaoInterface;
 import org.jetbrains.annotations.NotNull;
-import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.time.Duration;
-import java.time.temporal.ChronoUnit;
-import java.util.ArrayList;
-import java.util.List;
 
 public class ShowTimeRepository implements ShowTimeRepositoryInterface {
 

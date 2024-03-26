@@ -10,9 +10,9 @@ public class Movie {
         this.duration = duration;
     }
 
-    private int id;
-    private String name;
-    private Duration duration;
+    private final int id;
+    private final String name;
+    private final Duration duration;
 
     public String getName() {
         return name;

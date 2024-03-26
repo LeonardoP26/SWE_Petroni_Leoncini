@@ -10,19 +10,23 @@ import java.sql.SQLException;
 
 public class Seat extends Subject {
 
-    private int id;
-    private int hallId;
-    private boolean isBooked = false;
-    private char row;
-    private int number;
-    private HallRepositoryInterface hallRepo = HallRepository.getInstance();
+    private final int id;
+    private final int hallId;
+    private boolean isBooked;
+    private final char row;
+    private final int number;
+    private final HallRepositoryInterface hallRepo = HallRepository.getInstance();
 
     public Seat(int id, char row, int number, int hallId, boolean isBooked){
+        this(id, row, number, hallId);
+        this.isBooked = isBooked;
+    }
+
+    public Seat(int id, char row, int number, int hallId){
         this.id = id;
         this.hallId = hallId;
         this.number = number;
         this.row = row;
-        this.isBooked = isBooked;
         addObserver(SeatsRepository.getInstance());
     }
 

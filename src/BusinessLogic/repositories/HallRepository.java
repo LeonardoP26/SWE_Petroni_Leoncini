@@ -3,15 +3,11 @@ package BusinessLogic.repositories;
 import BusinessLogic.HallFactory;
 import BusinessLogic.UnableToOpenDatabaseException;
 import Domain.Hall;
-import Domain.Movie;
 import Domain.ShowTime;
 import daos.HallDao;
 import daos.HallDaoInterface;
-
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.time.Duration;
-import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
 
