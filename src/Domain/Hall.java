@@ -1,56 +1,52 @@
 package Domain;
 
-import java.time.Duration;
-import java.time.LocalDateTime;
-import java.time.temporal.ChronoUnit;
-import java.util.*;
+import BusinessLogic.UnableToOpenDatabaseException;
+import BusinessLogic.repositories.HallRepository;
+import BusinessLogic.repositories.HallRepositoryInterface;
+
+import java.sql.SQLException;
+import java.util.List;
 
 import static java.lang.Math.abs;
 
-public class Hall {
+public class Hall{
 
-    public Hall(int id, Cinema cinema){
+    public enum HallTypes {
+        STANDARD, IMAX, THREE_D, IMAX_3D
+    }
+
+
+    public Hall(int id, int cinemaId){
         this.id = id;
-        this.cinema = cinema;
+        this.cinemaId = cinemaId;
     }
 
-    public Hall(Cinema cinema){
-        this.cinema = cinema;
-    }
+    private final int id;
+    private final int cinemaId;
+    protected int cost = 10;
+    private final HallTypes type = HallTypes.STANDARD;
 
-    private int id;
-    private Cinema cinema;
+    private final HallRepositoryInterface hallRepo = HallRepository.getInstance();
 
-    public int getId() {
+    public Integer getId() {
         return id;
     }
 
-    public Cinema getCinema() {
-        return cinema;
+    public int getCinemaId() {
+        return cinemaId;
     }
-    //    /* TODO Maybe it's better to place this fun in the business logic part. */
-//    public boolean searchSeat(Seat seat) throws InvalidSeatException {
-//        SeatsRow row = seatsRows.get(seat.getRow());
-//        if(row == null)
-//            throw new InvalidSeatException("Row does not exist.");
-//        Seat s = row.getSeats().get(seat.getNumber());
-//        if(s == null)
-//            throw new InvalidSeatException("There is no seat with this number.");
-//        return s.isBooked();
-//    }
-//
-//    /* TODO Maybe it's better to place this fun in the business logic part. */
-//    public LocalDateTime canAddShow(Duration movieDuration){
-//        Duration d = movieDuration.plus(Duration.ofMinutes(30));
-//        for (int i = 0; i < schedules.size() - 1; i++){
-//            Schedule s1 = schedules.get(i);
-//            Schedule s2 = schedules.get(i + 1);
-//            long diff = abs(ChronoUnit.MINUTES.between(s1.getDate(), s2.getDate()) - s1.getMovie().getDuration().toMinutes());
-//            if(Duration.ofMinutes(diff).compareTo(d) > 0)
-//                return s1.getDate().plus(d);
-//        }
-//        return null;
-//    }
+
+    public int getCost() {
+        return cost;
+    }
+
+    public HallTypes getHallType(){
+        return type;
+    }
+
+    public List<ShowTime> getShowTimes() throws SQLException, UnableToOpenDatabaseException {
+        return hallRepo.getHallShowTimes(this);
+    }
 
 
 }

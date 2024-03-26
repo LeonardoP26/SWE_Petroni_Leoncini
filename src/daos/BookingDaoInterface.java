@@ -1,12 +1,15 @@
 package daos;
 
+import BusinessLogic.UnableToOpenDatabaseException;
 import Domain.Booking;
 import org.jetbrains.annotations.NotNull;
 
 import java.sql.SQLException;
 
-public interface BookingDaoInterface {
+public interface BookingDaoInterface  {
 
-    void insert(@NotNull Booking booking) throws SQLException;
+    void insert(@NotNull Booking booking) throws SQLException, UnableToOpenDatabaseException;
+
+    int createBookingNumber() throws SQLException, UnableToOpenDatabaseException;
 
 }

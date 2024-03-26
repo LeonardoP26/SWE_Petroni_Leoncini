@@ -1,4 +1,4 @@
-package Domain;
+package BusinessLogic;
 
 public class NotEnoughSeatsException extends Exception{
 
