@@ -3,6 +3,8 @@ package BusinessLogic.repositories;
 import BusinessLogic.HallFactory;
 import BusinessLogic.UnableToOpenDatabaseException;
 import Domain.Hall;
+import Domain.Movie;
+import Domain.Seat;
 import Domain.ShowTime;
 import daos.HallDao;
 import daos.HallDaoInterface;
@@ -30,21 +32,21 @@ public class HallRepository implements HallRepositoryInterface{
         try(ResultSet res = dao.getHall(hallId)) {
             if (!res.isBeforeFirst())
                 return null;
-            return HallFactory.crateHall(res.getInt(1), res.getInt(2), res.getString(3));
+            return HallFactory.crateHall(res);
         }
     }
 
     @Override
-    public List<ShowTime> getHallShowTimes(Hall hall) throws SQLException, UnableToOpenDatabaseException {
-        try(ResultSet res = dao.getHallMovies(hall)){
+    public List<Seat> getHallSeats(Hall hall) throws SQLException, UnableToOpenDatabaseException {
+        try(ResultSet res = dao.getHallSeats(hall)){
             if(!res.isBeforeFirst())
                 return null;
-            List<ShowTime> showTimes = new ArrayList<>();
+            List<Seat> seats = new ArrayList<>();
             while(res.next()){
-                ShowTime showTime = new ShowTime(res.getInt(1), res.getInt(2), res.getInt(3), res.getString(4));
-                showTimes.add(showTime);
+                Seat seat = new Seat(res);
+                seats.add(seat);
             }
-            return showTimes;
+            return seats;
         }
     }
 

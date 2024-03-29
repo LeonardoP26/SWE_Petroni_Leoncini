@@ -4,15 +4,20 @@ import BusinessLogic.UnableToOpenDatabaseException;
 import BusinessLogic.repositories.HallRepository;
 import BusinessLogic.repositories.HallRepositoryInterface;
 
+import javax.xml.crypto.Data;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.List;
 
-public class Hall{
+public class Hall implements DatabaseEntity {
 
     public enum HallTypes {
         STANDARD, IMAX, THREE_D, IMAX_3D
     }
 
+    public Hall(ResultSet res) throws SQLException {
+        this(res.getInt(1), res.getInt(2));
+    }
 
     public Hall(int id, int cinemaId){
         this.id = id;
@@ -21,12 +26,13 @@ public class Hall{
 
     private final int id;
     private final int cinemaId;
-    protected int cost = 10;
+    protected final int cost = 10;
     private final HallTypes type = HallTypes.STANDARD;
 
     private final HallRepositoryInterface hallRepo = HallRepository.getInstance();
 
-    public Integer getId() {
+    @Override
+    public int getId() {
         return id;
     }
 
@@ -42,9 +48,8 @@ public class Hall{
         return type;
     }
 
-    public List<ShowTime> getShowTimes() throws SQLException, UnableToOpenDatabaseException {
-        return hallRepo.getHallShowTimes(this);
+    public List<Seat> getSeats() throws SQLException, UnableToOpenDatabaseException {
+        return hallRepo.getHallSeats(this);
     }
-
 
 }

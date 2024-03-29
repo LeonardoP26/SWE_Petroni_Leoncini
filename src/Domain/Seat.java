@@ -6,9 +6,10 @@ import BusinessLogic.repositories.HallRepository;
 import BusinessLogic.repositories.HallRepositoryInterface;
 import BusinessLogic.repositories.SeatsRepository;
 
+import java.sql.ResultSet;
 import java.sql.SQLException;
 
-public class Seat extends Subject {
+public class Seat extends Subject implements DatabaseEntity {
 
     private final int id;
     private final int hallId;
@@ -17,9 +18,9 @@ public class Seat extends Subject {
     private final int number;
     private final HallRepositoryInterface hallRepo = HallRepository.getInstance();
 
-    public Seat(int id, char row, int number, int hallId, boolean isBooked){
-        this(id, row, number, hallId);
-        this.isBooked = isBooked;
+    public Seat(ResultSet res) throws SQLException {
+        this(res.getInt(1), res.getString(2).charAt(0), res.getInt(3), res.getInt(4));
+        this.isBooked = res.getBoolean(5);
     }
 
     public Seat(int id, char row, int number, int hallId){
@@ -55,6 +56,7 @@ public class Seat extends Subject {
         return hallRepo.getHall(hallId);
     }
 
+    @Override
     public int getId() {
         return id;
     }

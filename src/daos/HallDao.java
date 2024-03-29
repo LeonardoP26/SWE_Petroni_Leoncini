@@ -3,6 +3,8 @@ package daos;
 import BusinessLogic.CinemaDatabase;
 import BusinessLogic.UnableToOpenDatabaseException;
 import Domain.Hall;
+import Domain.Movie;
+import Domain.Seat;
 import org.jetbrains.annotations.NotNull;
 
 import java.sql.*;
@@ -42,10 +44,10 @@ public class HallDao implements HallDaoInterface{
     }
 
     @Override
-    public ResultSet getHallMovies(Hall hall) throws SQLException, UnableToOpenDatabaseException {
+    public ResultSet getHallSeats(Hall hall) throws SQLException, UnableToOpenDatabaseException {
         Connection conn = CinemaDatabase.getConnection();
         PreparedStatement s = conn.prepareStatement(
-                "SELECT * FROM ShowTimes WHERE hallId = ?"
+                "SELECT Seats.id, row, number, isBooked, hallId FROM Halls JOIN Seats ON Halls.id = Seats.hallId WHERE Halls.id = ?"
         );
         s.setInt(1, hall.getId());
         return s.executeQuery();

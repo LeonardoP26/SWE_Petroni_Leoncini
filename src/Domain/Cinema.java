@@ -7,7 +7,7 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
-public class Cinema {
+public class Cinema implements DatabaseEntity {
 
     private final int id;
     private final String name;
@@ -24,18 +24,11 @@ public class Cinema {
     }
 
     public List<Movie> getCinemaMovies() throws SQLException, UnableToOpenDatabaseException {
-        List<Movie> movies = new ArrayList<>();
-        for(Hall hall : getCinemaHalls()){
-            for(ShowTime showTime : hall.getShowTimes()) {
-                if (movies.stream().anyMatch(movie -> movie.getId() == showTime.getMovieId()))
-                    continue;
-                movies.add(showTime.getMovie());
-            }
-        }
-        return movies;
+        return cinemaRepo.getCinemaMovies(this);
     }
 
 
+    @Override
     public int getId() {
         return id;
     }
@@ -43,4 +36,5 @@ public class Cinema {
     public String getName() {
         return name;
     }
+
 }

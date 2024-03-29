@@ -13,5 +13,5 @@ public interface HallDaoInterface {
 
     ResultSet getHall(int hallId) throws SQLException, UnableToOpenDatabaseException;
 
-    ResultSet getHallMovies(Hall hall) throws SQLException, UnableToOpenDatabaseException;
+    ResultSet getHallSeats(Hall hall) throws SQLException, UnableToOpenDatabaseException;
 }

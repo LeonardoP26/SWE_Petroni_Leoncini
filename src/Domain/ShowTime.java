@@ -6,15 +6,16 @@ import BusinessLogic.repositories.HallRepositoryInterface;
 import BusinessLogic.repositories.MovieRepository;
 import BusinessLogic.repositories.MovieRepositoryInterface;
 
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 
-public class ShowTime {
+public class ShowTime implements DatabaseEntity {
 
-    public ShowTime(int id, int movieId, int hallId, String date){
-        this(id, movieId, hallId, LocalDateTime.parse(date, DateTimeFormatter.ISO_LOCAL_DATE_TIME));
+    public ShowTime(ResultSet res) throws SQLException {
+        this(res.getInt(1), res.getInt(2), res.getInt(3), LocalDateTime.parse(res.getString(4), DateTimeFormatter.ISO_LOCAL_DATE_TIME));
     }
 
     public ShowTime(int id, int movieId, int hallId, LocalDateTime date){
@@ -32,6 +33,7 @@ public class ShowTime {
     private final MovieRepositoryInterface movieRepo = MovieRepository.getInstance();
 
 
+    @Override
     public int getId() {
         return id;
     }

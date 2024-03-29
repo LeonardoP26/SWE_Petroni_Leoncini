@@ -7,10 +7,16 @@ import BusinessLogic.repositories.BookingRepositoryInterface;
 import BusinessLogic.repositories.UserRepository;
 import org.jetbrains.annotations.Range;
 
+import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.List;
 
-public class User extends Subject {
+public class User extends Subject implements DatabaseEntity {
+
+    public User(ResultSet res) throws SQLException {
+        this(res.getInt(1), res.getString(2), res.getLong(3));
+    }
 
     public User(int id, String username, long balance){
         this(id, username);
@@ -33,6 +39,7 @@ public class User extends Subject {
         return username;
     }
 
+    @Override
     public int getId() {
         return id;
     }
@@ -57,12 +64,11 @@ public class User extends Subject {
     }
 
     public Booking book(ShowTime showTime, List<Seat> seats, List<User> users) throws NotAvailableSeatsException, SQLException, NotEnoughSeatsException, NotEnoughFundsException, UnableToOpenDatabaseException {
-        if (seats.size() < users.size())
-            throw new NotEnoughSeatsException("You have not chosen enough seats.");
         int totalSpending = showTime.getHall().getCost() * seats.size();
         checkBalance(totalSpending);
-        users.add(this);
-        Booking booking = bookingRepo.book(showTime, seats, users);
+        ArrayList<User> usr = new ArrayList<>(users);
+        usr.add(this);
+        Booking booking = bookingRepo.book(showTime, seats, usr);
         setBalance(balance - totalSpending);
         return booking;
     }

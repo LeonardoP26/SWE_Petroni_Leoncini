@@ -39,4 +39,14 @@ public class CinemaDao implements CinemaDaoInterface{
         return s.executeQuery();
     }
 
+    @Override
+    public ResultSet getCinemaMovies(Cinema cinema) throws SQLException, UnableToOpenDatabaseException {
+        Connection conn = CinemaDatabase.getConnection();
+        PreparedStatement s = conn.prepareStatement(
+                "SELECT DISTINCT(Movies.id, name, duration) FROM (Halls JOIN ShowTimes ON Halls.id = ShowTimes.hallId) JOIN Movies ON Movies.id = movieId WHERE Halls.cinemaId = ? "
+        );
+        s.setInt(1, cinema.getId());
+        return s.executeQuery();
+    }
+
 }

@@ -3,15 +3,20 @@ package BusinessLogic.repositories;
 import BusinessLogic.UnableToOpenDatabaseException;
 import Domain.Cinema;
 import Domain.Hall;
+import Domain.Movie;
 import daos.CinemaDao;
 import daos.CinemaDaoInterface;
+import org.jetbrains.annotations.Nullable;
 
+import java.lang.reflect.InvocationTargetException;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.time.Duration;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
 
-public class CinemaRepository implements CinemaRepositoryInterface {
+public class CinemaRepository extends Repository implements CinemaRepositoryInterface {
 
     private final CinemaDaoInterface dao = CinemaDao.getInstance();
 
@@ -30,17 +35,18 @@ public class CinemaRepository implements CinemaRepositoryInterface {
     }
 
     @Override
-    public List<Hall> getCinemaHalls(Cinema cinema) throws SQLException, UnableToOpenDatabaseException {
+    public List<Hall> getCinemaHalls(Cinema cinema) throws SQLException, UnableToOpenDatabaseException, InvocationTargetException, NoSuchMethodException, InstantiationException, IllegalAccessException {
         try(ResultSet res = dao.getCinemaHalls(cinema)){
-            if(!res.isBeforeFirst())
-                return null;
-            List<Hall> halls = new ArrayList<>();
-            while(res.next()){
-                Hall hall = new Hall(res.getInt(1), res.getInt(2));
-                halls.add(hall);
-            }
-            return halls;
+            return getList(res, Hall.class);
         }
     }
+
+    @Override
+    public List<Movie> getCinemaMovies(Cinema cinema) throws SQLException, UnableToOpenDatabaseException, InvocationTargetException, NoSuchMethodException, InstantiationException, IllegalAccessException {
+        try(ResultSet res = dao.getCinemaMovies(cinema)){
+            return getList(res, Movie.class);
+        }
+    }
+
 
 }

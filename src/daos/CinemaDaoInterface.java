@@ -11,4 +11,6 @@ public interface CinemaDaoInterface {
     void insert(Cinema cinema) throws SQLException, UnableToOpenDatabaseException;
 
     ResultSet getCinemaHalls(Cinema cinema) throws SQLException, UnableToOpenDatabaseException;
+
+    ResultSet getCinemaMovies(Cinema cinema) throws SQLException, UnableToOpenDatabaseException;
 }

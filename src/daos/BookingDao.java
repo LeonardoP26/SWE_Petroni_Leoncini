@@ -31,7 +31,7 @@ public class BookingDao implements BookingDaoInterface{
                 s.setInt(1, booking.getShowTimeId());
                 s.setInt(2, seatId);
                 s.setInt(3, userId);
-                s.setInt(4, booking.getBookingNumber());
+                s.setInt(4, booking.getId());
                 s.executeUpdate();
             }
         }
@@ -46,4 +46,45 @@ public class BookingDao implements BookingDaoInterface{
         );
         return res.getInt("bookingNumber") + 1;
     }
+
+    @Override
+    public ResultSet getBooking(int bookingNumber) throws SQLException, UnableToOpenDatabaseException {
+        Connection conn = CinemaDatabase.getConnection();
+        PreparedStatement s = conn.prepareStatement(
+                "SELECT * FROM Bookings WHERE bookingNumber = ?"
+        );
+        s.setInt(1, bookingNumber);
+        return s.executeQuery();
+    }
+
+    @Override
+    public ResultSet getBookingUsers(Booking booking) throws SQLException, UnableToOpenDatabaseException {
+        Connection conn = CinemaDatabase.getConnection();
+        PreparedStatement s = conn.prepareStatement(
+                "SELECT id, username, balance FROM Bookings JOIN Users on Bookings.userId = Users.id WHERE bookingNumber = ?"
+        );
+        s.setInt(1, booking.getId());
+        return s.executeQuery();
+    }
+
+    @Override
+    public ResultSet getBookingSeats(Booking booking) throws SQLException, UnableToOpenDatabaseException {
+        Connection conn = CinemaDatabase.getConnection();
+        PreparedStatement s = conn.prepareStatement(
+                "SELECT id, row, number, isBooked, hallId FROM Bookings JOIN Seats on id = seatId WHERE bookingNumber = ?"
+        );
+        s.setInt(1, booking.getId());
+        return s.executeQuery();
+    }
+
+    @Override
+    public ResultSet getBookingShowTime(Booking booking) throws SQLException, UnableToOpenDatabaseException {
+        Connection conn = CinemaDatabase.getConnection();
+        PreparedStatement s = conn.prepareStatement(
+                "SELECT id, movieId, hallId, date FROM Bookings JOIN ShowTimes ON showTimeId = id WHERE bookingNumber = ?"
+        );
+        s.setInt(1, booking.getId());
+        return s.executeQuery();
+    }
+
 }
