@@ -49,7 +49,7 @@ public class HallRepository extends Repository implements HallRepositoryInterfac
     public Hall get(int hallId) throws SQLException, UnableToOpenDatabaseException {
         try(ResultSet res = dao.get(hallId)){
             if(res.next())
-                return HallFactory.crateHall(res);
+                return HallFactory.createHall(res);
             return null;
         }
     }
@@ -58,7 +58,7 @@ public class HallRepository extends Repository implements HallRepositoryInterfac
     public Hall get(@NotNull ShowTime showTime) throws SQLException, UnableToOpenDatabaseException {
         try(ResultSet res = dao.get(showTime)){
             if(res.next())
-                return HallFactory.crateHall(res);
+                return HallFactory.createHall(res);
             return null;
         }
     }

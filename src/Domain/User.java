@@ -10,7 +10,7 @@ public class User implements DatabaseEntity {
 
     public User(ResultSet res) throws SQLException {
         try {
-            this.id = res.getInt("Users.id");
+            this.id = res.getInt("user_id");
             this.username = res.getString("Users.username");
             this.password = res.getString("Users.password");
             this.balance = res.getLong("users.balance");

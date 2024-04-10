@@ -14,20 +14,14 @@ import java.util.stream.Stream;
 public class Cinema implements DatabaseEntity {
 
     private int id = ENTITY_WITHOUT_ID;
-    private final String name;
-
-    private final CinemaRepositoryInterface cinemaRepo = CinemaRepository.getInstance();
+    private  String name;
 
     public Cinema (@NotNull ResultSet res) throws SQLException {
-        this(res.getInt(1), res.getString(2));
+        id = res.getInt("cinemaId");
+        name = res.getString("cinemaName");
     }
 
     public Cinema(String name){
-        this.name = name;
-    }
-
-    public Cinema(int id, String name){
-        this.id = id;
         this.name = name;
     }
 

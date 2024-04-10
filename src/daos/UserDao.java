@@ -35,7 +35,7 @@ public class UserDao implements UserDaoInterface{
     @Override
     public boolean update(int userId, String username, String password, long balance) throws SQLException, UnableToOpenDatabaseException {
         try (PreparedStatement s = CinemaDatabase.getConnection().prepareStatement(
-                "UPDATE Users SET username = ?, password = ?, balance = ? WHERE id = ?"
+                "UPDATE Users SET username = ?, password = ?, balance = ? WHERE user_id = ?"
         )) {
             s.setString(1, username);
             s.setString(2, password);
@@ -48,7 +48,7 @@ public class UserDao implements UserDaoInterface{
     @Override
     public boolean delete(int userId) throws SQLException, UnableToOpenDatabaseException {
         try (PreparedStatement s = CinemaDatabase.getConnection().prepareStatement(
-                "DELETE FROM Users WHERE id = ?"
+                "DELETE FROM Users WHERE user_id = ?"
         )) {
             s.setInt(1, userId);
             return s.executeUpdate() > 0;
@@ -59,7 +59,7 @@ public class UserDao implements UserDaoInterface{
     public ResultSet get(int userId) throws SQLException, UnableToOpenDatabaseException {
         Connection conn = CinemaDatabase.getConnection();
         PreparedStatement s = conn.prepareStatement(
-                "SELECT * FROM Users WHERE id = ?"
+                "SELECT * FROM Users WHERE user_id = ?"
         );
         s.setInt(1, userId);
         return s.executeQuery();
@@ -100,7 +100,7 @@ public class UserDao implements UserDaoInterface{
     public boolean update(int userId, long balance) throws SQLException, UnableToOpenDatabaseException {
         Connection conn = CinemaDatabase.getConnection();
         PreparedStatement s = conn.prepareStatement(
-                "UPDATE Users SET balance = ? WHERE id = ?"
+                "UPDATE Users SET balance = ? WHERE user_id = ?"
         );
         s.setLong(1, balance);
         s.setInt(2, userId);

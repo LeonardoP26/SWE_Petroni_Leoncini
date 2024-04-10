@@ -14,11 +14,7 @@ import java.util.Set;
 public class Booking implements DatabaseEntity{
 
     public Booking(ResultSet res) throws SQLException {
-        try{
-            this.bookingNumber = res.getInt("Bookings.bookingNumber");
-        } catch (SQLException e){
-            this.bookingNumber = res.getInt("bookingNumber");
-        }
+        this.bookingNumber = res.getInt("bookingNumber");
     }
 
     public Booking(ShowTime showTime, List<Seat> seats) {
@@ -37,7 +33,7 @@ public class Booking implements DatabaseEntity{
 
     @Override
     public String getName() {
-        return String.valueOf(bookingNumber);
+        return bookingNumber +  " - " + showTime.getMovie().getName() + " - " + showTime.getName() + " - " + showTime.getCinema().getName();
     }
 
     public void setBookingNumber(int bookingNumber) {

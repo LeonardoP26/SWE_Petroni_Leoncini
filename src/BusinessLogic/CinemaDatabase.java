@@ -18,40 +18,40 @@ public class CinemaDatabase {
             Statement stmt = connection.createStatement();
             stmt.execute(
                     "CREATE TABLE IF NOT EXISTS Cinemas(" +
-                            "id INTEGER PRIMARY KEY, " +
-                            "name VARCHAR UNIQUE NOT NULL ON CONFLICT ROLLBACK" +
+                            "cinema_id INTEGER PRIMARY KEY, " +
+                            "cinema_name VARCHAR UNIQUE NOT NULL ON CONFLICT ROLLBACK" +
                             ")"
             );
             stmt.execute(
                     "CREATE TABLE IF NOT EXISTS Movies(" +
-                            "id INTEGER PRIMARY KEY, " +
-                            "name TEXT UNIQUE NOT NULL ON CONFLICT ROLLBACK, " +
+                            "movie_id INTEGER PRIMARY KEY, " +
+                            "movie_name TEXT UNIQUE NOT NULL ON CONFLICT ROLLBACK, " +
                             "duration INTEGER " +
                             ")"
             );
             stmt.execute(
                     "CREATE TABLE IF NOT EXISTS Halls(" +
-                            "id INTEGER PRIMARY KEY , " +
-                            "hallNumber INTEGER NOT NULL , " +
-                            "cinemaId INTEGER NOT NULL, " +
+                            "hall_id INTEGER PRIMARY KEY , " +
+                            "hall_number INTEGER NOT NULL , " +
+                            "cinema_id INTEGER NOT NULL, " +
                             "type VARCHAR NOT NULL, " +
-                            "UNIQUE (hallNumber, cinemaId) ON CONFLICT ROLLBACK, " +
-                            "FOREIGN KEY (cinemaId) REFERENCES Cinemas(id) ON DELETE CASCADE ON UPDATE CASCADE" +
+                            "UNIQUE (hall_number, cinema_id) ON CONFLICT ROLLBACK, " +
+                            "FOREIGN KEY (cinema_id) REFERENCES Cinemas(cinema_id) ON DELETE CASCADE ON UPDATE CASCADE" +
                             ")"
             );
             stmt.execute(
                     "CREATE TABLE IF NOT EXISTS Seats(" +
-                            "id INTEGER PRIMARY KEY, " +
+                            "seat_id INTEGER PRIMARY KEY, " +
                             "row CHARACTER(1) NOT NULL , " +
                             "number INTEGER NOT NULL, " +
-                            "hallId INTEGER NOT NULL, " +
-                            "UNIQUE(row, number, hallId) ON CONFLICT ROLLBACK, " +
-                            "FOREIGN KEY(hallId) REFERENCES Halls(id) ON DELETE CASCADE ON UPDATE CASCADE" +
+                            "hall_id INTEGER NOT NULL, " +
+                            "UNIQUE(row, number, hall_id) ON CONFLICT ROLLBACK, " +
+                            "FOREIGN KEY(hall_id) REFERENCES Halls(hall_id) ON DELETE CASCADE ON UPDATE CASCADE" +
                             ")"
             );
             stmt.execute(
                     "CREATE TABLE IF NOT EXISTS Users(" +
-                            "id INTEGER PRIMARY KEY, " +
+                            "user_id INTEGER PRIMARY KEY, " +
                             "username VARCHAR(15) UNIQUE NOT NULL ON CONFLICT ROLLBACK, " +
                             "password TEXT NOT NULL, " +
                             "balance BIGINT NOT NULL DEFAULT 0" +
@@ -59,36 +59,37 @@ public class CinemaDatabase {
             );
             stmt.execute(
                     "CREATE TABLE IF NOT EXISTS ShowTimes(" +
-                            "id INTEGER PRIMARY KEY, " +
-                            "movieId INTEGER NOT NULL, " +
-                            "hallId INTEGER NOT NULL, " +
+                            "showtime_id INTEGER PRIMARY KEY, " +
+                            "movie_id INTEGER NOT NULL, " +
+                            "hall_id INTEGER NOT NULL, " +
                             "date VARCHAR(16) NOT NULL, " +
-                            "UNIQUE(movieId, hallId, date) ON CONFLICT ROLLBACK, " +
-                            "FOREIGN KEY(movieId) REFERENCES Movies(id) ON DELETE CASCADE ON UPDATE CASCADE, " +
-                            "FOREIGN KEY(hallId) REFERENCES Halls(id) ON DELETE CASCADE ON UPDATE CASCADE" +
+                            "UNIQUE(movie_id, hall_id, date) ON CONFLICT ROLLBACK, " +
+                            "FOREIGN KEY(movie_id) REFERENCES Movies(movie_id) ON DELETE CASCADE ON UPDATE CASCADE, " +
+                            "FOREIGN KEY(hall_id) REFERENCES Halls(hall_id) ON DELETE CASCADE ON UPDATE CASCADE" +
                             ")"
             );
             stmt.execute(
                     "CREATE TABLE IF NOT EXISTS Bookings(" +
-                            "showTimeId INTEGER, " +
-                            "seatId INTEGER, " +
-                            "userId INTEGER, " +
-                            "bookingNumber INTEGER, " +
-                            "FOREIGN KEY(showTimeId) REFERENCES ShowTimes(id) ON DELETE CASCADE ON UPDATE CASCADE, " +
-                            "FOREIGN KEY(seatId) REFERENCES Seats(id) ON DELETE CASCADE ON UPDATE CASCADE, " +
-                            "FOREIGN KEY(userId) REFERENCES Users(id) ON DELETE CASCADE ON UPDATE CASCADE, " +
-                            "PRIMARY KEY (showTimeId, seatId, userId)" +
+                            "showtime_id INTEGER, " +
+                            "seat_id INTEGER, " +
+                            "user_id INTEGER, " +
+                            "booking_number INTEGER, " +
+                            "FOREIGN KEY(showtime_id) REFERENCES ShowTimes(showtime_id) ON DELETE CASCADE ON UPDATE CASCADE, " +
+                            "FOREIGN KEY(seat_id) REFERENCES Seats(seat_id) ON DELETE CASCADE ON UPDATE CASCADE, " +
+                            "FOREIGN KEY(user_id) REFERENCES Users(user_id) ON DELETE CASCADE ON UPDATE CASCADE, " +
+                            "FOREIGN KEY(booking_number) REFERENCES Bookings(booking_number)ON DELETE CASCADE ON UPDATE CASCADE, " +
+                            "PRIMARY KEY(showtime_id, seat_id, user_id)" +
                             ")"
             );
             stmt.execute(
                     "CREATE TABLE IF NOT EXISTS ShowTimeSeats(" +
-                            "showTimeId INTEGER, " +
-                            "seatId INTEGER, " +
-                            "bookingNumber INTEGER DEFAULT 0, " +
-                            "PRIMARY KEY (showTimeId, seatId), " +
-                            "FOREIGN KEY (showTimeId) REFERENCES ShowTimes(id) ON DELETE CASCADE ON UPDATE CASCADE, " +
-                            "FOREIGN KEY (seatId) REFERENCES Seats(id) ON DELETE CASCADE ON UPDATE CASCADE, " +
-                            "FOREIGN KEY (bookingNumber) REFERENCES Bookings(bookingNumber) ON DELETE SET DEFAULT ON UPDATE CASCADE" +
+                            "showtime_id INTEGER, " +
+                            "seat_id INTEGER, " +
+                            "booking_number INTEGER DEFAULT 0, " +
+                            "PRIMARY KEY (showtime_id, seat_id), " +
+                            "FOREIGN KEY (showtime_id) REFERENCES ShowTimes(showtime_id) ON DELETE CASCADE ON UPDATE CASCADE, " +
+                            "FOREIGN KEY (seat_id) REFERENCES Seats(seat_id) ON DELETE CASCADE ON UPDATE CASCADE, " +
+                            "FOREIGN KEY (booking_number) REFERENCES Bookings(booking_number) ON DELETE SET DEFAULT ON UPDATE CASCADE" +
                             ")"
             );
         }

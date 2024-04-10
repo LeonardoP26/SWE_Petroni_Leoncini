@@ -63,7 +63,7 @@ public class ShowTimeRepository extends Repository implements ShowTimeRepository
     public List<ShowTime> get(@NotNull Movie movie) throws SQLException, UnableToOpenDatabaseException {
         try(ResultSet res = dao.get(movie)) {
             return getList(res, () -> {
-                Hall hall = HallFactory.crateHall(res);
+                Hall hall = HallFactory.createHall(res);
                 ShowTime showTime = new ShowTime(res);
                 showTime.setMovie(movie);
                 showTime.setHall(hall);

@@ -15,21 +15,9 @@ public class Movie implements DatabaseEntity {
     }
 
     public Movie(@NotNull ResultSet res) throws SQLException {
-        try{
-            id = res.getInt("Movies.id");
-        } catch (SQLException e){
-            id = res.getInt("id");
-        }
-        try{
-            name = res.getString("Movies.name");
-        } catch (SQLException e){
-            name = res.getString("name");
-        }
-        try{
-            duration = Duration.of(res.getLong("Movies.duration"), ChronoUnit.MINUTES);
-        } catch (SQLException e){
-            duration = Duration.of(res.getLong("duration"), ChronoUnit.MINUTES);
-        }
+        id = res.getInt("movieId");
+        name = res.getString("movieName");
+        duration = Duration.of(res.getLong("duration"), ChronoUnit.MINUTES);
     }
 
     private int id = ENTITY_WITHOUT_ID;

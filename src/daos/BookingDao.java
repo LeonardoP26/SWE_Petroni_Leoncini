@@ -2,7 +2,6 @@ package daos;
 
 import BusinessLogic.CinemaDatabase;
 import BusinessLogic.exceptions.UnableToOpenDatabaseException;
-import Domain.Booking;
 import Domain.Seat;
 import Domain.ShowTime;
 import Domain.User;
@@ -33,7 +32,7 @@ public class BookingDao implements BookingDaoInterface{
             for (User user : users) {
                 for (Seat seat : seats) {
                     try (PreparedStatement s = conn.prepareStatement(
-                            "INSERT INTO Bookings(showTimeId, seatId, userId, bookingNumber) VALUES (?, ?, ?, ?)"
+                            "INSERT INTO Bookings(showtime_id, seat_id, user_id, booking_number) VALUES (?, ?, ?, ?)"
                     )) {
                         s.setInt(1, showTime.getId());
                         s.setInt(2, seat.getId());
@@ -58,7 +57,7 @@ public class BookingDao implements BookingDaoInterface{
     @Override
     public boolean delete(int bookingNumber) throws SQLException, UnableToOpenDatabaseException {
         try(PreparedStatement s = CinemaDatabase.getConnection().prepareStatement(
-                "DELETE FROM Bookings WHERE bookingNumber = ?"
+                "DELETE FROM Bookings WHERE booking_number = ?"
         )){
             s.setInt(1, bookingNumber);
             return s.executeUpdate() > 0;
@@ -70,7 +69,7 @@ public class BookingDao implements BookingDaoInterface{
         Connection conn = CinemaDatabase.getConnection();
         Statement s = conn.createStatement();
         return s.executeQuery(
-                "SELECT DISTINCT bookingNumber FROM Bookings WHERE bookingNumber = (SELECT DISTINCT max(bookingNumber) FROM Bookings)"
+                "SELECT DISTINCT booking_number FROM Bookings WHERE booking_number = (SELECT DISTINCT max(booking_number) FROM Bookings)"
         );
     }
 
@@ -78,7 +77,7 @@ public class BookingDao implements BookingDaoInterface{
     public ResultSet get(@NotNull User user) throws SQLException, UnableToOpenDatabaseException {
         Connection conn = CinemaDatabase.getConnection();
         PreparedStatement s = conn.prepareStatement(
-                "SELECT * FROM (Bookings JOIN ShowTimes ON Bookings.showTimeId = ShowTimes.id) JOIN Seats ON seatId = Seats.id WHERE userId = ?"
+                "SELECT * FROM ((((Bookings JOIN ShowTimes ON Bookings.showtime_id = ShowTimes.showtime_id) JOIN Seats ON Bookings.seat_id = Seats.seat_id) JOIN Movies ON ShowTimes.movie_id = Movies.movie_id) JOIN Halls ON ShowTimes.hall_id = Halls.hall_id) JOIN Cinemas ON Halls.cinema_id = Cinemas.cinema_id WHERE user_id = ?"
         );
         s.setInt(1, user.getId());
         return s.executeQuery();

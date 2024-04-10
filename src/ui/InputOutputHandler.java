@@ -97,6 +97,8 @@ public class InputOutputHandler {
 
     public Booking bookingManagePage(@NotNull User user){
         List<Booking> bookings = databaseService.retrieveBookings(user);
+        if(bookings == null)
+            bookings = List.of();
         return chooseFromList(bookings, BOOKING, BACK);
     }
 

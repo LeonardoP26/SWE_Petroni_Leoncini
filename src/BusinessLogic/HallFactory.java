@@ -8,7 +8,7 @@ import java.sql.SQLException;
 
 public class HallFactory {
 
-    public static @NotNull Hall crateHall(@NotNull ResultSet res) throws SQLException {
+    public static @NotNull Hall createHall(@NotNull ResultSet res) throws SQLException {
         String type;
         try{
             type = res.getString("Halls.type");

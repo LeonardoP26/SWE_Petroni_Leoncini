@@ -24,7 +24,7 @@ public class CinemaDao implements CinemaDaoInterface {
     public ResultSet insert(String cinemaName) throws SQLException, UnableToOpenDatabaseException {
         Connection conn = CinemaDatabase.getConnection();
         PreparedStatement s = conn.prepareStatement(
-                "INSERT OR IGNORE INTO Cinemas(name) VALUES (?)"
+                "INSERT OR IGNORE INTO Cinemas(cinema_name) VALUES (?)"
         );
         s.setString(1, cinemaName);
         s.executeUpdate();
@@ -35,7 +35,7 @@ public class CinemaDao implements CinemaDaoInterface {
     @Override
     public boolean update(int cinemaId, String cinemaName) throws SQLException, UnableToOpenDatabaseException {
         try (PreparedStatement s = CinemaDatabase.getConnection().prepareStatement(
-                "UPDATE Cinemas SET name = ? WHERE id = ?"
+                "UPDATE Cinemas SET cinema_name = ? WHERE cinema_id = ?"
         )) {
             s.setString(1, cinemaName);
             s.setInt(2, cinemaId);
@@ -46,7 +46,7 @@ public class CinemaDao implements CinemaDaoInterface {
     @Override
     public boolean delete(int cinemaId) throws SQLException, UnableToOpenDatabaseException {
         try(PreparedStatement s = CinemaDatabase.getConnection().prepareStatement(
-                "DELETE FROM Cinemas WHERE id = ?"
+                "DELETE FROM Cinemas WHERE cinema_id = ?"
         )){
             s.setInt(1, cinemaId);
             return s.executeUpdate() > 0;
@@ -57,7 +57,7 @@ public class CinemaDao implements CinemaDaoInterface {
     public ResultSet get(int cinemaId) throws SQLException, UnableToOpenDatabaseException {
         Connection conn = CinemaDatabase.getConnection();
         PreparedStatement s = conn.prepareStatement(
-                "SELECT * FROM Cinemas WHERE id = ?"
+                "SELECT * FROM Cinemas WHERE cinema_id = ?"
         );
         s.setInt(1, cinemaId);
         return s.executeQuery();

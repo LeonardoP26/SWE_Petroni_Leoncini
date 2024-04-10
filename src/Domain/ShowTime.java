@@ -28,11 +28,11 @@ public class ShowTime implements DatabaseEntity {
         this.date = date;
     }
 
-
-    private Movie movie;
-    private Hall hall;
     private int id = ENTITY_WITHOUT_ID;
-    private LocalDateTime date;
+    private Movie movie = null;
+    private Hall hall = null;
+    private LocalDateTime date = null;
+    private Cinema cinema = null;
 
 
     public int getId() {
@@ -64,5 +64,13 @@ public class ShowTime implements DatabaseEntity {
 
     public void setId(int id) {
         this.id = id;
+    }
+
+    public void setCinema(Cinema cinema){
+        this.cinema = cinema;
+    }
+
+    public Cinema getCinema() {
+        return cinema;
     }
 }

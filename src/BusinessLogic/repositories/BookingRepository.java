@@ -1,5 +1,6 @@
 package BusinessLogic.repositories;
 
+import BusinessLogic.HallFactory;
 import BusinessLogic.exceptions.DatabaseInsertionFailedException;
 import BusinessLogic.exceptions.UnableToOpenDatabaseException;
 import Domain.*;
@@ -9,6 +10,8 @@ import org.jetbrains.annotations.NotNull;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -52,7 +55,13 @@ public class BookingRepository extends Repository implements BookingRepositoryIn
         try(ResultSet res = dao.get(user)){
             return getList(res, () -> {
                 Booking booking = new Booking(res);
-                booking.setShowTime(new ShowTime(res));
+                ShowTime showTime = new ShowTime(res);
+                Cinema cinema = new Cinema(res);
+                showTime.setDate(LocalDateTime.parse(res.getString(8), DateTimeFormatter.ISO_LOCAL_DATE_TIME));
+                showTime.setCinema(cinema);
+                showTime.setMovie(new Movie(res));
+                showTime.setHall(HallFactory.createHall(res));
+                booking.setShowTime(showTime);
                 List<Seat> seats = new ArrayList<>();
                 do{
                     seats.add(new Seat(res));

@@ -23,7 +23,7 @@ public class SeatsDao implements SeatsDaoInterface{
     public ResultSet insert(char row, int number, int hallId) throws SQLException, UnableToOpenDatabaseException {
         Connection conn = CinemaDatabase.getConnection();
         PreparedStatement s = conn.prepareStatement(
-                "INSERT OR IGNORE INTO Seats(row, number, hallId) VALUES (?, ?, ?)"
+                "INSERT OR IGNORE INTO Seats(row, number, hall_id) VALUES (?, ?, ?)"
         );
         s.setString(1, String.valueOf(row));
         s.setInt(2, number);
@@ -36,7 +36,7 @@ public class SeatsDao implements SeatsDaoInterface{
     @Override
     public boolean update(int seatId, char row, int number, int hallId) throws SQLException, UnableToOpenDatabaseException {
         try(PreparedStatement s = CinemaDatabase.getConnection().prepareStatement(
-                "UPDATE Seats SET row = ?, number = ?, hallId = ? WHERE id = ?"
+                "UPDATE Seats SET row = ?, number = ?, hall_id = ? WHERE seat_id = ?"
         )){
             s.setString(1, String.valueOf(row));
             s.setInt(2, number);
@@ -49,7 +49,7 @@ public class SeatsDao implements SeatsDaoInterface{
     @Override
     public boolean delete(int seatId) throws SQLException, UnableToOpenDatabaseException {
         try(PreparedStatement s = CinemaDatabase.getConnection().prepareStatement(
-                "DELETE FROM Seats WHERE id = ?"
+                "DELETE FROM Seats WHERE seat_id = ?"
         )){
             s.setInt(1, seatId);
             return s.executeUpdate() > 0;
@@ -60,7 +60,7 @@ public class SeatsDao implements SeatsDaoInterface{
     public ResultSet get(int seatId) throws SQLException, UnableToOpenDatabaseException {
         Connection conn = CinemaDatabase.getConnection();
         PreparedStatement s = conn.prepareStatement(
-            "SELECT * FROM Seats WHERE id = ?"
+            "SELECT * FROM Seats WHERE seat_id = ?"
         );
         s.setInt(1, seatId);
         return s.executeQuery();
@@ -70,7 +70,7 @@ public class SeatsDao implements SeatsDaoInterface{
     public ResultSet get(@NotNull ShowTime showTime) throws SQLException, UnableToOpenDatabaseException {
         Connection conn = CinemaDatabase.getConnection();
         PreparedStatement s = conn.prepareStatement(
-                "SELECT id, row, number, bookingNumber FROM ShowTimeSeats JOIN Seats ON ShowTimeSeats.seatId = Seats.id WHERE showTimeId = ?"
+                "SELECT seat_id, row, number, booking_number FROM ShowTimeSeats JOIN Seats ON ShowTimeSeats.seat_id = Seats.seat_id WHERE showtime_id = ?"
         );
         s.setInt(1, showTime.getId());
         return s.executeQuery();
