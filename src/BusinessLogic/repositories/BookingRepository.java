@@ -1,15 +1,15 @@
 package BusinessLogic.repositories;
 
-import BusinessLogic.NotAvailableSeatsException;
-import BusinessLogic.NotEnoughSeatsException;
-import BusinessLogic.UnableToOpenDatabaseException;
+import BusinessLogic.exceptions.DatabaseInsertionFailedException;
+import BusinessLogic.exceptions.UnableToOpenDatabaseException;
 import Domain.*;
 import daos.BookingDao;
 import daos.BookingDaoInterface;
+import org.jetbrains.annotations.NotNull;
 
-import java.lang.reflect.InvocationTargetException;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.List;
 
 public class BookingRepository extends Repository implements BookingRepositoryInterface {
@@ -18,56 +18,49 @@ public class BookingRepository extends Repository implements BookingRepositoryIn
 
     private BookingRepository() { }
 
-
     public static BookingRepositoryInterface getInstance(){
         if(instance == null)
             instance = new BookingRepository();
         return instance;
     }
 
+
     @Override
-    public Booking book(ShowTime showTime, List<Seat> seats, List<User> users) throws NotAvailableSeatsException, SQLException, UnableToOpenDatabaseException, NotEnoughSeatsException {
-        if (seats.size() < users.size())
-            throw new NotEnoughSeatsException("You have not chosen enough seats.");
-        if (seats.stream().anyMatch(Seat::isBooked))
-            throw new NotAvailableSeatsException("Some of these seats are already booked.");
-        for(Seat s : seats){
-            s.setBooked(true);
-        }
-        Booking booking = new Booking(dao.createBookingNumber(), showTime.getId(), seats.stream().map(Seat::getId).toList(), users.stream().map(User::getId).toList());
-        dao.insert(booking);
-        return booking;
+    public int insert(@NotNull Booking booking, List<User> users) throws SQLException, UnableToOpenDatabaseException, DatabaseInsertionFailedException {
+        int bookingNumber = createBookingNumber();
+        if (!dao.insert(bookingNumber, booking.getShowTime(), booking.getSeats(), users))
+            throw new DatabaseInsertionFailedException("Database insertion failed.");
+        return bookingNumber;
+
     }
 
     @Override
-    public Booking getBooking(int bookingNumber) throws SQLException, UnableToOpenDatabaseException {
-        try(ResultSet res = dao.getBooking(bookingNumber)){
-            if(isQueryResultEmpty(res))
-                return null;
-            return new Booking(res);
-        }
+    public boolean delete(@NotNull Booking booking) throws SQLException, UnableToOpenDatabaseException {
+        return dao.delete(booking.getBookingNumber());
     }
 
-    @Override
-    public List<User> getBookingUsers(Booking booking) throws SQLException, UnableToOpenDatabaseException, InvocationTargetException, NoSuchMethodException, InstantiationException, IllegalAccessException {
-        try(ResultSet res = dao.getBookingUsers(booking)){
-            return getList(res, User.class);
+    private int createBookingNumber() throws SQLException, UnableToOpenDatabaseException {
+        try(ResultSet res = dao.createBookingNumber()){
+            if(res.next())
+                return res.getInt(1);
+            return 1;
         }
     }
 
     @Override
-    public List<Seat> getBookingSeats(Booking booking) throws SQLException, UnableToOpenDatabaseException, InvocationTargetException, NoSuchMethodException, InstantiationException, IllegalAccessException {
-        try(ResultSet res = dao.getBookingSeats(booking)){
-            return getList(res, Seat.class);
-        }
-    }
-
-    @Override
-    public ShowTime getBookingShowTime(Booking booking) throws SQLException, UnableToOpenDatabaseException {
-        try(ResultSet res = dao.getBookingShowTime(booking)){
-            if(isQueryResultEmpty(res))
-                return null;
-            return new ShowTime(res);
+    public List<Booking> get(@NotNull User user) throws SQLException, UnableToOpenDatabaseException {
+        try(ResultSet res = dao.get(user)){
+            return getList(res, () -> {
+                Booking booking = new Booking(res);
+                booking.setShowTime(new ShowTime(res));
+                List<Seat> seats = new ArrayList<>();
+                do{
+                    seats.add(new Seat(res));
+                }
+                while(res.getInt(4) == booking.getBookingNumber() && res.next());
+                booking.setSeats(seats);
+                return booking;
+            });
         }
     }
 

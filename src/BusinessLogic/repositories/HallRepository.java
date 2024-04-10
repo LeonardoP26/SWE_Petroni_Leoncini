@@ -1,19 +1,18 @@
 package BusinessLogic.repositories;
 
 import BusinessLogic.HallFactory;
-import BusinessLogic.UnableToOpenDatabaseException;
+import BusinessLogic.exceptions.DatabaseInsertionFailedException;
+import BusinessLogic.exceptions.UnableToOpenDatabaseException;
 import Domain.Hall;
-import Domain.Movie;
-import Domain.Seat;
 import Domain.ShowTime;
 import daos.HallDao;
 import daos.HallDaoInterface;
+import org.jetbrains.annotations.NotNull;
+
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.List;
 
-public class HallRepository implements HallRepositoryInterface{
+public class HallRepository extends Repository implements HallRepositoryInterface{
 
     private final HallDaoInterface dao = HallDao.getInstance();
     private static HallRepositoryInterface instance = null;
@@ -28,27 +27,40 @@ public class HallRepository implements HallRepositoryInterface{
 
 
     @Override
-    public Hall getHall(int hallId) throws SQLException, UnableToOpenDatabaseException {
-        try(ResultSet res = dao.getHall(hallId)) {
-            if (!res.isBeforeFirst())
-                return null;
-            return HallFactory.crateHall(res);
+    public int insert(@NotNull Hall hall, int cinemaId) throws SQLException, UnableToOpenDatabaseException, DatabaseInsertionFailedException {
+        try(ResultSet res = dao.insert(hall.getHallNumber(), cinemaId, hall.getHallType())){
+            if(res.next())
+                return res.getInt(1);
+            throw new DatabaseInsertionFailedException("Database insertion Failed");
         }
     }
 
     @Override
-    public List<Seat> getHallSeats(Hall hall) throws SQLException, UnableToOpenDatabaseException {
-        try(ResultSet res = dao.getHallSeats(hall)){
-            if(!res.isBeforeFirst())
-                return null;
-            List<Seat> seats = new ArrayList<>();
-            while(res.next()){
-                Seat seat = new Seat(res);
-                seats.add(seat);
-            }
-            return seats;
+    public boolean update(@NotNull Hall hall, int cinemaId) throws SQLException, UnableToOpenDatabaseException {
+        return dao.update(hall.getId(), hall.getHallNumber(), cinemaId, hall.getHallType());
+    }
+
+    @Override
+    public boolean delete(@NotNull Hall hall) throws SQLException, UnableToOpenDatabaseException {
+        return dao.delete(hall.getId());
+    }
+
+    @Override
+    public Hall get(int hallId) throws SQLException, UnableToOpenDatabaseException {
+        try(ResultSet res = dao.get(hallId)){
+            if(res.next())
+                return HallFactory.crateHall(res);
+            return null;
         }
     }
 
+    @Override
+    public Hall get(@NotNull ShowTime showTime) throws SQLException, UnableToOpenDatabaseException {
+        try(ResultSet res = dao.get(showTime)){
+            if(res.next())
+                return HallFactory.crateHall(res);
+            return null;
+        }
+    }
 
 }

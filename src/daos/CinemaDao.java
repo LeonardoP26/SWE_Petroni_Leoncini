@@ -1,12 +1,13 @@
 package daos;
 
 import BusinessLogic.CinemaDatabase;
-import BusinessLogic.UnableToOpenDatabaseException;
+import BusinessLogic.exceptions.UnableToOpenDatabaseException;
 import Domain.Cinema;
+import org.jetbrains.annotations.NotNull;
 
 import java.sql.*;
 
-public class CinemaDao implements CinemaDaoInterface{
+public class CinemaDao implements CinemaDaoInterface {
 
     private static CinemaDaoInterface instance = null;
 
@@ -20,32 +21,53 @@ public class CinemaDao implements CinemaDaoInterface{
 
 
     @Override
-    public void insert(Cinema cinema) throws SQLException, UnableToOpenDatabaseException {
+    public ResultSet insert(String cinemaName) throws SQLException, UnableToOpenDatabaseException {
         Connection conn = CinemaDatabase.getConnection();
         PreparedStatement s = conn.prepareStatement(
-                "INSERT OR IGNORE INTO Cinemas(id, name) VALUES (null, ?)"
+                "INSERT OR IGNORE INTO Cinemas(name) VALUES (?)"
         );
-        s.setString(1, cinema.getName());
+        s.setString(1, cinemaName);
         s.executeUpdate();
+        PreparedStatement getIdStmt = conn.prepareStatement("SELECT last_insert_rowid()");
+        return getIdStmt.executeQuery();
     }
 
     @Override
-    public ResultSet getCinemaHalls(Cinema cinema) throws SQLException, UnableToOpenDatabaseException {
+    public boolean update(int cinemaId, String cinemaName) throws SQLException, UnableToOpenDatabaseException {
+        try (PreparedStatement s = CinemaDatabase.getConnection().prepareStatement(
+                "UPDATE Cinemas SET name = ? WHERE id = ?"
+        )) {
+            s.setString(1, cinemaName);
+            s.setInt(2, cinemaId);
+            return s.executeUpdate() > 0;
+        }
+    }
+
+    @Override
+    public boolean delete(int cinemaId) throws SQLException, UnableToOpenDatabaseException {
+        try(PreparedStatement s = CinemaDatabase.getConnection().prepareStatement(
+                "DELETE FROM Cinemas WHERE id = ?"
+        )){
+            s.setInt(1, cinemaId);
+            return s.executeUpdate() > 0;
+        }
+    }
+
+    @Override
+    public ResultSet get(int cinemaId) throws SQLException, UnableToOpenDatabaseException {
         Connection conn = CinemaDatabase.getConnection();
         PreparedStatement s = conn.prepareStatement(
-                "SELECT * FROM Halls WHERE cinemaId = ?"
+                "SELECT * FROM Cinemas WHERE id = ?"
         );
-        s.setInt(1, cinema.getId());
+        s.setInt(1, cinemaId);
         return s.executeQuery();
     }
 
+
     @Override
-    public ResultSet getCinemaMovies(Cinema cinema) throws SQLException, UnableToOpenDatabaseException {
+    public ResultSet get() throws SQLException, UnableToOpenDatabaseException {
         Connection conn = CinemaDatabase.getConnection();
-        PreparedStatement s = conn.prepareStatement(
-                "SELECT DISTINCT(Movies.id, name, duration) FROM (Halls JOIN ShowTimes ON Halls.id = ShowTimes.hallId) JOIN Movies ON Movies.id = movieId WHERE Halls.cinemaId = ? "
-        );
-        s.setInt(1, cinema.getId());
+        PreparedStatement s = conn.prepareStatement("SELECT * FROM Cinemas");
         return s.executeQuery();
     }
 

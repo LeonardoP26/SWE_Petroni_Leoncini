@@ -1,23 +1,23 @@
 package daos;
 
-import BusinessLogic.UnableToOpenDatabaseException;
+import BusinessLogic.exceptions.UnableToOpenDatabaseException;
 import Domain.Booking;
+import Domain.Seat;
+import Domain.ShowTime;
+import Domain.User;
 import org.jetbrains.annotations.NotNull;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.List;
 
 public interface BookingDaoInterface  {
 
-    void insert(@NotNull Booking booking) throws SQLException, UnableToOpenDatabaseException;
+    boolean insert(int bookingNumber, @NotNull ShowTime showTime, List<Seat> seats, List<User> users) throws SQLException, UnableToOpenDatabaseException;
 
-    int createBookingNumber() throws SQLException, UnableToOpenDatabaseException;
+    boolean delete(int bookingNumber) throws SQLException, UnableToOpenDatabaseException;
 
-    ResultSet getBooking(int bookingNumber) throws SQLException, UnableToOpenDatabaseException;
+    ResultSet createBookingNumber() throws SQLException, UnableToOpenDatabaseException;
 
-    ResultSet getBookingUsers(Booking booking) throws SQLException, UnableToOpenDatabaseException;
-
-    ResultSet getBookingSeats(Booking booking) throws SQLException, UnableToOpenDatabaseException;
-
-    ResultSet getBookingShowTime(Booking booking) throws SQLException, UnableToOpenDatabaseException;
+    ResultSet get(@NotNull User user) throws SQLException, UnableToOpenDatabaseException;
 }

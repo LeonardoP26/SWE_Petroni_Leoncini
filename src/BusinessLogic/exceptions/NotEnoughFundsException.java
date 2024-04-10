@@ -1,4 +1,4 @@
-package BusinessLogic;
+package BusinessLogic.exceptions;
 
 public class NotEnoughFundsException extends Exception{
 

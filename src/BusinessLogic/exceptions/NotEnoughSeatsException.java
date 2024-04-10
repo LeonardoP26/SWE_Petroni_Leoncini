@@ -1,4 +1,4 @@
-package BusinessLogic;
+package BusinessLogic.exceptions;
 
 public class NotEnoughSeatsException extends Exception{
 

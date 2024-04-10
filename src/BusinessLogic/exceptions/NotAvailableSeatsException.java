@@ -1,4 +1,4 @@
-package BusinessLogic;
+package BusinessLogic.exceptions;
 
 import Domain.Seat;
 

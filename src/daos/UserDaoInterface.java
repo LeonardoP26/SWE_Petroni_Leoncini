@@ -1,18 +1,26 @@
 package daos;
 
-import BusinessLogic.UnableToOpenDatabaseException;
-import Domain.User;
+import BusinessLogic.exceptions.UnableToOpenDatabaseException;
 import org.jetbrains.annotations.NotNull;
 
+import java.sql.ResultSet;
 import java.sql.SQLException;
 
 public interface UserDaoInterface {
 
-    void insert(int id, String username, long balance) throws SQLException, UnableToOpenDatabaseException;
+    ResultSet insert(String username, String password, long balance) throws SQLException, UnableToOpenDatabaseException;
 
-    boolean doesUsernameAlreadyExists(@NotNull String username) throws SQLException, UnableToOpenDatabaseException;
+    boolean update(int userId, String username, String password, long balance) throws SQLException, UnableToOpenDatabaseException;
 
-    int getNewId() throws SQLException, UnableToOpenDatabaseException;
+    boolean delete(int userId) throws SQLException, UnableToOpenDatabaseException;
 
-    void update(User user) throws SQLException, UnableToOpenDatabaseException;
+    ResultSet get(int userId) throws SQLException, UnableToOpenDatabaseException;
+
+    ResultSet doesUsernameAlreadyExists(@NotNull String username) throws SQLException, UnableToOpenDatabaseException;
+
+    ResultSet get(String username, String password) throws SQLException, UnableToOpenDatabaseException;
+
+    ResultSet get(String username) throws SQLException, UnableToOpenDatabaseException;
+
+    boolean update(int userId, long balance) throws SQLException, UnableToOpenDatabaseException;
 }

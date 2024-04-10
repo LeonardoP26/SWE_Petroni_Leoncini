@@ -1,38 +1,43 @@
 package Domain;
 
-
-import BusinessLogic.*;
-import BusinessLogic.repositories.BookingRepository;
-import BusinessLogic.repositories.BookingRepositoryInterface;
-import BusinessLogic.repositories.UserRepository;
-import org.jetbrains.annotations.Range;
-
+import BusinessLogic.exceptions.NotEnoughFundsException;
+import BusinessLogic.exceptions.UnableToOpenDatabaseException;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
-public class User extends Subject implements DatabaseEntity {
+public class User implements DatabaseEntity {
 
     public User(ResultSet res) throws SQLException {
-        this(res.getInt(1), res.getString(2), res.getLong(3));
+        try {
+            this.id = res.getInt("Users.id");
+            this.username = res.getString("Users.username");
+            this.password = res.getString("Users.password");
+            this.balance = res.getLong("users.balance");
+        } catch (SQLException e){
+            this.id = res.getInt("id");
+            this.username = res.getString("username");
+            this.password = res.getString("password");
+            this.balance = res.getLong("balance");
+        }
     }
 
-    public User(int id, String username, long balance){
-        this(id, username);
+    public User(String username, String password) {
+        this.username = username;
+        this.password = password;
+    }
+
+    public User(String username, String password, long balance) {
+        this(username, password);
         this.balance = balance;
     }
 
-    public User(int id, String username){
-        this.id = id;
-        this.username = username;
-        addObserver(UserRepository.getInstance());
-    }
 
-    private final BookingRepositoryInterface bookingRepo = BookingRepository.getInstance();
-    private final String username;
-    private final int id;
+    private int id = ENTITY_WITHOUT_ID;
+    private String username;
+    private String password = null;
     private long balance = 0;
+    private List<Booking> bookings = new ArrayList<>();
 
 
     public String getUsername() {
@@ -40,37 +45,24 @@ public class User extends Subject implements DatabaseEntity {
     }
 
     @Override
-    public int getId() {
-        return id;
-    }
+    public String getName() { return getUsername(); }
 
-    public long getBalance() {
-        return balance;
-    }
+    public List<Booking> getBookings() { return bookings; }
 
-    public void setBalance(@Range(from = 0, to = Integer.MAX_VALUE) long balance) throws SQLException, UnableToOpenDatabaseException {
+    public void setBookings(List<Booking> bookings) { this.bookings = bookings; }
+
+    public int getId() { return id; }
+
+    public long getBalance() { return balance; }
+
+    public String getPassword() { return password; }
+
+    public void setBalance(long balance) throws SQLException, UnableToOpenDatabaseException, NotEnoughFundsException {
+        if(balance < 0)
+            throw new NotEnoughFundsException("You do not have enough money, please recharge your account.");
         this.balance = balance;
-        notifyObservers(this);
     }
 
-    public void rechargeBalance(@Range(from = 0, to = Integer.MAX_VALUE) long amount) throws SQLException, UnableToOpenDatabaseException {
-        balance += amount;
-        notifyObservers(this);
-    }
-
-    private void checkBalance(@Range(from = 0, to = Integer.MAX_VALUE) long amount) throws NotEnoughFundsException{
-        if (amount > balance)
-            throw new NotEnoughFundsException("Credit is insufficient.");
-    }
-
-    public Booking book(ShowTime showTime, List<Seat> seats, List<User> users) throws NotAvailableSeatsException, SQLException, NotEnoughSeatsException, NotEnoughFundsException, UnableToOpenDatabaseException {
-        int totalSpending = showTime.getHall().getCost() * seats.size();
-        checkBalance(totalSpending);
-        ArrayList<User> usr = new ArrayList<>(users);
-        usr.add(this);
-        Booking booking = bookingRepo.book(showTime, seats, usr);
-        setBalance(balance - totalSpending);
-        return booking;
-    }
+    public void setId(int id) { this.id = id; }
 
 }

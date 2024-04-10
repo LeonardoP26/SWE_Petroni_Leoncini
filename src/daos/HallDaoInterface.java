@@ -1,7 +1,8 @@
 package daos;
 
-import BusinessLogic.UnableToOpenDatabaseException;
+import BusinessLogic.exceptions.UnableToOpenDatabaseException;
 import Domain.Hall;
+import Domain.ShowTime;
 import org.jetbrains.annotations.NotNull;
 
 import java.sql.ResultSet;
@@ -9,9 +10,13 @@ import java.sql.SQLException;
 
 public interface HallDaoInterface {
 
-    void insert(@NotNull Hall hall) throws SQLException, UnableToOpenDatabaseException;
+    ResultSet insert(int hallNumber, int cinemaId, Hall.HallTypes type) throws SQLException, UnableToOpenDatabaseException;
 
-    ResultSet getHall(int hallId) throws SQLException, UnableToOpenDatabaseException;
+    boolean update(int hallId, int hallNumber, int cinemaId, Hall.HallTypes type) throws SQLException, UnableToOpenDatabaseException;
 
-    ResultSet getHallSeats(Hall hall) throws SQLException, UnableToOpenDatabaseException;
+    boolean delete(int hallId) throws SQLException, UnableToOpenDatabaseException;
+
+    ResultSet get(int hallId) throws SQLException, UnableToOpenDatabaseException;
+
+    ResultSet get(@NotNull ShowTime showTime) throws SQLException, UnableToOpenDatabaseException;
 }

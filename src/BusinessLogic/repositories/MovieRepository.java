@@ -1,15 +1,18 @@
 package BusinessLogic.repositories;
 
-import BusinessLogic.UnableToOpenDatabaseException;
+import BusinessLogic.exceptions.DatabaseInsertionFailedException;
+import BusinessLogic.exceptions.UnableToOpenDatabaseException;
+import Domain.Cinema;
 import Domain.Movie;
 import daos.MovieDao;
 import daos.MovieDaoInterface;
+import org.jetbrains.annotations.NotNull;
+
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.time.Duration;
-import java.time.temporal.ChronoUnit;
+import java.util.List;
 
-public class MovieRepository implements MovieRepositoryInterface{
+public class MovieRepository extends Repository implements MovieRepositoryInterface{
 
     private final MovieDaoInterface dao = MovieDao.getInstance();
 
@@ -23,12 +26,39 @@ public class MovieRepository implements MovieRepositoryInterface{
 
     private MovieRepository() { }
 
+
     @Override
-    public Movie getMovie(int movieId) throws SQLException, UnableToOpenDatabaseException {
-        try(ResultSet res = dao.getMovie(movieId)) {
-            if (!res.isBeforeFirst())
-                return null;
-            return new Movie(res.getInt(1), res.getString(2), Duration.of(res.getLong(3), ChronoUnit.SECONDS));
+    public int insert(@NotNull Movie movie) throws SQLException, UnableToOpenDatabaseException, DatabaseInsertionFailedException {
+        try(ResultSet res = dao.insert(movie.getName(), movie.getDuration())){
+            if(res.next())
+                return res.getInt(1);
+            throw new DatabaseInsertionFailedException("Database insertion Failed");
+        }
+    }
+
+    @Override
+    public boolean update(@NotNull Movie movie) throws SQLException, UnableToOpenDatabaseException {
+        return dao.update(movie.getId(), movie.getName(), movie.getDuration());
+    }
+
+    @Override
+    public boolean delete(@NotNull Movie movie) throws SQLException, UnableToOpenDatabaseException {
+        return dao.delete(movie.getId());
+    }
+
+    @Override
+    public Movie get(int movieId) throws SQLException, UnableToOpenDatabaseException {
+        try(ResultSet res = dao.get(movieId)){
+            if(res.next())
+                return new Movie(res);
+            return null;
+        }
+    }
+
+    @Override
+    public List<Movie> get(Cinema cinema) throws SQLException, UnableToOpenDatabaseException {
+        try(ResultSet res = dao.get(cinema)){
+            return getList(res, () -> new Movie(res));
         }
     }
 

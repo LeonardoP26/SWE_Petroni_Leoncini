@@ -2,6 +2,8 @@ package Domain;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.List;
+import java.util.Map;
 
 public class ThreeDHall extends Hall {
 
@@ -10,11 +12,11 @@ public class ThreeDHall extends Hall {
     private final HallTypes type = HallTypes.THREE_D;
 
     public ThreeDHall(ResultSet res) throws SQLException {
-        this(res.getInt(1), res.getInt(2));
+        super(res);
     }
 
-    public ThreeDHall(int id, int cinemaId) {
-        super(id, cinemaId);
+    public ThreeDHall(int hallNumber){
+        super(hallNumber);
     }
 
     @Override
@@ -22,7 +24,7 @@ public class ThreeDHall extends Hall {
         return cost + extra3d;
     }
 
-    public int getExtra3d() {
+    protected int getExtra3d() {
         return extra3d;
     }
 

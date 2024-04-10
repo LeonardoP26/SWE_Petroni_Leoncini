@@ -1,5 +1,7 @@
 package BusinessLogic;
 
+import BusinessLogic.exceptions.UnableToOpenDatabaseException;
+
 import java.sql.*;
 
 public class CinemaDatabase {
@@ -17,52 +19,53 @@ public class CinemaDatabase {
             stmt.execute(
                     "CREATE TABLE IF NOT EXISTS Cinemas(" +
                             "id INTEGER PRIMARY KEY, " +
-                            "name VARCHAR UNIQUE NOT NULL ON CONFLICT IGNORE" +
+                            "name VARCHAR UNIQUE NOT NULL ON CONFLICT ROLLBACK" +
                             ")"
             );
             stmt.execute(
                     "CREATE TABLE IF NOT EXISTS Movies(" +
                             "id INTEGER PRIMARY KEY, " +
-                            "name TEXT, " +
-                            "duration INTEGER, " +
-                            "UNIQUE(name, duration)" +
+                            "name TEXT UNIQUE NOT NULL ON CONFLICT ROLLBACK, " +
+                            "duration INTEGER " +
                             ")"
             );
             stmt.execute(
                     "CREATE TABLE IF NOT EXISTS Halls(" +
-                            "id INTEGER PRIMARY KEY, " +
-                            "cinemaId INTEGER, " +
-                            "type VARCHAR, " +
-                            "FOREIGN KEY (cinemaId) REFERENCES Cinemas(id)" +
+                            "id INTEGER PRIMARY KEY , " +
+                            "hallNumber INTEGER NOT NULL , " +
+                            "cinemaId INTEGER NOT NULL, " +
+                            "type VARCHAR NOT NULL, " +
+                            "UNIQUE (hallNumber, cinemaId) ON CONFLICT ROLLBACK, " +
+                            "FOREIGN KEY (cinemaId) REFERENCES Cinemas(id) ON DELETE CASCADE ON UPDATE CASCADE" +
                             ")"
             );
             stmt.execute(
                     "CREATE TABLE IF NOT EXISTS Seats(" +
                             "id INTEGER PRIMARY KEY, " +
-                            "row CHARACTER(1), " +
-                            "number INTEGER, " +
-                            "isBooked BOOLEAN, " +
-                            "hallId INTEGER, " +
-                            "UNIQUE(row, number, hallId), " +
-                            "FOREIGN KEY(hallId) REFERENCES Halls(id)" +
+                            "row CHARACTER(1) NOT NULL , " +
+                            "number INTEGER NOT NULL, " +
+                            "hallId INTEGER NOT NULL, " +
+                            "UNIQUE(row, number, hallId) ON CONFLICT ROLLBACK, " +
+                            "FOREIGN KEY(hallId) REFERENCES Halls(id) ON DELETE CASCADE ON UPDATE CASCADE" +
                             ")"
             );
             stmt.execute(
                     "CREATE TABLE IF NOT EXISTS Users(" +
                             "id INTEGER PRIMARY KEY, " +
-                            "username VARCHAR(15) UNIQUE NOT NULL ON CONFLICT IGNORE, " +
-                            "balance BIGINT DEFAULT 0" +
+                            "username VARCHAR(15) UNIQUE NOT NULL ON CONFLICT ROLLBACK, " +
+                            "password TEXT NOT NULL, " +
+                            "balance BIGINT NOT NULL DEFAULT 0" +
                             ")"
             );
             stmt.execute(
                     "CREATE TABLE IF NOT EXISTS ShowTimes(" +
                             "id INTEGER PRIMARY KEY, " +
-                            "movieId INTEGER, " +
-                            "hallId INTEGER, " +
-                            "date VARCHAR(16), " +
-                            "UNIQUE(movieId, hallId, date) ON CONFLICT IGNORE, " +
-                            "FOREIGN KEY(movieId) REFERENCES Movies(id), " +
-                            "FOREIGN KEY(hallId) REFERENCES Halls(id)" +
+                            "movieId INTEGER NOT NULL, " +
+                            "hallId INTEGER NOT NULL, " +
+                            "date VARCHAR(16) NOT NULL, " +
+                            "UNIQUE(movieId, hallId, date) ON CONFLICT ROLLBACK, " +
+                            "FOREIGN KEY(movieId) REFERENCES Movies(id) ON DELETE CASCADE ON UPDATE CASCADE, " +
+                            "FOREIGN KEY(hallId) REFERENCES Halls(id) ON DELETE CASCADE ON UPDATE CASCADE" +
                             ")"
             );
             stmt.execute(
@@ -71,10 +74,21 @@ public class CinemaDatabase {
                             "seatId INTEGER, " +
                             "userId INTEGER, " +
                             "bookingNumber INTEGER, " +
-                            "FOREIGN KEY(showTimeId) REFERENCES ShowTimes(id), " +
-                            "FOREIGN KEY(seatId) REFERENCES Seats(id), " +
-                            "FOREIGN KEY(userId) REFERENCES Users(id), " +
+                            "FOREIGN KEY(showTimeId) REFERENCES ShowTimes(id) ON DELETE CASCADE ON UPDATE CASCADE, " +
+                            "FOREIGN KEY(seatId) REFERENCES Seats(id) ON DELETE CASCADE ON UPDATE CASCADE, " +
+                            "FOREIGN KEY(userId) REFERENCES Users(id) ON DELETE CASCADE ON UPDATE CASCADE, " +
                             "PRIMARY KEY (showTimeId, seatId, userId)" +
+                            ")"
+            );
+            stmt.execute(
+                    "CREATE TABLE IF NOT EXISTS ShowTimeSeats(" +
+                            "showTimeId INTEGER, " +
+                            "seatId INTEGER, " +
+                            "bookingNumber INTEGER DEFAULT 0, " +
+                            "PRIMARY KEY (showTimeId, seatId), " +
+                            "FOREIGN KEY (showTimeId) REFERENCES ShowTimes(id) ON DELETE CASCADE ON UPDATE CASCADE, " +
+                            "FOREIGN KEY (seatId) REFERENCES Seats(id) ON DELETE CASCADE ON UPDATE CASCADE, " +
+                            "FOREIGN KEY (bookingNumber) REFERENCES Bookings(bookingNumber) ON DELETE SET DEFAULT ON UPDATE CASCADE" +
                             ")"
             );
         }
@@ -88,6 +102,18 @@ public class CinemaDatabase {
                 throw new UnableToOpenDatabaseException("Unable to open the database.");
         }
         return connection;
+    }
+
+    public static boolean isDatabaseEmpty() throws SQLException {
+        try (
+                Connection conn = DriverManager.getConnection(dbUrl);
+                Statement s = conn.createStatement()
+        ) {
+            ResultSet res = s.executeQuery("SELECT COUNT(*) FROM sqlite_master");
+            if (res.next())
+                return res.getInt(1) == 0;
+            return true;
+        }
     }
 
 }

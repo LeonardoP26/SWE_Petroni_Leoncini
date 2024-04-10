@@ -1,43 +1,49 @@
 package Domain;
 
-import BusinessLogic.Subject;
-import BusinessLogic.UnableToOpenDatabaseException;
-import BusinessLogic.repositories.HallRepository;
-import BusinessLogic.repositories.HallRepositoryInterface;
-import BusinessLogic.repositories.SeatsRepository;
-
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
-public class Seat extends Subject implements DatabaseEntity {
+public class Seat implements DatabaseEntity {
 
-    private final int id;
-    private final int hallId;
+    private int id = ENTITY_WITHOUT_ID;
     private boolean isBooked;
-    private final char row;
-    private final int number;
-    private final HallRepositoryInterface hallRepo = HallRepository.getInstance();
+    private char row;
+    private int number;
 
     public Seat(ResultSet res) throws SQLException {
-        this(res.getInt(1), res.getString(2).charAt(0), res.getInt(3), res.getInt(4));
-        this.isBooked = res.getBoolean(5);
+        try {
+            this.id = res.getInt("Seats.id");
+        } catch (SQLException e) {
+            this.id = res.getInt("id");
+        }
+        try {
+            this.row = res.getString("Seats.row").charAt(0);
+        } catch (SQLException e) {
+            this.row = res.getString("row").charAt(0);
+        }
+        try {
+            this.number = res.getInt("Seats.number");
+        } catch (SQLException e) {
+            this.number = res.getInt("number");
+        }
     }
 
-    public Seat(int id, char row, int number, int hallId){
-        this.id = id;
-        this.hallId = hallId;
+    public Seat(char row, int number){
         this.number = number;
         this.row = row;
-        addObserver(SeatsRepository.getInstance());
     }
 
     public boolean isBooked() {
         return isBooked;
     }
 
-    public void setBooked(boolean booked) throws SQLException, UnableToOpenDatabaseException {
-        isBooked = booked;
-        notifyObservers(this);
+    public void setBooked(boolean isBooked) {
+        this.isBooked = isBooked;
+    }
+
+    @Override
+    public String getName(){
+        return String.valueOf(row + number);
     }
 
     public char getRow() {
@@ -48,16 +54,11 @@ public class Seat extends Subject implements DatabaseEntity {
         return number;
     }
 
-    public int getHallId(){
-        return hallId;
-    }
-
-    public Hall getHall() throws SQLException, UnableToOpenDatabaseException {
-        return hallRepo.getHall(hallId);
-    }
-
-    @Override
     public int getId() {
         return id;
+    }
+
+    public void setId(int id) {
+        this.id = id;
     }
 }

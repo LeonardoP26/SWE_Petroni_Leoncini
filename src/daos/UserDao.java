@@ -1,8 +1,7 @@
 package daos;
 
 import BusinessLogic.CinemaDatabase;
-import BusinessLogic.UnableToOpenDatabaseException;
-import Domain.User;
+import BusinessLogic.exceptions.UnableToOpenDatabaseException;
 import org.jetbrains.annotations.NotNull;
 
 import java.sql.*;
@@ -20,49 +19,92 @@ public class UserDao implements UserDaoInterface{
     private UserDao() { }
 
     @Override
-    public void insert(int id, String username, long balance) throws SQLException, UnableToOpenDatabaseException {
+    public ResultSet insert(String username, String password, long balance) throws SQLException, UnableToOpenDatabaseException {
         Connection conn = CinemaDatabase.getConnection();
         PreparedStatement s = conn.prepareStatement(
-                "INSERT OR IGNORE INTO Users(id, username, balance) VALUES (?, ?, ?)"
+                "INSERT INTO Users(username, password, balance) VALUES (?, ?, ?)"
         );
-        s.setInt(1, id);
-        s.setString(2, username);
+        s.setString(1, username);
+        s.setString(2, password);
         s.setLong(3, balance);
         s.executeUpdate();
+        PreparedStatement getId = conn.prepareStatement("SELECT last_insert_rowid()");
+        return getId.executeQuery();
     }
 
     @Override
-    public boolean doesUsernameAlreadyExists(@NotNull String username) throws SQLException, UnableToOpenDatabaseException {
+    public boolean update(int userId, String username, String password, long balance) throws SQLException, UnableToOpenDatabaseException {
+        try (PreparedStatement s = CinemaDatabase.getConnection().prepareStatement(
+                "UPDATE Users SET username = ?, password = ?, balance = ? WHERE id = ?"
+        )) {
+            s.setString(1, username);
+            s.setString(2, password);
+            s.setLong(3, balance);
+            s.setInt(4, userId);
+            return s.executeUpdate() > 0;
+        }
+    }
+
+    @Override
+    public boolean delete(int userId) throws SQLException, UnableToOpenDatabaseException {
+        try (PreparedStatement s = CinemaDatabase.getConnection().prepareStatement(
+                "DELETE FROM Users WHERE id = ?"
+        )) {
+            s.setInt(1, userId);
+            return s.executeUpdate() > 0;
+        }
+    }
+
+    @Override
+    public ResultSet get(int userId) throws SQLException, UnableToOpenDatabaseException {
+        Connection conn = CinemaDatabase.getConnection();
+        PreparedStatement s = conn.prepareStatement(
+                "SELECT * FROM Users WHERE id = ?"
+        );
+        s.setInt(1, userId);
+        return s.executeQuery();
+    }
+
+    @Override
+    public ResultSet doesUsernameAlreadyExists(@NotNull String username) throws SQLException, UnableToOpenDatabaseException {
         Connection conn = CinemaDatabase.getConnection();
         PreparedStatement s = conn.prepareStatement(
                 "SELECT username FROM Users WHERE username = ?"
         );
         s.setString(1, username);
-        ResultSet res = s.executeQuery();
-        return res.isBeforeFirst();
+        return s.executeQuery();
     }
 
     @Override
-    public int getNewId() throws SQLException, UnableToOpenDatabaseException {
-        Connection conn = CinemaDatabase.getConnection();
-        Statement s = conn.createStatement();
-        ResultSet res = s.executeQuery("SELECT id FROM Users WHERE id = (SELECT MAX(id) FROM Users)");
-        if(res != null)
-            return res.getInt(1) + 1;
-        return 0;
-
-    }
-
-    @Override
-    public void update(User user) throws SQLException, UnableToOpenDatabaseException {
+    public ResultSet get(String username, String password) throws SQLException, UnableToOpenDatabaseException {
         Connection conn = CinemaDatabase.getConnection();
         PreparedStatement s = conn.prepareStatement(
-                "UPDATE Users SET username = ?, balance = ? WHERE id = ?"
+                "SELECT * FROM Users WHERE username = ? AND password = ?"
         );
-        s.setString(1, user.getUsername());
-        s.setLong(2, user.getBalance());
-        s.setInt(3, user.getId());
-        s.executeUpdate();
+        s.setString(1, username);
+        s.setString(2, password);
+        return s.executeQuery();
+    }
+
+    @Override
+    public ResultSet get(String username) throws SQLException, UnableToOpenDatabaseException {
+        Connection conn = CinemaDatabase.getConnection();
+        PreparedStatement s = conn.prepareStatement(
+                "SELECT * FROM Users WHERE username = ?"
+        );
+        s.setString(1, username);
+        return s.executeQuery();
+    }
+
+    @Override
+    public boolean update(int userId, long balance) throws SQLException, UnableToOpenDatabaseException {
+        Connection conn = CinemaDatabase.getConnection();
+        PreparedStatement s = conn.prepareStatement(
+                "UPDATE Users SET balance = ? WHERE id = ?"
+        );
+        s.setLong(1, balance);
+        s.setInt(2, userId);
+        return s.executeUpdate() > 0;
     }
 
 }

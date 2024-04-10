@@ -1,5 +1,7 @@
 package BusinessLogic;
 
+import BusinessLogic.exceptions.UnableToOpenDatabaseException;
+
 import java.sql.SQLException;
 import java.util.ArrayList;
 

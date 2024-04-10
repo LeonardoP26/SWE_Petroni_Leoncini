@@ -2,6 +2,8 @@ package Domain;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.List;
+import java.util.Map;
 
 public class Imax3DHall extends Hall {
 
@@ -10,13 +12,15 @@ public class Imax3DHall extends Hall {
     private final HallTypes type = HallTypes.IMAX_3D;
 
     public Imax3DHall(ResultSet res) throws SQLException {
-        this(res.getInt(1), res.getInt(2));
+        super(res);
+        hall3d = new ThreeDHall(res);
+        imaxHall = new ImaxHall(res);
     }
 
-    public Imax3DHall(int id, int cinemaId) {
-        super(id, cinemaId);
-        hall3d = new ThreeDHall(id, cinemaId);
-        imaxHall = new ImaxHall(id, cinemaId);
+    public Imax3DHall (int hallNumber){
+        super(hallNumber);
+        hall3d = new ThreeDHall(hallNumber);
+        imaxHall = new ImaxHall(hallNumber);
     }
 
     @Override

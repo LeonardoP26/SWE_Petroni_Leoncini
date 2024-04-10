@@ -1,6 +1,6 @@
 package Domain;
 
-import BusinessLogic.UnableToOpenDatabaseException;
+import BusinessLogic.exceptions.UnableToOpenDatabaseException;
 import BusinessLogic.repositories.HallRepository;
 import BusinessLogic.repositories.HallRepositoryInterface;
 import BusinessLogic.repositories.MovieRepository;
@@ -15,47 +15,54 @@ import java.time.temporal.ChronoUnit;
 public class ShowTime implements DatabaseEntity {
 
     public ShowTime(ResultSet res) throws SQLException {
-        this(res.getInt(1), res.getInt(2), res.getInt(3), LocalDateTime.parse(res.getString(4), DateTimeFormatter.ISO_LOCAL_DATE_TIME));
+        try{
+            this.id = res.getInt("ShowTimes.id");
+        } catch (SQLException e){
+            this.id = res.getInt("id");
+        }
     }
 
-    public ShowTime(int id, int movieId, int hallId, LocalDateTime date){
-        this.id = id;
-        this.movieId = movieId;
-        this.hallId = hallId;
-        this.date = date.truncatedTo(ChronoUnit.MINUTES);
+    public ShowTime(Movie movie, Hall hall, LocalDateTime date){
+        this.movie = movie;
+        this.hall = hall;
+        this.date = date;
     }
 
-    private final int id;
-    private final int movieId;
-    private final LocalDateTime date;
-    private final int hallId;
-    private final HallRepositoryInterface hallRepo = HallRepository.getInstance();
-    private final MovieRepositoryInterface movieRepo = MovieRepository.getInstance();
+
+    private Movie movie;
+    private Hall hall;
+    private int id = ENTITY_WITHOUT_ID;
+    private LocalDateTime date;
 
 
-    @Override
     public int getId() {
         return id;
     }
 
-    public int getMovieId() {
-        return movieId;
+    @Override
+    public String getName(){
+        return "Hall " + hall.getName() + " - " + date.getDayOfMonth() + " " + date.getMonth() + " " + date.getYear() + " at " + date.getHour() + ":" + date.getMinute() + " - " + hall.getHallType();
     }
 
     public LocalDateTime getDate() {
         return date;
     }
 
-    public int getHallId() {
-        return hallId;
+    public void setDate(LocalDateTime date) { this.date = date; }
+
+    public Hall getHall() {
+        return hall;
     }
 
-    public Hall getHall() throws SQLException, UnableToOpenDatabaseException {
-        return hallRepo.getHall(hallId);
+    public void setHall(Hall hall) { this.hall = hall; }
+
+    public Movie getMovie() {
+        return movie;
     }
 
-    public Movie getMovie() throws SQLException, UnableToOpenDatabaseException {
-        return movieRepo.getMovie(movieId);
-    }
+    public void setMovie(Movie movie) { this.movie = movie; }
 
+    public void setId(int id) {
+        this.id = id;
+    }
 }

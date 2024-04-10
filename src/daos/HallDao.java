@@ -1,10 +1,9 @@
 package daos;
 
 import BusinessLogic.CinemaDatabase;
-import BusinessLogic.UnableToOpenDatabaseException;
+import BusinessLogic.exceptions.UnableToOpenDatabaseException;
 import Domain.Hall;
-import Domain.Movie;
-import Domain.Seat;
+import Domain.ShowTime;
 import org.jetbrains.annotations.NotNull;
 
 import java.sql.*;
@@ -22,19 +21,44 @@ public class HallDao implements HallDaoInterface{
     private HallDao() { }
 
     @Override
-    public void insert(@NotNull Hall hall) throws SQLException, UnableToOpenDatabaseException {
-        Connection con = CinemaDatabase.getConnection();
-        PreparedStatement s = con.prepareStatement(
-                "INSERT OR IGNORE INTO Halls(id, cinemaId, type) VALUES (?, ?, ?)"
+    public ResultSet insert(int hallNumber, int cinemaId, Hall.HallTypes type) throws SQLException, UnableToOpenDatabaseException {
+        Connection conn = CinemaDatabase.getConnection();
+        PreparedStatement s = conn.prepareStatement(
+                "INSERT OR IGNORE INTO Halls(hallNumber, cinemaId, type) VALUES (?, ?, ?)"
         );
-        s.setInt(1, hall.getId());
-        s.setInt(2, hall.getCinemaId());
-        s.setString(3, hall.getHallType().toString());
+        s.setInt(1, hallNumber);
+        s.setInt(2, cinemaId);
+        s.setString(3, type.toString());
         s.executeUpdate();
+        PreparedStatement getId = conn.prepareStatement("SELECT last_insert_rowid()");
+        return getId.executeQuery();
     }
 
     @Override
-    public ResultSet getHall (int hallId) throws SQLException, UnableToOpenDatabaseException {
+    public boolean update(int hallId, int hallNumber, int cinemaId, Hall.HallTypes type) throws SQLException, UnableToOpenDatabaseException {
+        try(PreparedStatement s = CinemaDatabase.getConnection().prepareStatement(
+                "UPDATE Halls SET hallNumber = ?, cinemaId = ?, type = ? WHERE id = ?"
+        )){
+            s.setInt(1, hallNumber);
+            s.setInt(2, cinemaId);
+            s.setString(3, type.toString());
+            s.setInt(4, hallId);
+            return s.executeUpdate() > 0;
+        }
+    }
+
+    @Override
+    public boolean delete(int hallId) throws SQLException, UnableToOpenDatabaseException {
+        try (PreparedStatement s = CinemaDatabase.getConnection().prepareStatement(
+                "DELETE FROM Halls WHERE id = ?"
+        )){
+            s.setInt(1, hallId);
+            return s.executeUpdate() > 0;
+        }
+    }
+
+    @Override
+    public ResultSet get(int hallId) throws SQLException, UnableToOpenDatabaseException {
         Connection conn = CinemaDatabase.getConnection();
         PreparedStatement s = conn.prepareStatement(
                 "SELECT * FROM Halls WHERE id = ?"
@@ -44,12 +68,12 @@ public class HallDao implements HallDaoInterface{
     }
 
     @Override
-    public ResultSet getHallSeats(Hall hall) throws SQLException, UnableToOpenDatabaseException {
+    public ResultSet get(@NotNull ShowTime showTime) throws SQLException, UnableToOpenDatabaseException {
         Connection conn = CinemaDatabase.getConnection();
         PreparedStatement s = conn.prepareStatement(
-                "SELECT Seats.id, row, number, isBooked, hallId FROM Halls JOIN Seats ON Halls.id = Seats.hallId WHERE Halls.id = ?"
+                "SELECT Halls.id, hallNumber, type FROM ShowTimes JOIN Halls ON hallId = Halls.id WHERE ShowTimes.id = ?"
         );
-        s.setInt(1, hall.getId());
+        s.setInt(1, showTime.getId());
         return s.executeQuery();
     }
 

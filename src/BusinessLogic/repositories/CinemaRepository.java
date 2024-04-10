@@ -1,19 +1,15 @@
 package BusinessLogic.repositories;
 
-import BusinessLogic.UnableToOpenDatabaseException;
+import BusinessLogic.exceptions.DatabaseInsertionFailedException;
+import BusinessLogic.exceptions.UnableToOpenDatabaseException;
 import Domain.Cinema;
-import Domain.Hall;
 import Domain.Movie;
 import daos.CinemaDao;
 import daos.CinemaDaoInterface;
-import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.NotNull;
 
-import java.lang.reflect.InvocationTargetException;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.time.Duration;
-import java.time.temporal.ChronoUnit;
-import java.util.ArrayList;
 import java.util.List;
 
 public class CinemaRepository extends Repository implements CinemaRepositoryInterface {
@@ -30,21 +26,37 @@ public class CinemaRepository extends Repository implements CinemaRepositoryInte
     private CinemaRepository() { }
 
     @Override
-    public void insert(Cinema cinema) throws SQLException, UnableToOpenDatabaseException {
-        dao.insert(cinema);
-    }
-
-    @Override
-    public List<Hall> getCinemaHalls(Cinema cinema) throws SQLException, UnableToOpenDatabaseException, InvocationTargetException, NoSuchMethodException, InstantiationException, IllegalAccessException {
-        try(ResultSet res = dao.getCinemaHalls(cinema)){
-            return getList(res, Hall.class);
+    public int insert(Cinema cinema) throws SQLException, UnableToOpenDatabaseException, DatabaseInsertionFailedException {
+        try (ResultSet res = dao.insert(cinema.getName())) {
+            if(res.next())
+                return res.getInt(1);
+            throw new DatabaseInsertionFailedException("Database insertion failed: Record already present");
         }
     }
 
     @Override
-    public List<Movie> getCinemaMovies(Cinema cinema) throws SQLException, UnableToOpenDatabaseException, InvocationTargetException, NoSuchMethodException, InstantiationException, IllegalAccessException {
-        try(ResultSet res = dao.getCinemaMovies(cinema)){
-            return getList(res, Movie.class);
+    public boolean update(@NotNull Cinema cinema) throws SQLException, UnableToOpenDatabaseException {
+        return dao.update(cinema.getId(), cinema.getName());
+    }
+
+    @Override
+    public boolean delete(@NotNull Cinema cinema) throws SQLException, UnableToOpenDatabaseException {
+        return dao.delete(cinema.getId());
+    }
+
+    @Override
+    public Cinema get(int cinemaId) throws SQLException, UnableToOpenDatabaseException {
+        try(ResultSet res = dao.get(cinemaId)){
+            if(res.next())
+                return new Cinema(res);
+            return null;
+        }
+    }
+
+    @Override
+    public List<Cinema> get() throws SQLException, UnableToOpenDatabaseException {
+        try(ResultSet res = dao.get()){
+            return getList(res, () -> new Cinema(res));
         }
     }
 

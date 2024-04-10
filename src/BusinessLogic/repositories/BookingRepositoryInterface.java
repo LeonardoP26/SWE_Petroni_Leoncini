@@ -1,9 +1,11 @@
 package BusinessLogic.repositories;
 
-import BusinessLogic.NotAvailableSeatsException;
-import BusinessLogic.NotEnoughSeatsException;
-import BusinessLogic.UnableToOpenDatabaseException;
+import BusinessLogic.exceptions.DatabaseInsertionFailedException;
+import BusinessLogic.exceptions.NotAvailableSeatsException;
+import BusinessLogic.exceptions.NotEnoughSeatsException;
+import BusinessLogic.exceptions.UnableToOpenDatabaseException;
 import Domain.*;
+import org.jetbrains.annotations.NotNull;
 
 import java.lang.reflect.InvocationTargetException;
 import java.sql.SQLException;
@@ -11,13 +13,9 @@ import java.util.List;
 
 public interface BookingRepositoryInterface {
 
-    Booking book(ShowTime showTime, List<Seat> seats, List<User> users) throws NotAvailableSeatsException, SQLException, NotEnoughSeatsException, UnableToOpenDatabaseException;
+    int insert(@NotNull Booking booking, List<User> users) throws SQLException, UnableToOpenDatabaseException, DatabaseInsertionFailedException;
 
-    Booking getBooking(int bookingNumber) throws SQLException, UnableToOpenDatabaseException;
+    boolean delete(@NotNull Booking booking) throws SQLException, UnableToOpenDatabaseException;
 
-    List<User> getBookingUsers(Booking booking) throws SQLException, UnableToOpenDatabaseException, InvocationTargetException, NoSuchMethodException, InstantiationException, IllegalAccessException;
-
-    List<Seat> getBookingSeats(Booking booking) throws SQLException, UnableToOpenDatabaseException, InvocationTargetException, NoSuchMethodException, InstantiationException, IllegalAccessException;
-
-    ShowTime getBookingShowTime(Booking booking) throws SQLException, UnableToOpenDatabaseException;
+    List<Booking> get(@NotNull User user) throws SQLException, UnableToOpenDatabaseException;
 }

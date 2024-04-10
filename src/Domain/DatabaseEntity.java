@@ -1,7 +1,10 @@
 package Domain;
 
+// Marker Interface
 public interface DatabaseEntity {
 
-    int getId();
+    int ENTITY_WITHOUT_ID = -1;
+
+    String getName();
 
 }

@@ -1,42 +1,66 @@
 package Domain;
 
-import BusinessLogic.UnableToOpenDatabaseException;
 import BusinessLogic.repositories.CinemaRepository;
 import BusinessLogic.repositories.CinemaRepositoryInterface;
+import org.jetbrains.annotations.NotNull;
 
-import java.lang.reflect.InvocationTargetException;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
+import java.util.stream.Stream;
 
 public class Cinema implements DatabaseEntity {
 
-    private final int id;
+    private int id = ENTITY_WITHOUT_ID;
     private final String name;
 
     private final CinemaRepositoryInterface cinemaRepo = CinemaRepository.getInstance();
+
+    public Cinema (@NotNull ResultSet res) throws SQLException {
+        this(res.getInt(1), res.getString(2));
+    }
+
+    public Cinema(String name){
+        this.name = name;
+    }
 
     public Cinema(int id, String name){
         this.id = id;
         this.name = name;
     }
 
-    public List<Hall> getCinemaHalls() throws SQLException, UnableToOpenDatabaseException, InvocationTargetException, NoSuchMethodException, InstantiationException, IllegalAccessException {
-        return cinemaRepo.getCinemaHalls(this);
+    private List<Hall> halls = new ArrayList<>();
+    private List<Movie> movies = new ArrayList<>();
+
+
+    public List<Hall> getHalls() {
+        return halls;
     }
 
-    public List<Movie> getCinemaMovies() throws SQLException, UnableToOpenDatabaseException, InvocationTargetException, NoSuchMethodException, InstantiationException, IllegalAccessException {
-        return cinemaRepo.getCinemaMovies(this);
+    public List<Movie> getMovies() {
+        return movies;
     }
 
+    public void setMovies(@NotNull List<Movie> movies){
+        this.movies = movies;
+    }
 
-    @Override
+    public void setHalls(List<Hall> halls) {
+        this.halls = halls;
+    }
+
     public int getId() {
         return id;
     }
 
+    @Override
     public String getName() {
         return name;
     }
 
+    public void setId(int id) {
+        this.id = id;
+    }
 }
