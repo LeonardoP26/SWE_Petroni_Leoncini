@@ -71,7 +71,7 @@ public class HallDao implements HallDaoInterface{
     public ResultSet get(@NotNull ShowTime showTime) throws SQLException, UnableToOpenDatabaseException {
         Connection conn = CinemaDatabase.getConnection();
         PreparedStatement s = conn.prepareStatement(
-                "SELECT Halls.hall_id, hall_number, type FROM ShowTimes JOIN Halls ON hall_id = Halls.hall_id WHERE ShowTimes.showtime_id = ?"
+                "SELECT Halls.hall_id, hall_number, type FROM ShowTimes JOIN Halls ON ShowTimes.hall_id = Halls.hall_id WHERE ShowTimes.showtime_id = ?"
         );
         s.setInt(1, showTime.getId());
         return s.executeQuery();

@@ -11,7 +11,7 @@ public class Seat implements DatabaseEntity {
     private int number;
 
     public Seat(ResultSet res) throws SQLException {
-        this.id = res.getInt("seatId");
+        this.id = res.getInt("seat_id");
         this.row = res.getString("row").charAt(0);
         this.number = res.getInt("number");
     }

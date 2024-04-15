@@ -14,11 +14,11 @@ import java.util.stream.Stream;
 public class Cinema implements DatabaseEntity {
 
     private int id = ENTITY_WITHOUT_ID;
-    private  String name;
+    private String name;
 
     public Cinema (@NotNull ResultSet res) throws SQLException {
-        id = res.getInt("cinemaId");
-        name = res.getString("cinemaName");
+        id = res.getInt("cinema_id");
+        name = res.getString("cinema_name");
     }
 
     public Cinema(String name){

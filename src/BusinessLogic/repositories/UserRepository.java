@@ -77,12 +77,13 @@ public class UserRepository extends Repository implements UserRepositoryInterfac
     }
 
     @Override
-    public boolean update(@NotNull User user, long amount) throws SQLException, UnableToOpenDatabaseException, NotEnoughFundsException {
-        long newBalance = user.getBalance() + amount;
+    public boolean update(@NotNull User user, long newBalance) throws SQLException, UnableToOpenDatabaseException, NotEnoughFundsException {
+        long oldBalance = user.getBalance();
         if(dao.update(user.getId(), newBalance)) {
             user.setBalance(newBalance);
             return true;
         }
+        user.setBalance(oldBalance);
         return false;
     }
 

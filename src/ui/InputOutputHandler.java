@@ -200,9 +200,9 @@ public class InputOutputHandler {
 
     public List<User> addPeopleToBookingPage(int max){
         List<User> users = new ArrayList<>(max);
-        int i = 0;
-        System.out.print("Add people's usernames to this booking or leave it blank to finish:\n>> ");
-        while (i < max){
+        System.out.println("Add people's usernames to this booking or leave it blank to finish:");
+        while (users.size() < max){
+            System.out.print(">>");
             Scanner sc = new Scanner(System.in);
             String username = sc.nextLine();
             if(username.isBlank())
@@ -210,7 +210,8 @@ public class InputOutputHandler {
             User user = databaseService.retrieveUser(username);
             if(user != null) {
                 users.add(user);
-                i++;
+            } else {
+                System.out.println("User does not exist.");
             }
         }
         return users;

@@ -70,7 +70,7 @@ public class SeatsDao implements SeatsDaoInterface{
     public ResultSet get(@NotNull ShowTime showTime) throws SQLException, UnableToOpenDatabaseException {
         Connection conn = CinemaDatabase.getConnection();
         PreparedStatement s = conn.prepareStatement(
-                "SELECT seat_id, row, number, booking_number FROM ShowTimeSeats JOIN Seats ON ShowTimeSeats.seat_id = Seats.seat_id WHERE showtime_id = ?"
+                "SELECT ShowTimeSeats.seat_id, row, number, booking_number FROM ShowTimeSeats JOIN Seats ON ShowTimeSeats.seat_id = Seats.seat_id WHERE showtime_id = ?"
         );
         s.setInt(1, showTime.getId());
         return s.executeQuery();

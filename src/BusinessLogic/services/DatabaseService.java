@@ -232,11 +232,13 @@ public class DatabaseService implements DatabaseServiceInterface {
             int totalSpending = booking.getSeats().size() * booking.getShowTime().getHall().getCost();
             if(booking.getSeats().stream().anyMatch(Seat::isBooked))
                 throw new InvalidSeatException("Some of these seats are already taken.");
-            owner.setBalance(owner.getBalance() - totalSpending);
             addBooking(booking, Stream.concat(others.stream(), Stream.of(owner)).toList());
+            if(owner.getBalance() - totalSpending < 0)
+                owner.setBalance(owner.getBalance() - totalSpending);
             for (Seat seat : booking.getSeats()){
                 showTimeRepo.updateShowTimeSeat(booking.getShowTime(), seat, booking.getBookingNumber());
             }
+            userRepo.update(owner, owner.getBalance() - totalSpending);
             return true;
         } catch (SQLException | UnableToOpenDatabaseException | DatabaseInsertionFailedException e) {
             System.err.println(e.getMessage());

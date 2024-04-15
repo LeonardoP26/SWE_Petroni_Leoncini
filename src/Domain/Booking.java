@@ -14,7 +14,7 @@ import java.util.Set;
 public class Booking implements DatabaseEntity{
 
     public Booking(ResultSet res) throws SQLException {
-        this.bookingNumber = res.getInt("bookingNumber");
+        this.bookingNumber = res.getInt("booking_number");
     }
 
     public Booking(ShowTime showTime, List<Seat> seats) {

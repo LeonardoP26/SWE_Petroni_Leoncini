@@ -15,11 +15,7 @@ import java.time.temporal.ChronoUnit;
 public class ShowTime implements DatabaseEntity {
 
     public ShowTime(ResultSet res) throws SQLException {
-        try{
-            this.id = res.getInt("ShowTimes.id");
-        } catch (SQLException e){
-            this.id = res.getInt("id");
-        }
+        this.id = res.getInt("showtime_id");
     }
 
     public ShowTime(Movie movie, Hall hall, LocalDateTime date){

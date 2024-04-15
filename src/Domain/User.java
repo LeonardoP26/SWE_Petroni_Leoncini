@@ -8,18 +8,13 @@ import java.util.*;
 
 public class User implements DatabaseEntity {
 
+    public static String USER_ID = "user_id";
+
     public User(ResultSet res) throws SQLException {
-        try {
-            this.id = res.getInt("user_id");
-            this.username = res.getString("Users.username");
-            this.password = res.getString("Users.password");
-            this.balance = res.getLong("users.balance");
-        } catch (SQLException e){
-            this.id = res.getInt("id");
-            this.username = res.getString("username");
-            this.password = res.getString("password");
-            this.balance = res.getLong("balance");
-        }
+        this.id = res.getInt(USER_ID);
+        this.username = res.getString("username");
+        this.password = res.getString("password");
+        this.balance = res.getLong("balance");
     }
 
     public User(String username, String password) {
@@ -57,7 +52,7 @@ public class User implements DatabaseEntity {
 
     public String getPassword() { return password; }
 
-    public void setBalance(long balance) throws SQLException, UnableToOpenDatabaseException, NotEnoughFundsException {
+    public void setBalance(long balance) throws NotEnoughFundsException {
         if(balance < 0)
             throw new NotEnoughFundsException("You do not have enough money, please recharge your account.");
         this.balance = balance;

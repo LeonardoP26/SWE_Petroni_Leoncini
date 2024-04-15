@@ -60,11 +60,7 @@ public class SeatsRepository extends Repository implements SeatsRepositoryInterf
         try(ResultSet res = dao.get(showTime)){
             return getList(res, () -> {
                 Seat seat = new Seat(res);
-                try{
-                    seat.setBooked(res.getInt("Seats.bookingNumber") > 0);
-                } catch (SQLException e){
-                    seat.setBooked(res.getInt("bookingNumber") > 0);
-                }
+                seat.setBooked(res.getInt("booking_number") > 0);
                 return seat;
             });
         }

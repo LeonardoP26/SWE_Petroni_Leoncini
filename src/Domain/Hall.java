@@ -20,8 +20,8 @@ public class Hall implements DatabaseEntity {
     }
 
     public Hall(ResultSet res) throws SQLException {
-        this.id = res.getInt("hallId");
-        this.hallNumber = res.getInt("hallNumber");
+        this.id = res.getInt("hall_id");
+        this.hallNumber = res.getInt("hall_number");
     }
 
     public Hall(int hallNumber) {

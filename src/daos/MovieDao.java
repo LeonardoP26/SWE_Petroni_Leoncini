@@ -72,7 +72,7 @@ public class MovieDao implements MovieDaoInterface{
     public ResultSet get(@NotNull Cinema cinema) throws SQLException, UnableToOpenDatabaseException {
         Connection conn = CinemaDatabase.getConnection();
         PreparedStatement s = conn.prepareStatement(
-                "SELECT DISTINCT Movies.movie_id, movie_name, duration FROM (ShowTimes JOIN Movies ON movie_id = Movies.movie_id) JOIN Halls ON hall_id = Halls.hall_id WHERE cinema_id = ?"
+                "SELECT DISTINCT Movies.movie_id, movie_name, duration FROM (ShowTimes JOIN Movies ON ShowTimes.movie_id = Movies.movie_id) JOIN Halls ON ShowTimes.hall_id = Halls.hall_id WHERE cinema_id = ?"
         );
         s.setInt(1, cinema.getId());
         return s.executeQuery();
