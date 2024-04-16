@@ -16,8 +16,6 @@ public interface UserDaoInterface {
 
     ResultSet get(int userId) throws SQLException, UnableToOpenDatabaseException;
 
-    ResultSet doesUsernameAlreadyExists(@NotNull String username) throws SQLException, UnableToOpenDatabaseException;
-
     ResultSet get(String username, String password) throws SQLException, UnableToOpenDatabaseException;
 
     ResultSet get(String username) throws SQLException, UnableToOpenDatabaseException;

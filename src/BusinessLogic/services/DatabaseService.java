@@ -64,7 +64,7 @@ public class DatabaseService implements DatabaseServiceInterface {
     }
 
     @Override
-    public void addHall(@NotNull Hall hall, @NotNull Cinema cinema) throws SQLException, UnableToOpenDatabaseException, DatabaseInsertionFailedException, InvalidIdException {
+    public void addHall(@NotNull Hall hall, @NotNull Cinema cinema) throws SQLException, UnableToOpenDatabaseException, DatabaseFailedException, InvalidIdException {
         if(cinema.getId() == DatabaseEntity.ENTITY_WITHOUT_ID)
             throw new InvalidIdException("This cinema must be in the database before adding halls to it.");
         int hallId = hallRepo.insert(hall, cinema.getId());
@@ -74,7 +74,7 @@ public class DatabaseService implements DatabaseServiceInterface {
     }
 
     @Override
-    public void addSeat(@NotNull Seat seat, @NotNull Hall hall) throws SQLException, UnableToOpenDatabaseException, DatabaseInsertionFailedException, InvalidIdException {
+    public void addSeat(@NotNull Seat seat, @NotNull Hall hall) throws SQLException, UnableToOpenDatabaseException, DatabaseFailedException, InvalidIdException {
         if(hall.getId() == DatabaseEntity.ENTITY_WITHOUT_ID)
             throw new InvalidIdException("This hall must be in the database before adding seats to it.");
         int seatId = seatsRepo.insert(seat, hall.getId());
@@ -90,13 +90,13 @@ public class DatabaseService implements DatabaseServiceInterface {
      */
 
     @Override
-    public void addMovie(@NotNull Movie movie) throws SQLException, UnableToOpenDatabaseException, DatabaseInsertionFailedException {
+    public void addMovie(@NotNull Movie movie) throws SQLException, UnableToOpenDatabaseException, DatabaseFailedException {
         int movieId = movieRepo.insert(movie);
         movie.setId(movieId);
     }
 
     @Override
-    public void addShowTime(@NotNull ShowTime showTime) throws SQLException, UnableToOpenDatabaseException, DatabaseInsertionFailedException {
+    public void addShowTime(@NotNull ShowTime showTime) throws SQLException, UnableToOpenDatabaseException, DatabaseFailedException {
             int showTimeId = showTimeRepo.insert(showTime);
             showTime.setId(showTimeId);
             for (Seat seat : showTime.getHall().getSeats()) {
@@ -112,36 +112,36 @@ public class DatabaseService implements DatabaseServiceInterface {
      * @param cinema in which cinema the movie's show will take place
      * @param hall in which hall the movie's show will take place, must be a hall of the cinema
      * @param date when the movie's show will start
-     * @throws DatabaseInsertionFailedException if the hall does not belong to this cinema.
+     * @throws DatabaseFailedException if the hall does not belong to this cinema.
      * @throws InvalidIdException if cinema id and hall id are equal to {@link DatabaseEntity#ENTITY_WITHOUT_ID}
      */
     @Override
-    public void addMovie(@NotNull Movie movie, @NotNull Cinema cinema, @NotNull Hall hall, LocalDateTime date) throws DatabaseInsertionFailedException, SQLException, UnableToOpenDatabaseException, InvalidIdException {
+    public void addMovie(@NotNull Movie movie, @NotNull Cinema cinema, @NotNull Hall hall, LocalDateTime date) throws DatabaseFailedException, SQLException, UnableToOpenDatabaseException, InvalidIdException {
         if(cinema.getId() == DatabaseEntity.ENTITY_WITHOUT_ID)
             throw new InvalidIdException("You need to add this cinema in the database before planning a movie show.");
         if (hall.getId() == DatabaseEntity.ENTITY_WITHOUT_ID)
             throw new InvalidIdException("You need to add this hall in the database before planning a movie show.");
         if(cinema.getHalls().stream().noneMatch(h -> h.getId() == hall.getId()))
-            throw new DatabaseInsertionFailedException("The hall does not belong to this cinema.");
+            throw new DatabaseFailedException("The hall does not belong to this cinema.");
         ShowTime sht = new ShowTime(movie, hall, date);
         addShowTime(sht);
         cinema.setMovies(Stream.concat(cinema.getMovies().stream() ,Stream.of(movie)).toList());
     }
 
     @Override
-    public void addCinema(@NotNull Cinema cinema) throws SQLException, UnableToOpenDatabaseException, DatabaseInsertionFailedException {
+    public void addCinema(@NotNull Cinema cinema) throws SQLException, UnableToOpenDatabaseException, DatabaseFailedException {
         int cinemaId = cinemaRepo.insert(cinema);
         cinema.setId(cinemaId);
     }
 
     @Override
-    public void addUser(@NotNull User user) throws SQLException, UnableToOpenDatabaseException, DatabaseInsertionFailedException {
+    public void addUser(@NotNull User user) throws SQLException, UnableToOpenDatabaseException, DatabaseFailedException {
         int userId = userRepo.insert(user);
         user.setId(userId);
     }
 
     @Override
-    public void addBooking(@NotNull Booking booking, List<User> users) throws SQLException, UnableToOpenDatabaseException, DatabaseInsertionFailedException {
+    public void addBooking(@NotNull Booking booking, List<User> users) throws SQLException, UnableToOpenDatabaseException, DatabaseFailedException {
         int bookingNumber = bookingRepo.insert(booking, users);
         booking.setBookingNumber(bookingNumber);
     }
@@ -157,133 +157,77 @@ public class DatabaseService implements DatabaseServiceInterface {
     }
 
     @Override
-    public void retrieveCinemaMovies(@NotNull Cinema cinema){
-        try{
-            cinema.setMovies(movieRepo.get(cinema));
-        } catch(Exception e) {
-            System.err.println(e.getMessage());
-        }
+    public List<Movie> retrieveCinemaMovies(@NotNull Cinema cinema) throws SQLException, UnableToOpenDatabaseException {
+        return movieRepo.get(cinema);
     }
 
     @Override
-    public List<ShowTime> retrieveMovieShowTimes(@NotNull Movie movie) {
-        try{
-            return showTimeRepo.get(movie);
-        } catch (Exception e){
-            System.err.println(e.getMessage());
-            return null;
-        }
+    public List<ShowTime> retrieveMovieShowTimes(@NotNull Movie movie) throws SQLException, UnableToOpenDatabaseException {
+        return showTimeRepo.get(movie);
     }
 
     @Override
-    public void retrieveShowTimeHallSeats(@NotNull ShowTime showTime) {
-        try{
-            showTime.getHall().setSeats(seatsRepo.get(showTime));
-        } catch (Exception e) {
-            System.err.println(e.getMessage());
-        }
+    public List<Seat> retrieveShowTimeHallSeats(@NotNull ShowTime showTime) throws SQLException, UnableToOpenDatabaseException {
+        return seatsRepo.get(showTime);
     }
 
     @Override
-    public User login(String username, String password) {
-        try{
-            return userRepo.get(username, encryptPassword(password));
-        } catch (Exception e){
-            System.err.println(e.getMessage());
-            return null;
-        }
+    public User login(String username, String password) throws NoSuchAlgorithmException, SQLException, UnableToOpenDatabaseException {
+        return userRepo.get(username, encryptPassword(password));
     }
 
     @Override
-    public User register(String username, String password){
-        try{
-            User newUser = new User(username, encryptPassword(password));
-            addUser(newUser);
-            return newUser;
-        } catch (Exception e){
-            System.err.println(e.getMessage());
-            return null;
-        }
+    public User register(String username, String password) throws NoSuchAlgorithmException, SQLException, UnableToOpenDatabaseException, DatabaseFailedException {
+        User newUser = new User(username, encryptPassword(password));
+        addUser(newUser);
+        return newUser;
     }
 
     @Override
-    public User retrieveUser(String username){
-        try{
-            return userRepo.get(username);
-        } catch (Exception e){
-            System.err.println(e.getMessage());
-            return null;
-        }
+    public User retrieveUser(String username) throws SQLException, UnableToOpenDatabaseException {
+        return userRepo.get(username);
     }
 
     @Override
-    public boolean rechargeAccount(User user, long amount) {
-        try{
-            return userRepo.update(user, amount);
-        } catch(Exception e){
-            System.err.println(e.getMessage());
-            return false;
-        }
+    public boolean rechargeAccount(User user, long amount) throws NotEnoughFundsException, SQLException, UnableToOpenDatabaseException {
+        return userRepo.update(user, amount);
     }
 
     @Override
-    public boolean pay(@NotNull Booking booking, @NotNull User owner, List<User> others) throws NotEnoughFundsException, InvalidSeatException {
-        try {
-            int totalSpending = booking.getSeats().size() * booking.getShowTime().getHall().getCost();
-            if(booking.getSeats().stream().anyMatch(Seat::isBooked))
-                throw new InvalidSeatException("Some of these seats are already taken.");
-            addBooking(booking, Stream.concat(others.stream(), Stream.of(owner)).toList());
-            if(owner.getBalance() - totalSpending < 0)
-                owner.setBalance(owner.getBalance() - totalSpending);
-            for (Seat seat : booking.getSeats()){
-                showTimeRepo.updateShowTimeSeat(booking.getShowTime(), seat, booking.getBookingNumber());
-            }
-            userRepo.update(owner, owner.getBalance() - totalSpending);
-            return true;
-        } catch (SQLException | UnableToOpenDatabaseException | DatabaseInsertionFailedException e) {
-            System.err.println(e.getMessage());
-            return false;
+    public boolean pay(@NotNull Booking booking, @NotNull User owner, List<User> others) throws NotEnoughFundsException, InvalidSeatException, SQLException, UnableToOpenDatabaseException, DatabaseFailedException {
+        int totalSpending = booking.getSeats().size() * booking.getShowTime().getHall().getCost();
+        if(booking.getSeats().stream().anyMatch(Seat::isBooked))
+            throw new InvalidSeatException("Some of these seats are already taken.");
+        if(owner.getBalance() - totalSpending < 0)
+            owner.setBalance(owner.getBalance() - totalSpending);
+        addBooking(booking, Stream.concat(others.stream(), Stream.of(owner)).toList());
+        for (Seat seat : booking.getSeats()){
+            showTimeRepo.updateShowTimeSeat(booking.getShowTime(), seat, booking.getBookingNumber());
         }
+        userRepo.update(owner, owner.getBalance() - totalSpending);
+        return true;
     }
 
     @Override
-    public boolean deleteUser(User user){
-        try{
-            return userRepo.delete(user);
-        } catch (Exception e){
-            System.err.println(e.getMessage());
-            return false;
-        }
+    public boolean deleteUser(User user) throws SQLException, UnableToOpenDatabaseException {
+        return userRepo.delete(user);
     }
 
     @Override
-    public List<Booking> retrieveBookings(User user) {
-        try{
-            return bookingRepo.get(user);
-        } catch (Exception e){
-            System.err.println(e.getMessage());
-            return null;
-        }
+    public List<Booking> retrieveBookings(User user) throws SQLException, UnableToOpenDatabaseException {
+        return bookingRepo.get(user);
     }
 
     @Override
-    public boolean deleteBooking(@NotNull Booking booking){
-        try{
-            return bookingRepo.delete(booking);
-        } catch (Exception e){
-            System.err.println(e.getMessage());
-            return false;
-        }
+    public boolean deleteBooking(@NotNull Booking booking) throws SQLException, UnableToOpenDatabaseException {
+        return bookingRepo.delete(booking);
     }
 
     @Override
-    public Hall retrieveShowTimeHall(@NotNull ShowTime showTime){
-        try{
-            return hallRepo.get(showTime);
-        } catch (Exception e){
-            System.err.println(e.getMessage());
-            return null;
-        }
+    public Hall retrieveShowTimeHall(@NotNull ShowTime showTime) throws SQLException, UnableToOpenDatabaseException {
+        return hallRepo.get(showTime);
     }
+
+
 
 }

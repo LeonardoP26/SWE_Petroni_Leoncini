@@ -1,6 +1,6 @@
 package BusinessLogic.repositories;
 
-import BusinessLogic.exceptions.DatabaseInsertionFailedException;
+import BusinessLogic.exceptions.DatabaseFailedException;
 import BusinessLogic.exceptions.UnableToOpenDatabaseException;
 import Domain.Cinema;
 import org.jetbrains.annotations.NotNull;
@@ -11,9 +11,9 @@ import java.util.List;
 public interface CinemaRepositoryInterface {
 
 
-    int insert(Cinema cinema) throws SQLException, UnableToOpenDatabaseException, DatabaseInsertionFailedException;
+    int insert(Cinema cinema) throws SQLException, UnableToOpenDatabaseException, DatabaseFailedException;
 
-    boolean update(@NotNull Cinema cinema) throws SQLException, UnableToOpenDatabaseException;
+    boolean update(@NotNull Cinema cinema) throws SQLException, UnableToOpenDatabaseException, DatabaseFailedException;
 
     boolean delete(@NotNull Cinema cinema) throws SQLException, UnableToOpenDatabaseException;
 

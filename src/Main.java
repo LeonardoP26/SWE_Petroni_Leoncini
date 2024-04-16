@@ -1,8 +1,14 @@
 import BusinessLogic.CinemaDatabase;
+import BusinessLogic.exceptions.DatabaseFailedException;
+import BusinessLogic.exceptions.NotEnoughFundsException;
+import BusinessLogic.exceptions.UnableToOpenDatabaseException;
 import BusinessLogic.services.DatabaseService;
 import Domain.*;
 import org.jetbrains.annotations.NotNull;
 import ui.InputOutputHandler;
+
+import java.security.NoSuchAlgorithmException;
+import java.sql.SQLException;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
@@ -12,136 +18,103 @@ import static ui.InputOutputHandler.*;
 public class Main {
 
 
-    public static void main(String[] args) {
-        try {
-            populateDatabase();
-            InputOutputHandler ui = InputOutputHandler.getInstance();
+    public static void main(String[] args) throws SQLException, UnableToOpenDatabaseException, NotEnoughFundsException, NoSuchAlgorithmException, DatabaseFailedException {
 
-            Cinema selectedCinema = null;
-            Movie selectedMovie = null;
-            ShowTime selectedShowTime = null;
-            List<Seat> selectedSeats = null;
-            User user = null;
-            Booking currentBooking;
-            Booking bookingManaged = null;
-            boolean exit = false;
+        populateDatabase();
+        InputOutputHandler ui = InputOutputHandler.getInstance();
 
-            System.out.println("Welcome");
-            Page currentPage = Page.HOMEPAGE;
-            while(!exit) {
-                switch(currentPage) {
-                    case Page.HOMEPAGE -> {
-                        currentPage = ui.homePage(user != null);
-                        if (currentPage == null) {
-                            exit = true;
-                        } else if (currentPage == Page.HOMEPAGE) {
-                            user = null;
-                        }
-                    }
-                    case Page.MANAGE_ACCOUNT -> {
-                        currentPage = ui.accountManagementPage(user);
-                    }
-                    case Page.MANAGE_BOOKINGS -> {
-                        if (user == null){
-                            currentPage = Page.LOGIN;
-                            break;
-                        }
-                        bookingManaged = ui.bookingManagePage(user);
-                        currentPage = bookingManaged != null ? Page.EDIT_BOOKINGS : Page.HOMEPAGE;
-                    }
-                    case Page.EDIT_BOOKINGS -> {
-                        if(bookingManaged == null){
-                            currentPage = Page.HOMEPAGE;
-                            break;
-                        }
-                        currentPage = ui.editBooking(bookingManaged, user);
-                    }
-                    case Page.CINEMA_SELECTION -> {
-                        selectedCinema = ui.cinemaSelectionPage();
-                        currentPage = selectedCinema == null ? Page.HOMEPAGE : Page.MOVIE_SELECTION;
-                    }
-                    case Page.MOVIE_SELECTION -> {
-                        if(selectedCinema == null){
-                            currentPage = Page.CINEMA_SELECTION;
-                            break;
-                        }
-                        selectedMovie = ui.movieSelectionPage(selectedCinema);
-                        if(selectedMovie != null)
-                            currentPage = Page.SHOWTIME_SELECTION;
-                        else {
-                            selectedCinema = null;
-                            currentPage = Page.CINEMA_SELECTION;
-                        }
-                    }
-                    case Page.SHOWTIME_SELECTION -> {
-                        if(selectedMovie == null){
-                            currentPage = Page.MOVIE_SELECTION;
-                            break;
-                        }
-                        selectedShowTime = ui.showTimeSelectionPage(selectedMovie);
-                        if (selectedShowTime != null)
-                            currentPage = Page.SEAT_SELECTION;
-                        else {
-                            selectedMovie = null;
-                            currentPage = Page.MOVIE_SELECTION;
-                        }
-                    }
-                    case Page.SEAT_SELECTION -> {
-                        if(bookingManaged != null){
-                            selectedSeats = ui.seatsSelectionPage(bookingManaged.getShowTime());
+        Cinema selectedCinema = null;
+        Movie selectedMovie = null;
+        ShowTime selectedShowTime = null;
+        List<Seat> selectedSeats = null;
+        User user = null;
+        Booking bookingManaged = null;
+        boolean exit = false;
 
-                        } else {
-                            if (selectedShowTime == null) {
-                                currentPage = Page.SHOWTIME_SELECTION;
-                                break;
-                            }
-                            selectedSeats = ui.seatsSelectionPage(selectedShowTime);
-                            if (selectedSeats == null)
-                                currentPage = Page.SHOWTIME_SELECTION;
-                            else if (user == null)
-                                currentPage = Page.LOGIN;
-                            else
-                                currentPage = Page.BOOKING_CONFIRMED;
-                        }
+        Page currentPage = Page.HOMEPAGE;
+
+        System.out.println("Welcome");
+        while (!exit) {
+            switch (currentPage) {
+                case Page.HOMEPAGE -> {
+                    currentPage = ui.homePage(user != null);
+                    if (currentPage == Page.HOMEPAGE && user != null)
+                        user = null;
+                    else if (currentPage == null) {
+                        exit = true;
                     }
-                    case Page.LOGIN -> {
-                        user = ui.loginOrRegister();
-                        if (user == null && selectedCinema != null) {
-                            currentPage = Page.SEAT_SELECTION;
-                            selectedSeats = null;
-                        } else
-                            currentPage = selectedCinema == null ? Page.HOMEPAGE : Page.BOOKING_CONFIRMED;
+                }
+                case LOGIN_OR_REGISTER -> {
+                    user = ui.loginOrRegisterPage();
+                    currentPage = selectedSeats == null ? Page.HOMEPAGE : Page.BOOKING_CONFIRMED;
+                }
+                case Page.MANAGE_ACCOUNT -> {
+                    currentPage = ui.accountManagementPage(user);
+                }
+                case Page.CINEMA_SELECTION -> {
+                    selectedCinema = ui.cinemaSelectionPage();
+                    currentPage = selectedCinema == null ? Page.HOMEPAGE : Page.MOVIE_SELECTION;
+                }
+                case MOVIE_SELECTION -> {
+                    assert selectedCinema != null;
+                    selectedMovie = ui.movieSelectionPage(selectedCinema);
+                    currentPage = selectedMovie == null ? Page.CINEMA_SELECTION : Page.SHOWTIME_SELECTION;
+                }
+                case SHOWTIME_SELECTION -> {
+                    assert selectedMovie != null;
+                    selectedShowTime = ui.showTimeSelectionPage(selectedMovie);
+                    currentPage = selectedShowTime == null ? Page.MOVIE_SELECTION : Page.SEAT_SELECTION;
+                }
+                case SEAT_SELECTION -> {
+                    assert selectedShowTime != null;
+                    selectedSeats = ui.seatsSelectionPage(selectedShowTime);
+                    currentPage = selectedSeats == null ? Page.SHOWTIME_SELECTION : Page.BOOKING_CONFIRMED;
+                }
+                case BOOKING_CONFIRMED -> {
+                    if(user == null){
+                        currentPage = Page.LOGIN_OR_REGISTER;
                     }
-                    case Page.BOOKING_CONFIRMED -> {
-                        if (user == null){
-                            currentPage = Page.LOGIN;
-                            break;
-                        }
-                        if(selectedSeats == null){
-                            currentPage = Page.SEAT_SELECTION;
-                            break;
-                        }
-                        List<User> others = ui.addPeopleToBookingPage(selectedSeats.size());
-                        currentBooking = new Booking(selectedShowTime, selectedSeats);
-                        ui.confirmPaymentPage(currentBooking, user, others);
-                        currentPage = Page.HOMEPAGE;
+                    else {
+                        assert selectedSeats != null;
+                        List<User> users = ui.addPeopleToBookingPage(selectedSeats.size() - 1);
+                        Booking booking = new Booking(selectedShowTime, selectedSeats);
+                        boolean success = ui.confirmPaymentPage(booking, user, users);
+                        if(success)
+                            System.out.println("Booking confirmed!");
+                        else
+                            System.out.println("Booking failed. Try again.");
                         selectedCinema = null;
                         selectedMovie = null;
                         selectedShowTime = null;
                         selectedSeats = null;
-                        currentBooking = null;
+                        currentPage = Page.HOMEPAGE;
                     }
                 }
+
+                // TODO cases below have to be fixed
+
+                case Page.MANAGE_BOOKINGS -> {
+                    if (user == null) {
+                        currentPage = Page.LOGIN_OR_REGISTER;
+                        break;
+                    }
+                    bookingManaged = ui.bookingManagePage(user);
+                    currentPage = bookingManaged != null ? Page.EDIT_BOOKINGS : Page.HOMEPAGE;
+                }
+                case Page.EDIT_BOOKINGS -> {
+                    if (bookingManaged == null) {
+                        currentPage = Page.HOMEPAGE;
+                        break;
+                    }
+                    currentPage = ui.editBooking(bookingManaged, user);
+                }
             }
-
-            System.out.println("Goodbye!");
-
-
-
-
-        } catch (Exception e){
-            System.out.println(e.getMessage());
         }
+
+        System.out.println("Goodbye!");
+
+
+
     }
 
     private static @NotNull List<Seat> getSomeSeats(){

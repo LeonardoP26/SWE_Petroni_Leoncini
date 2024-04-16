@@ -1,12 +1,14 @@
 package BusinessLogic.repositories;
 
 import BusinessLogic.HallFactory;
-import BusinessLogic.exceptions.DatabaseInsertionFailedException;
+import BusinessLogic.exceptions.DatabaseFailedException;
 import BusinessLogic.exceptions.UnableToOpenDatabaseException;
 import Domain.*;
 import daos.BookingDao;
 import daos.BookingDaoInterface;
 import org.jetbrains.annotations.NotNull;
+import org.sqlite.SQLiteErrorCode;
+import org.sqlite.SQLiteException;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -29,11 +31,19 @@ public class BookingRepository extends Repository implements BookingRepositoryIn
 
 
     @Override
-    public int insert(@NotNull Booking booking, List<User> users) throws SQLException, UnableToOpenDatabaseException, DatabaseInsertionFailedException {
-        int bookingNumber = createBookingNumber();
-        if (!dao.insert(bookingNumber, booking.getShowTime(), booking.getSeats(), users))
-            throw new DatabaseInsertionFailedException("Database insertion failed.");
-        return bookingNumber;
+    public int insert(@NotNull Booking booking, List<User> users) throws SQLException, UnableToOpenDatabaseException, DatabaseFailedException {
+        try {
+            int bookingNumber = createBookingNumber();
+            if (!dao.insert(bookingNumber, booking.getShowTime(), booking.getSeats(), users))
+                throw new DatabaseFailedException("Database insertion failed.");
+            return bookingNumber;
+        } catch (SQLiteException e){
+            if(e.getResultCode() == SQLiteErrorCode.SQLITE_CONSTRAINT_UNIQUE)
+                throw new DatabaseFailedException("Database insertion failed: this booking already exists.");
+            else if (e.getResultCode() == SQLiteErrorCode.SQLITE_CONSTRAINT_NOTNULL)
+                throw new DatabaseFailedException("Database insertion failed: ensure the showtime id, the seat id, the user id and the booking number are not null.");
+            else throw e; // TODO throw it as DatabaseInsertionFailedException
+        }
 
     }
 

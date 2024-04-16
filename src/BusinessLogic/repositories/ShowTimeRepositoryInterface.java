@@ -1,8 +1,7 @@
 package BusinessLogic.repositories;
 
-import BusinessLogic.exceptions.DatabaseInsertionFailedException;
+import BusinessLogic.exceptions.DatabaseFailedException;
 import BusinessLogic.exceptions.UnableToOpenDatabaseException;
-import Domain.Hall;
 import Domain.Movie;
 import Domain.Seat;
 import Domain.ShowTime;
@@ -12,9 +11,9 @@ import java.sql.SQLException;
 import java.util.List;
 
 public interface ShowTimeRepositoryInterface {
-    int insert(@NotNull ShowTime showTime) throws SQLException, UnableToOpenDatabaseException, DatabaseInsertionFailedException;
+    int insert(@NotNull ShowTime showTime) throws SQLException, UnableToOpenDatabaseException, DatabaseFailedException;
 
-    boolean update(@NotNull ShowTime showTime) throws SQLException, UnableToOpenDatabaseException;
+    boolean update(@NotNull ShowTime showTime) throws SQLException, UnableToOpenDatabaseException, DatabaseFailedException;
 
     boolean delete(@NotNull ShowTime showTime) throws SQLException, UnableToOpenDatabaseException;
 
@@ -22,7 +21,7 @@ public interface ShowTimeRepositoryInterface {
 
     List<ShowTime> get(@NotNull Movie movie) throws SQLException, UnableToOpenDatabaseException;
 
-    void insertShowTimeSeat(int showTimeId, int seatId) throws SQLException, UnableToOpenDatabaseException, DatabaseInsertionFailedException;
+    void insertShowTimeSeat(int showTimeId, int seatId) throws SQLException, UnableToOpenDatabaseException, DatabaseFailedException;
 
-    boolean updateShowTimeSeat(ShowTime showTime, Seat seat, int bookingNumber) throws SQLException, UnableToOpenDatabaseException;
+    boolean updateShowTimeSeat(ShowTime showTime, Seat seat, int bookingNumber) throws SQLException, UnableToOpenDatabaseException, DatabaseFailedException;
 }

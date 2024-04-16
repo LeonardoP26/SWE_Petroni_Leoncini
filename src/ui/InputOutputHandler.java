@@ -1,16 +1,17 @@
 package ui;
 
+import BusinessLogic.exceptions.DatabaseFailedException;
 import BusinessLogic.exceptions.InvalidSeatException;
 import BusinessLogic.exceptions.NotEnoughFundsException;
+import BusinessLogic.exceptions.UnableToOpenDatabaseException;
 import BusinessLogic.services.DatabaseService;
 import BusinessLogic.services.DatabaseServiceInterface;
 import Domain.*;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Scanner;
+import java.security.NoSuchAlgorithmException;
+import java.sql.SQLException;
+import java.util.*;
 
 import static ui.InputOutputHandler.Page.*;
 
@@ -26,18 +27,9 @@ public class InputOutputHandler {
         MOVIE_SELECTION,
         SHOWTIME_SELECTION,
         SEAT_SELECTION,
-        LOGIN,
+        LOGIN_OR_REGISTER,
         BOOKING_CONFIRMED
     }
-
-    public static final String BACK = "Back";
-    public static final String EXIT = "Exit";
-    public static final String MOVIE = "Choose a movie:";
-    public static final String CINEMA = "Choose a cinema:";
-    public static final String SHOWTIME = "Choose a show time:";
-    public static final String SEATS = "Choose your seats:";
-    public static final String BOOKING = "Choose what booking to manage:";
-
 
     private final DatabaseServiceInterface databaseService;
     private static InputOutputHandler instance = null;
@@ -70,41 +62,113 @@ public class InputOutputHandler {
                 System.out.println("1. Logout\n2. Manage your account\n3. Book\n4. Exit");
             else
                 System.out.println("1. Login\n2. Book\n3. Exit");
-            input = readInput();
+            try{
+                input = readInput();
+            } catch (NoSuchElementException | IllegalStateException e){
+                input = 0;
+            }
+            if(input < 1 || input > choices)
+                System.out.println("Choose a number between 1 and " + choices);
         }
         return switch(input){
-            case 1 -> alreadyLoggedIn ? HOMEPAGE : LOGIN;
+            case 1 -> alreadyLoggedIn ? HOMEPAGE : LOGIN_OR_REGISTER;
             case 2 -> alreadyLoggedIn ? MANAGE_ACCOUNT : CINEMA_SELECTION;
             case 3 -> alreadyLoggedIn ? CINEMA_SELECTION : null;
             default -> null;
         };
     }
 
+    public User loginOrRegisterPage() throws SQLException, UnableToOpenDatabaseException, NoSuchAlgorithmException {
+        int input = 0;
+        while (input < 1 || input > 3) {
+            System.out.println("Do you want to login or register:");
+            System.out.println("1. Login\n2. Register\n3. Back");
+            try {
+                input = readInput();
+            } catch (NoSuchElementException | IllegalStateException e) {
+                System.out.println("Choose a number between 1 and 3");
+                input = 0;
+            }
+        }
+        User user;
+        String username = "";
+        String password = "";
+        while (true) {
+            if (input == 1 || input == 2) {
+                System.out.print("Insert username or leave it blank to go back:\n>> ");
+                Scanner sc = new Scanner(System.in);
+                username = sc.nextLine();
+                if (username.isBlank())
+                    break;
+                System.out.print("Insert password:\n>> ");
+                sc = new Scanner(System.in);
+                password = sc.nextLine();
+            }
+            switch (input) {
+                case 1 -> {
+                    user = databaseService.login(username, password);
+                    if (user != null)
+                        return user;
+                    else
+                        System.out.println("Username or password are not correct.");
+                }
+                case 2 -> {
+                    try{
+                        user = databaseService.register(username, password);
+                        if (user != null)
+                            return user;
+                        else
+                            System.out.println("Username or password are not correct.");
+                    } catch (DatabaseFailedException e){
+                        System.out.println(e.getMessage());
+                    }
+                }
+                case 3 -> {
+                    return null;
+                }
+            }
+        }
+        return null;
+    }
+
+
     public Cinema cinemaSelectionPage(){
         List<Cinema> cinemas = databaseService.retrieveCinemas();
-        return chooseFromList(cinemas, CINEMA, BACK);
+        int input = chooseOption(cinemas.stream().map(Cinema::getName).toList(), "Choose a cinema:", "Back");
+        if (input == cinemas.size())
+            return null;
+        return cinemas.get(input);
     }
 
-    public Movie movieSelectionPage(@NotNull Cinema cinema){
-        databaseService.retrieveCinemaMovies(cinema);
-        return chooseFromList(cinema.getMovies(), MOVIE, BACK);
+    public Movie movieSelectionPage(@NotNull Cinema cinema) throws SQLException, UnableToOpenDatabaseException {
+        List<Movie> movies = databaseService.retrieveCinemaMovies(cinema);
+        cinema.setMovies(movies);
+        int input = chooseOption(movies.stream().map(Movie::getName).toList(), "Choose a movie", "Back");
+        if(input == movies.size())
+            return null;
+        return movies.get(input);
     }
 
-    public ShowTime showTimeSelectionPage(@NotNull Movie movie){
-        List<ShowTime> movieShowTimes = databaseService.retrieveMovieShowTimes(movie);
-        return chooseFromList(movieShowTimes, SHOWTIME, BACK);
+    public ShowTime showTimeSelectionPage(@NotNull Movie movie) throws SQLException, UnableToOpenDatabaseException {
+        List<ShowTime> showTimes = databaseService.retrieveMovieShowTimes(movie);
+        int input = chooseOption(showTimes.stream().map(ShowTime::getName).toList(), "Choose a show time", "Back");
+        if(input == showTimes.size())
+            return null;
+        return showTimes.get(input);
     }
 
-    public Booking bookingManagePage(@NotNull User user){
+    public Booking bookingManagePage(@NotNull User user) throws SQLException, UnableToOpenDatabaseException {
         List<Booking> bookings = databaseService.retrieveBookings(user);
         if(bookings == null)
             bookings = List.of();
-        return chooseFromList(bookings, BOOKING, BACK);
+        int input = chooseOption(bookings.stream().map(Booking::getName).toList(), "Choose the booking to edit:", "Back");
+        if (input == bookings.size())
+            return null;
+        return bookings.get(input);
     }
 
-    public List<Seat> seatsSelectionPage(@NotNull ShowTime showTime){
-        databaseService.retrieveShowTimeHallSeats(showTime);
-        List<Seat> seats = showTime.getHall().getSeats();
+    public List<Seat> seatsSelectionPage(@NotNull ShowTime showTime) throws SQLException, UnableToOpenDatabaseException {
+        List<Seat> seats = databaseService.retrieveShowTimeHallSeats(showTime);
         System.out.println("Choose your seats following this pattern \"a1-a2-a3\" or leave it blank to return to the previous page:");
         char row = seats.getFirst().getRow();
         System.out.print(row + "\t\t");
@@ -160,45 +224,7 @@ public class InputOutputHandler {
         ).toList();
     }
 
-    public @Nullable User loginOrRegister(){
-        while(true) {
-            System.out.println("Do you want to login or register:");
-            System.out.println("1. Login\n2. Register\n3. Back");
-            int input = readInput();
-            User user;
-            String username = "";
-            String password = "";
-            while (true) {
-                if (input == 1 || input == 2) {
-                    System.out.print("Insert username or leave it blank to go back:\n>> ");
-                    Scanner sc = new Scanner(System.in);
-                    username = sc.nextLine();
-                    if (username.isBlank())
-                        break;
-                    System.out.print("Insert password:\n>> ");
-                    sc = new Scanner(System.in);
-                    password = sc.nextLine();
-                }
-                switch (input) {
-                    case 1 -> {
-                        user = databaseService.login(username, password);
-                        if (user != null)
-                            return user;
-                    }
-                    case 2 -> {
-                        user = databaseService.register(username, password);
-                        if (user != null)
-                            return user;
-                    }
-                    case 3 -> {
-                        return null;
-                    }
-                }
-            }
-        }
-    }
-
-    public List<User> addPeopleToBookingPage(int max){
+    public List<User> addPeopleToBookingPage(int max) throws SQLException, UnableToOpenDatabaseException {
         List<User> users = new ArrayList<>(max);
         System.out.println("Add people's usernames to this booking or leave it blank to finish:");
         while (users.size() < max){
@@ -217,12 +243,17 @@ public class InputOutputHandler {
         return users;
     }
 
-    public boolean confirmPaymentPage(Booking booking, User owner, List<User> others){
+    public boolean confirmPaymentPage(Booking booking, User owner, List<User> others) throws NotEnoughFundsException, SQLException, UnableToOpenDatabaseException {
         int cost = booking.getShowTime().getHall().getCost() * booking.getSeats().size();
         System.out.println("Confirm the booking? Cost: " + cost + " - Your balance: " + owner.getBalance() + " \n1. Yes\n2. No");
         int input = 0;
         while (input < 1 || input > 2) {
-            input = readInput();
+            try{
+                input = readInput();
+            } catch (NoSuchElementException | IllegalStateException e){
+                System.out.println("Choose a number between 1 and 2");
+                input = 0;
+            }
         }
         if (input == 1) {
             try {
@@ -232,20 +263,25 @@ public class InputOutputHandler {
                 System.out.println("Do you want to recharge your account?\n1. Yes\n2. No");
                 int input1 = 0;
                 while (input1 < 1 || input1 > 2) {
-                    input1 = readInput();
+                    try{
+                        input1 = readInput();
+                    } catch (NoSuchElementException | IllegalStateException ex){
+                        System.out.println("Choose a number between 1 and 2");
+                        input1 = 0;
+                    }
                 }
                 if (input1 == 1)
                     if (rechargeAccount(owner))
                         return confirmPaymentPage(booking, owner, others);
                 return false;
-            } catch(InvalidSeatException e){
-                System.err.println(e.getMessage());
+            } catch(InvalidSeatException | DatabaseFailedException e){
+                System.out.println(e.getMessage());
                 return false;
             }
         } else return false;
     }
 
-    public boolean rechargeAccount(User user){
+    public boolean rechargeAccount(User user) throws NotEnoughFundsException, SQLException, UnableToOpenDatabaseException {
         System.out.println("How much you would like to charge?");
         long input = 0;
         while (input < 1){
@@ -264,29 +300,32 @@ public class InputOutputHandler {
         return true;
     }
 
-    private <T extends DatabaseEntity> T chooseFromList(List<T> list, @NotNull String whatToSelect, @NotNull String backOrExit){
-        System.out.println(whatToSelect);
+    private int chooseOption(List<String> options, String title, String back){
+        System.out.println(title);
         int i = 0;
-        while(i < list.size()){
-            System.out.println((i + 1) + ". " + list.get(i).getName());
+        while(i < options.size()){
+            System.out.println((i + 1) + ". " + options.get(i));
             i++;
         }
-        System.out.println((i + 1) + ". " + backOrExit);
-        int id = -1;
-        while(id < 0 || id > list.size() + 1)
-            id = readInput() - 1;
-        if(id == list.size())
-            return null;
-        return list.get(id);
+        System.out.println((i + 1) + ". " + back);
+        int choice = -1;
+        while(choice < 0 || choice > options.size() + 1)
+            try{
+                choice = readInput() - 1;
+            } catch (NoSuchElementException | IllegalStateException e){
+                System.out.println("Choose a number between 1 and " + (options.size() + 1));
+                choice = -1;
+            }
+        return choice;
     }
 
-    private int readInput(){
+    private int readInput() throws NoSuchElementException, IllegalStateException {
         System.out.print(">> ");
         Scanner sc = new Scanner(System.in);
         return sc.nextInt();
     }
 
-    public Page accountManagementPage(User user) {
+    public Page accountManagementPage(User user) throws SQLException, UnableToOpenDatabaseException {
         System.out.println("What would you like to do?\n1. Edit bookings\n2. Edit my personal infos\n3. Delete my account\n4. Back");
         int input = 0;
         while(input < 1 || input > 4){
@@ -304,7 +343,7 @@ public class InputOutputHandler {
         };
     }
 
-    public Page editBooking(@NotNull Booking booking, User user){
+    public Page editBooking(@NotNull Booking booking, User user) throws SQLException, UnableToOpenDatabaseException, NotEnoughFundsException {
         System.out.println("What would you like to do?\n1. Change seats\n2. Delete this booking\n3. Back");
         int input = 0;
         while(input < 1 || input > 3){
@@ -335,5 +374,4 @@ public class InputOutputHandler {
         };
 
     }
-
 }

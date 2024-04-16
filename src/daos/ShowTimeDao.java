@@ -79,7 +79,7 @@ public class ShowTimeDao implements ShowTimeDaoInterface {
     @Override
     public boolean insertShowTimeSeat(int showTimeId, int seatId) throws SQLException, UnableToOpenDatabaseException {
         try(PreparedStatement s = CinemaDatabase.getConnection().prepareStatement(
-                "INSERT OR IGNORE INTO ShowTimeSeats(showtime_id, seat_id, booking_number) VALUES (?, ?, 0)"
+                "INSERT OR ROLLBACK INTO ShowTimeSeats(showtime_id, seat_id, booking_number) VALUES (?, ?, 0)"
         )) {
             s.setInt(1, showTimeId);
             s.setInt(2, seatId);

@@ -1,20 +1,17 @@
 package BusinessLogic.repositories;
 
-import BusinessLogic.exceptions.DatabaseInsertionFailedException;
+import BusinessLogic.exceptions.DatabaseFailedException;
 import BusinessLogic.exceptions.NotEnoughFundsException;
 import BusinessLogic.exceptions.UnableToOpenDatabaseException;
-import Domain.Booking;
-import Domain.Seat;
-import Domain.ShowTime;
 import Domain.User;
 import daos.UserDao;
 import daos.UserDaoInterface;
 import org.jetbrains.annotations.NotNull;
+import org.sqlite.SQLiteErrorCode;
+import org.sqlite.SQLiteException;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.List;
 
 public class UserRepository extends Repository implements UserRepositoryInterface {
 
@@ -30,17 +27,39 @@ public class UserRepository extends Repository implements UserRepositoryInterfac
     private UserRepository() { }
 
     @Override
-    public int insert(@NotNull User user) throws SQLException, UnableToOpenDatabaseException, DatabaseInsertionFailedException {
+    public int insert(@NotNull User user) throws SQLException, UnableToOpenDatabaseException, DatabaseFailedException {
         try(ResultSet res = dao.insert(user.getUsername(), user.getPassword(), user.getBalance())){
+            if(user.getUsername().isBlank())
+                user.setUsername(null);
+            if(user.getPassword().isBlank())
+                user.setPassword(null);
             if(res.next())
                 return res.getInt(1);
-            throw new DatabaseInsertionFailedException("Database insertion failed: try with a different username");
+            throw new DatabaseFailedException("Database insertion failed.");
+        } catch(SQLiteException e){
+            if(e.getResultCode() == SQLiteErrorCode.SQLITE_CONSTRAINT_UNIQUE)
+                throw new DatabaseFailedException("Database insertion failed: username already exists.");
+            else if (e.getResultCode() == SQLiteErrorCode.SQLITE_CONSTRAINT_NOTNULL)
+                throw new DatabaseFailedException("Database insertion failed: username and password can not be null");
+            else throw e; // TODO throw it as DatabaseInsertionFailedException
         }
     }
 
     @Override
-    public boolean update(@NotNull User user) throws SQLException, UnableToOpenDatabaseException {
-        return dao.update(user.getId(), user.getUsername(), user.getPassword(), user.getBalance());
+    public boolean update(@NotNull User user) throws SQLException, UnableToOpenDatabaseException, DatabaseFailedException {
+        try {
+            if(user.getUsername().isBlank())
+                user.setUsername(null);
+            if(user.getPassword().isBlank())
+                user.setPassword(null);
+            return dao.update(user.getId(), user.getUsername(), user.getPassword(), user.getBalance());
+        } catch (SQLiteException e){
+            if(e.getResultCode() == SQLiteErrorCode.SQLITE_CONSTRAINT_UNIQUE)
+                throw new DatabaseFailedException("Database update failed: username already exists.");
+            else if (e.getResultCode() == SQLiteErrorCode.SQLITE_CONSTRAINT_NOTNULL)
+                throw new DatabaseFailedException("Database update failed: username and password can not be null");
+            else throw e; // TODO throw it as DatabaseInsertionFailedException
+        }
     }
 
     @Override

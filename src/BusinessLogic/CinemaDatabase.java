@@ -73,11 +73,10 @@ public class CinemaDatabase {
                             "showtime_id INTEGER, " +
                             "seat_id INTEGER, " +
                             "user_id INTEGER, " +
-                            "booking_number INTEGER, " +
+                            "booking_number INTEGER NOT NULL ON CONFLICT ROLLBACK, " +
                             "FOREIGN KEY(showtime_id) REFERENCES ShowTimes(showtime_id) ON DELETE CASCADE ON UPDATE CASCADE, " +
                             "FOREIGN KEY(seat_id) REFERENCES Seats(seat_id) ON DELETE CASCADE ON UPDATE CASCADE, " +
                             "FOREIGN KEY(user_id) REFERENCES Users(user_id) ON DELETE CASCADE ON UPDATE CASCADE, " +
-                            "FOREIGN KEY(booking_number) REFERENCES Bookings(booking_number)ON DELETE CASCADE ON UPDATE CASCADE, " +
                             "PRIMARY KEY(showtime_id, seat_id, user_id)" +
                             ")"
             );

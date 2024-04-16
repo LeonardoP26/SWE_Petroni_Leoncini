@@ -1,21 +1,19 @@
 package BusinessLogic.repositories;
 
-import BusinessLogic.exceptions.DatabaseInsertionFailedException;
+import BusinessLogic.exceptions.DatabaseFailedException;
 import BusinessLogic.exceptions.NotEnoughFundsException;
 import BusinessLogic.exceptions.UnableToOpenDatabaseException;
-import Domain.Booking;
 import Domain.User;
 import org.jetbrains.annotations.NotNull;
 
 import java.sql.SQLException;
-import java.util.List;
 
 public interface UserRepositoryInterface {
 
 
-    int insert(@NotNull User user) throws SQLException, UnableToOpenDatabaseException, DatabaseInsertionFailedException;
+    int insert(@NotNull User user) throws SQLException, UnableToOpenDatabaseException, DatabaseFailedException;
 
-    boolean update(@NotNull User user) throws SQLException, UnableToOpenDatabaseException;
+    boolean update(@NotNull User user) throws SQLException, UnableToOpenDatabaseException, DatabaseFailedException;
 
     boolean delete(@NotNull User user) throws SQLException, UnableToOpenDatabaseException;
 

@@ -66,16 +66,6 @@ public class UserDao implements UserDaoInterface{
     }
 
     @Override
-    public ResultSet doesUsernameAlreadyExists(@NotNull String username) throws SQLException, UnableToOpenDatabaseException {
-        Connection conn = CinemaDatabase.getConnection();
-        PreparedStatement s = conn.prepareStatement(
-                "SELECT username FROM Users WHERE username = ?"
-        );
-        s.setString(1, username);
-        return s.executeQuery();
-    }
-
-    @Override
     public ResultSet get(String username, String password) throws SQLException, UnableToOpenDatabaseException {
         Connection conn = CinemaDatabase.getConnection();
         PreparedStatement s = conn.prepareStatement(

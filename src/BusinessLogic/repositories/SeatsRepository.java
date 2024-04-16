@@ -1,6 +1,6 @@
 package BusinessLogic.repositories;
 
-import BusinessLogic.exceptions.DatabaseInsertionFailedException;
+import BusinessLogic.exceptions.DatabaseFailedException;
 import BusinessLogic.exceptions.UnableToOpenDatabaseException;
 import Domain.Movie;
 import Domain.Seat;
@@ -8,6 +8,8 @@ import Domain.ShowTime;
 import daos.SeatsDao;
 import daos.SeatsDaoInterface;
 import org.jetbrains.annotations.NotNull;
+import org.sqlite.SQLiteErrorCode;
+import org.sqlite.SQLiteException;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -28,17 +30,35 @@ public class SeatsRepository extends Repository implements SeatsRepositoryInterf
 
 
     @Override
-    public int insert(Seat seat, int hallId) throws SQLException, UnableToOpenDatabaseException, DatabaseInsertionFailedException {
+    public int insert(Seat seat, int hallId) throws SQLException, UnableToOpenDatabaseException, DatabaseFailedException {
         try(ResultSet res = dao.insert(seat.getRow(), seat.getNumber(), hallId)){
             if(res.next())
                 return res.getInt(1);
-            throw new DatabaseInsertionFailedException("Database insertion failed: Record already present");
+            throw new DatabaseFailedException("Database insertion failed.");
+        } catch (SQLiteException e){
+            if(e.getResultCode() == SQLiteErrorCode.SQLITE_CONSTRAINT_UNIQUE)
+                throw new DatabaseFailedException("Database insertion failed: this seat already exists.");
+            else if (e.getResultCode() == SQLiteErrorCode.SQLITE_CONSTRAINT_NOTNULL)
+                throw new DatabaseFailedException("Database insertion failed: ensure seat id, row, number and hall are not null.");
+            else if(e.getResultCode() == SQLiteErrorCode.SQLITE_CONSTRAINT_FOREIGNKEY)
+                throw new DatabaseFailedException("Database insertion failed: ensure that hall id is valid.");
+            else throw e; // TODO throw it as DatabaseInsertionFailedException
         }
     }
 
     @Override
-    public boolean update(@NotNull Seat seat, int hallId) throws SQLException, UnableToOpenDatabaseException {
-        return dao.update(seat.getId(), seat.getRow(), seat.getNumber(), hallId);
+    public boolean update(@NotNull Seat seat, int hallId) throws SQLException, UnableToOpenDatabaseException, DatabaseFailedException {
+        try{
+            return dao.update(seat.getId(), seat.getRow(), seat.getNumber(), hallId);
+        } catch (SQLiteException e){
+            if(e.getResultCode() == SQLiteErrorCode.SQLITE_CONSTRAINT_UNIQUE)
+                throw new DatabaseFailedException("Database update failed: this seat already exists.");
+            else if (e.getResultCode() == SQLiteErrorCode.SQLITE_CONSTRAINT_NOTNULL)
+                throw new DatabaseFailedException("Database update failed: ensure seat id, row, number and hall are not null.");
+            else if(e.getResultCode() == SQLiteErrorCode.SQLITE_CONSTRAINT_FOREIGNKEY)
+                throw new DatabaseFailedException("Database update failed: ensure that hall id is valid.");
+            else throw e; // TODO throw it as DatabaseInsertionFailedException
+        }
     }
 
     @Override
