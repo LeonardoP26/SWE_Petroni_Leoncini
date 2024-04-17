@@ -1,15 +1,8 @@
 package Domain;
 
-import BusinessLogic.exceptions.UnableToOpenDatabaseException;
-import BusinessLogic.repositories.BookingRepository;
-import BusinessLogic.repositories.BookingRepositoryInterface;
-
-import java.lang.reflect.InvocationTargetException;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 public class Booking implements DatabaseEntity{
 

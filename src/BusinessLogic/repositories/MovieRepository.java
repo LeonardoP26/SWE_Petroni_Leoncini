@@ -1,7 +1,6 @@
 package BusinessLogic.repositories;
 
 import BusinessLogic.exceptions.DatabaseFailedException;
-import BusinessLogic.exceptions.UnableToOpenDatabaseException;
 import Domain.Cinema;
 import Domain.Movie;
 import daos.MovieDao;
@@ -30,7 +29,7 @@ public class MovieRepository extends Repository implements MovieRepositoryInterf
 
 
     @Override
-    public int insert(@NotNull Movie movie) throws SQLException, UnableToOpenDatabaseException, DatabaseFailedException {
+    public int insert(@NotNull Movie movie) throws DatabaseFailedException {
         try(ResultSet res = dao.insert(movie.getName(), movie.getDuration())){
             if(res.next())
                 return res.getInt(1);
@@ -40,12 +39,14 @@ public class MovieRepository extends Repository implements MovieRepositoryInterf
                 throw new DatabaseFailedException("Database insertion failed: this movie already exists.");
             else if (e.getResultCode() == SQLiteErrorCode.SQLITE_CONSTRAINT_NOTNULL)
                 throw new DatabaseFailedException("Database insertion failed: ensure movie id, name and duration are not null.");
-            else throw e; // TODO throw it as DatabaseInsertionFailedException
+            else throw new RuntimeException(e); // TODO throw it as DatabaseInsertionFailedException
+        } catch (SQLException e){
+            throw new RuntimeException(e);
         }
     }
 
     @Override
-    public boolean update(@NotNull Movie movie) throws SQLException, UnableToOpenDatabaseException, DatabaseFailedException {
+    public boolean update(@NotNull Movie movie) throws DatabaseFailedException {
         try{
             return dao.update(movie.getId(), movie.getName(), movie.getDuration());
         } catch (SQLiteException e){
@@ -53,28 +54,38 @@ public class MovieRepository extends Repository implements MovieRepositoryInterf
                 throw new DatabaseFailedException("Database update failed: this movie already exists.");
             else if (e.getResultCode() == SQLiteErrorCode.SQLITE_CONSTRAINT_NOTNULL)
                 throw new DatabaseFailedException("Database update failed: ensure movie id, name and duration are not null.");
-            else throw e; // TODO throw it as DatabaseInsertionFailedException
+            else throw new RuntimeException(e); // TODO throw it as DatabaseInsertionFailedException
+        } catch (SQLException e){
+            throw new RuntimeException(e);
         }
     }
 
     @Override
-    public boolean delete(@NotNull Movie movie) throws SQLException, UnableToOpenDatabaseException {
-        return dao.delete(movie.getId());
+    public boolean delete(@NotNull Movie movie) {
+        try{
+            return dao.delete(movie.getId());
+        } catch (SQLException e){
+            throw new RuntimeException(e);
+        }
     }
 
     @Override
-    public Movie get(int movieId) throws SQLException, UnableToOpenDatabaseException {
+    public Movie get(int movieId) {
         try(ResultSet res = dao.get(movieId)){
             if(res.next())
                 return new Movie(res);
             return null;
+        } catch (SQLException e){
+            throw new RuntimeException(e);
         }
     }
 
     @Override
-    public List<Movie> get(Cinema cinema) throws SQLException, UnableToOpenDatabaseException {
+    public List<Movie> get(Cinema cinema) {
         try(ResultSet res = dao.get(cinema)){
-            return getList(res, () -> new Movie(res));
+            return getList(res, (movieList) -> new Movie(res));
+        } catch (SQLException e){
+            throw new RuntimeException(e);
         }
     }
 

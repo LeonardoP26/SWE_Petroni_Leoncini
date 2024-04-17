@@ -1,9 +1,6 @@
 package daos;
 
 import BusinessLogic.CinemaDatabase;
-import BusinessLogic.exceptions.UnableToOpenDatabaseException;
-import Domain.Cinema;
-import org.jetbrains.annotations.NotNull;
 
 import java.sql.*;
 
@@ -21,7 +18,7 @@ public class CinemaDao implements CinemaDaoInterface {
 
 
     @Override
-    public ResultSet insert(String cinemaName) throws SQLException, UnableToOpenDatabaseException {
+    public ResultSet insert(String cinemaName) throws SQLException {
         Connection conn = CinemaDatabase.getConnection();
         PreparedStatement s = conn.prepareStatement(
                 "INSERT OR IGNORE INTO Cinemas(cinema_name) VALUES (?)"
@@ -33,7 +30,7 @@ public class CinemaDao implements CinemaDaoInterface {
     }
 
     @Override
-    public boolean update(int cinemaId, String cinemaName) throws SQLException, UnableToOpenDatabaseException {
+    public boolean update(int cinemaId, String cinemaName) throws SQLException {
         try (PreparedStatement s = CinemaDatabase.getConnection().prepareStatement(
                 "UPDATE Cinemas SET cinema_name = ? WHERE cinema_id = ?"
         )) {
@@ -44,7 +41,7 @@ public class CinemaDao implements CinemaDaoInterface {
     }
 
     @Override
-    public boolean delete(int cinemaId) throws SQLException, UnableToOpenDatabaseException {
+    public boolean delete(int cinemaId) throws SQLException {
         try(PreparedStatement s = CinemaDatabase.getConnection().prepareStatement(
                 "DELETE FROM Cinemas WHERE cinema_id = ?"
         )){
@@ -54,7 +51,7 @@ public class CinemaDao implements CinemaDaoInterface {
     }
 
     @Override
-    public ResultSet get(int cinemaId) throws SQLException, UnableToOpenDatabaseException {
+    public ResultSet get(int cinemaId) throws SQLException {
         Connection conn = CinemaDatabase.getConnection();
         PreparedStatement s = conn.prepareStatement(
                 "SELECT * FROM Cinemas WHERE cinema_id = ?"
@@ -65,7 +62,7 @@ public class CinemaDao implements CinemaDaoInterface {
 
 
     @Override
-    public ResultSet get() throws SQLException, UnableToOpenDatabaseException {
+    public ResultSet get() throws SQLException {
         Connection conn = CinemaDatabase.getConnection();
         PreparedStatement s = conn.prepareStatement("SELECT * FROM Cinemas");
         return s.executeQuery();

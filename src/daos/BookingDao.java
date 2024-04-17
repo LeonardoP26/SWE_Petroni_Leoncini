@@ -1,7 +1,6 @@
 package daos;
 
 import BusinessLogic.CinemaDatabase;
-import BusinessLogic.exceptions.UnableToOpenDatabaseException;
 import Domain.Seat;
 import Domain.ShowTime;
 import Domain.User;
@@ -24,7 +23,7 @@ public class BookingDao implements BookingDaoInterface{
 
 
     @Override
-    public boolean insert(int bookingNumber, @NotNull ShowTime showTime, List<Seat> seats, List<User> users) throws SQLException, UnableToOpenDatabaseException {
+    public boolean insert(int bookingNumber, @NotNull ShowTime showTime, List<Seat> seats, List<User> users) throws SQLException {
         Connection conn = CinemaDatabase.getConnection();
         boolean oldAutoCommit = conn.getAutoCommit();
         conn.setAutoCommit(false);
@@ -55,7 +54,7 @@ public class BookingDao implements BookingDaoInterface{
     // TODO Add update, delete and get methods to respect CRUD principle
 
     @Override
-    public boolean delete(int bookingNumber) throws SQLException, UnableToOpenDatabaseException {
+    public boolean delete(int bookingNumber) throws SQLException {
         try(PreparedStatement s = CinemaDatabase.getConnection().prepareStatement(
                 "DELETE FROM Bookings WHERE booking_number = ?"
         )){
@@ -65,19 +64,19 @@ public class BookingDao implements BookingDaoInterface{
     }
 
     @Override
-    public ResultSet createBookingNumber() throws SQLException, UnableToOpenDatabaseException {
+    public ResultSet createBookingNumber() throws SQLException {
         Connection conn = CinemaDatabase.getConnection();
         Statement s = conn.createStatement();
         return s.executeQuery(
-                "SELECT DISTINCT booking_number FROM Bookings WHERE booking_number = (SELECT DISTINCT max(booking_number) FROM Bookings)"
+                "SELECT MIN(booking_number) + 1 FROM Bookings WHERE Bookings.booking_number + 1 NOT IN (SELECT booking_number FROM Bookings)"
         );
     }
 
     @Override
-    public ResultSet get(@NotNull User user) throws SQLException, UnableToOpenDatabaseException {
+    public ResultSet get(@NotNull User user) throws SQLException {
         Connection conn = CinemaDatabase.getConnection();
         PreparedStatement s = conn.prepareStatement(
-                "SELECT * FROM ((((Bookings JOIN ShowTimes ON Bookings.showtime_id = ShowTimes.showtime_id) JOIN Seats ON Bookings.seat_id = Seats.seat_id) JOIN Movies ON ShowTimes.movie_id = Movies.movie_id) JOIN Halls ON ShowTimes.hall_id = Halls.hall_id) JOIN Cinemas ON Halls.cinema_id = Cinemas.cinema_id WHERE user_id = ?"
+                "SELECT * FROM ((((Bookings JOIN ShowTimes ON Bookings.showtime_id = ShowTimes.showtime_id) JOIN Seats ON Bookings.seat_id = Seats.seat_id) JOIN Movies ON ShowTimes.movie_id = Movies.movie_id) JOIN Halls ON ShowTimes.hall_id = Halls.hall_id) JOIN Cinemas ON Halls.cinema_id = Cinemas.cinema_id WHERE user_id = ? ORDER BY booking_number"
         );
         s.setInt(1, user.getId());
         return s.executeQuery();

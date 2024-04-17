@@ -2,7 +2,6 @@ package BusinessLogic.repositories;
 
 import BusinessLogic.HallFactory;
 import BusinessLogic.exceptions.DatabaseFailedException;
-import BusinessLogic.exceptions.UnableToOpenDatabaseException;
 import Domain.Hall;
 import Domain.ShowTime;
 import daos.HallDao;
@@ -10,7 +9,6 @@ import daos.HallDaoInterface;
 import org.jetbrains.annotations.NotNull;
 import org.sqlite.SQLiteErrorCode;
 import org.sqlite.SQLiteException;
-import org.sqlite.SQLiteLimits;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -30,7 +28,7 @@ public class HallRepository extends Repository implements HallRepositoryInterfac
 
 
     @Override
-    public int insert(@NotNull Hall hall, int cinemaId) throws SQLException, UnableToOpenDatabaseException, DatabaseFailedException {
+    public int insert(@NotNull Hall hall, int cinemaId) throws DatabaseFailedException {
         try(ResultSet res = dao.insert(hall.getHallNumber(), cinemaId, hall.getHallType())){
             if(res.next())
                 return res.getInt(1);
@@ -42,12 +40,14 @@ public class HallRepository extends Repository implements HallRepositoryInterfac
                 throw new DatabaseFailedException("Database insertion failed: ensure hall id, hall number, cinema id and type are not null.");
             else if (e.getResultCode() == SQLiteErrorCode.SQLITE_CONSTRAINT_FOREIGNKEY)
                 throw new DatabaseFailedException("Database insertion failed: ensure that cinema id is valid.");
-            else throw e; // TODO throw it as DatabaseInsertionFailedException
+            else throw new RuntimeException(e); // TODO throw it as DatabaseInsertionFailedException
+        } catch (SQLException e){
+            throw new RuntimeException(e);
         }
     }
 
     @Override
-    public boolean update(@NotNull Hall hall, int cinemaId) throws SQLException, UnableToOpenDatabaseException, DatabaseFailedException {
+    public boolean update(@NotNull Hall hall, int cinemaId) throws DatabaseFailedException {
         try{
             return dao.update(hall.getId(), hall.getHallNumber(), cinemaId, hall.getHallType());
         } catch (SQLiteException e){
@@ -57,30 +57,40 @@ public class HallRepository extends Repository implements HallRepositoryInterfac
                 throw new DatabaseFailedException("Database update failed: ensure hall id, hall number, cinema id and type are not null.");
             else if (e.getResultCode() == SQLiteErrorCode.SQLITE_CONSTRAINT_FOREIGNKEY)
                 throw new DatabaseFailedException("Database update failed: ensure that cinema id is valid.");
-            else throw e; // TODO throw it as DatabaseInsertionFailedException
+            else throw new RuntimeException(e); // TODO throw it as DatabaseInsertionFailedException
+        } catch (SQLException e){
+            throw new RuntimeException(e);
         }
     }
 
     @Override
-    public boolean delete(@NotNull Hall hall) throws SQLException, UnableToOpenDatabaseException {
-        return dao.delete(hall.getId());
+    public boolean delete(@NotNull Hall hall) {
+        try{
+            return dao.delete(hall.getId());
+        } catch (SQLException e){
+            throw new RuntimeException(e);
+        }
     }
 
     @Override
-    public Hall get(int hallId) throws SQLException, UnableToOpenDatabaseException {
+    public Hall get(int hallId) {
         try(ResultSet res = dao.get(hallId)){
             if(res.next())
                 return HallFactory.createHall(res);
             return null;
+        } catch (SQLException e){
+            throw new RuntimeException(e);
         }
     }
 
     @Override
-    public Hall get(@NotNull ShowTime showTime) throws SQLException, UnableToOpenDatabaseException {
+    public Hall get(@NotNull ShowTime showTime) {
         try(ResultSet res = dao.get(showTime)){
             if(res.next())
                 return HallFactory.createHall(res);
             return null;
+        } catch (SQLException e){
+            throw new RuntimeException(e);
         }
     }
 

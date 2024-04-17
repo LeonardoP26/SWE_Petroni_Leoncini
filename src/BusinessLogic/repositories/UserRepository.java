@@ -2,7 +2,6 @@ package BusinessLogic.repositories;
 
 import BusinessLogic.exceptions.DatabaseFailedException;
 import BusinessLogic.exceptions.NotEnoughFundsException;
-import BusinessLogic.exceptions.UnableToOpenDatabaseException;
 import Domain.User;
 import daos.UserDao;
 import daos.UserDaoInterface;
@@ -18,8 +17,8 @@ public class UserRepository extends Repository implements UserRepositoryInterfac
     private final UserDaoInterface dao = UserDao.getInstance();
     private static UserRepositoryInterface instance = null;
 
-    public static UserRepositoryInterface getInstance(){
-        if(instance == null)
+    public static UserRepositoryInterface getInstance() {
+        if (instance == null)
             instance = new UserRepository();
         return instance;
     }
@@ -27,83 +26,99 @@ public class UserRepository extends Repository implements UserRepositoryInterfac
     private UserRepository() { }
 
     @Override
-    public int insert(@NotNull User user) throws SQLException, UnableToOpenDatabaseException, DatabaseFailedException {
-        try(ResultSet res = dao.insert(user.getUsername(), user.getPassword(), user.getBalance())){
-            if(user.getUsername().isBlank())
+    public int insert(@NotNull User user) throws DatabaseFailedException {
+        try (ResultSet res = dao.insert(user.getUsername(), user.getPassword(), user.getBalance())) {
+            if (user.getUsername().isBlank())
                 user.setUsername(null);
-            if(user.getPassword().isBlank())
+            if (user.getPassword().isBlank())
                 user.setPassword(null);
-            if(res.next())
+            if (res.next())
                 return res.getInt(1);
             throw new DatabaseFailedException("Database insertion failed.");
-        } catch(SQLiteException e){
-            if(e.getResultCode() == SQLiteErrorCode.SQLITE_CONSTRAINT_UNIQUE)
+        } catch (SQLiteException e) {
+            if (e.getResultCode() == SQLiteErrorCode.SQLITE_CONSTRAINT_UNIQUE)
                 throw new DatabaseFailedException("Database insertion failed: username already exists.");
             else if (e.getResultCode() == SQLiteErrorCode.SQLITE_CONSTRAINT_NOTNULL)
                 throw new DatabaseFailedException("Database insertion failed: username and password can not be null");
-            else throw e; // TODO throw it as DatabaseInsertionFailedException
+            else throw new RuntimeException(e); // TODO throw it as DatabaseInsertionFailedException
+        } catch (SQLException ex) {
+            throw new RuntimeException(ex);
         }
     }
 
     @Override
-    public boolean update(@NotNull User user) throws SQLException, UnableToOpenDatabaseException, DatabaseFailedException {
+    public boolean update(@NotNull User user) throws DatabaseFailedException {
         try {
-            if(user.getUsername().isBlank())
+            if (user.getUsername().isBlank())
                 user.setUsername(null);
-            if(user.getPassword().isBlank())
+            if (user.getPassword().isBlank())
                 user.setPassword(null);
             return dao.update(user.getId(), user.getUsername(), user.getPassword(), user.getBalance());
-        } catch (SQLiteException e){
-            if(e.getResultCode() == SQLiteErrorCode.SQLITE_CONSTRAINT_UNIQUE)
+        } catch (SQLiteException e) {
+            if (e.getResultCode() == SQLiteErrorCode.SQLITE_CONSTRAINT_UNIQUE)
                 throw new DatabaseFailedException("Database update failed: username already exists.");
             else if (e.getResultCode() == SQLiteErrorCode.SQLITE_CONSTRAINT_NOTNULL)
                 throw new DatabaseFailedException("Database update failed: username and password can not be null");
-            else throw e; // TODO throw it as DatabaseInsertionFailedException
+            else throw new RuntimeException(e); // TODO throw it as DatabaseInsertionFailedException
+        } catch (SQLException ex) {
+            throw new RuntimeException(ex);
         }
     }
 
     @Override
-    public boolean delete(@NotNull User user) throws SQLException, UnableToOpenDatabaseException {
-        return dao.delete(user.getId());
+    public boolean delete(@NotNull User user) {
+        try {
+            return dao.delete(user.getId());
+        } catch (SQLException ex) {
+            throw new RuntimeException(ex);
+        }
     }
 
     @Override
-    public User get(int userId) throws SQLException, UnableToOpenDatabaseException {
-        try(ResultSet res = dao.get(userId)){
-            if(res.next())
+    public User get(int userId) {
+        try (ResultSet res = dao.get(userId)) {
+            if (res.next())
                 return new User(res);
             return null;
+        } catch (SQLException ex) {
+            throw new RuntimeException(ex);
         }
     }
 
     @Override
-    public User get(String username, String password) throws SQLException, UnableToOpenDatabaseException {
-        try(ResultSet res = dao.get(username, password)){
-            if(res.next()){
+    public User get(String username, String password) {
+        try (ResultSet res = dao.get(username, password)) {
+            if (res.next()) {
                 return new User(res);
             }
             return null;
+        } catch (SQLException ex) {
+            throw new RuntimeException(ex);
         }
     }
 
     @Override
-    public User get(String username) throws SQLException, UnableToOpenDatabaseException {
-        try(ResultSet res = dao.get(username)){
-            if(res.next())
+    public User get(String username) {
+        try (ResultSet res = dao.get(username)) {
+            if (res.next())
                 return new User(res);
             return null;
+        } catch (SQLException ex) {
+            throw new RuntimeException(ex);
         }
     }
 
     @Override
-    public boolean update(@NotNull User user, long newBalance) throws SQLException, UnableToOpenDatabaseException, NotEnoughFundsException {
-        long oldBalance = user.getBalance();
-        if(dao.update(user.getId(), newBalance)) {
-            user.setBalance(newBalance);
-            return true;
+    public boolean update(@NotNull User user, long newBalance) throws NotEnoughFundsException {
+        try {
+            if (dao.update(user.getId(), newBalance)) {
+                user.setBalance(newBalance);
+                return true;
+            }
+            return false;
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
         }
-        user.setBalance(oldBalance);
-        return false;
     }
 
 

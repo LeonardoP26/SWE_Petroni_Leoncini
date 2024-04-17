@@ -1,7 +1,5 @@
 package BusinessLogic;
 
-import BusinessLogic.exceptions.UnableToOpenDatabaseException;
-
 import java.sql.SQLException;
 import java.util.ArrayList;
 
@@ -13,7 +11,7 @@ public abstract class Subject {
         observers.add(observer);
     }
 
-    protected void notifyObservers(Subject subject) throws SQLException, UnableToOpenDatabaseException {
+    protected void notifyObservers(Subject subject) throws SQLException {
         for(Observer observer : observers){
             observer.update(subject);
         }

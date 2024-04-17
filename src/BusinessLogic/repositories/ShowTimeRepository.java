@@ -2,10 +2,8 @@ package BusinessLogic.repositories;
 
 import BusinessLogic.HallFactory;
 import BusinessLogic.exceptions.DatabaseFailedException;
-import BusinessLogic.exceptions.UnableToOpenDatabaseException;
 import Domain.Hall;
 import Domain.Movie;
-import Domain.Seat;
 import Domain.ShowTime;
 import daos.ShowTimeDao;
 import daos.ShowTimeDaoInterface;
@@ -34,55 +32,65 @@ public class ShowTimeRepository extends Repository implements ShowTimeRepository
 
 
     @Override
-    public int insert(@NotNull ShowTime showTime) throws SQLException, UnableToOpenDatabaseException, DatabaseFailedException {
+    public int insert(@NotNull ShowTime showTime) throws DatabaseFailedException {
         try(ResultSet res = dao.insert(showTime.getMovie().getId(), showTime.getHall().getId(), showTime.getDate())){
             if(res.next())
                 return res.getInt(1);
             throw new DatabaseFailedException("Database insertion failed.");
-        } catch (SQLException e){
+        } catch (SQLiteException e){
             if(e.getErrorCode() == SQLiteErrorCode.SQLITE_CONSTRAINT_UNIQUE.code)
                 throw new DatabaseFailedException("Database insertion failed: this showtime already exists.");
             else if (e.getErrorCode() == SQLiteErrorCode.SQLITE_CONSTRAINT_NOTNULL.code)
                 throw new DatabaseFailedException("Database insertion failed: movie, hall and date can not be null.");
             else if (e.getErrorCode() == SQLiteErrorCode.SQLITE_CONSTRAINT_FOREIGNKEY.code)
                 throw new DatabaseFailedException("Database insertion failed: be sure that both the movie and hall have a valid ids.");
-            else throw e; // TODO throw it as DatabaseInsertionFailedException
+            else throw new RuntimeException(e); // TODO throw it as DatabaseInsertionFailedException
+        } catch (SQLException e){
+            throw new RuntimeException(e);
         }
     }
 
     @Override
-    public boolean update(@NotNull ShowTime showTime) throws SQLException, UnableToOpenDatabaseException, DatabaseFailedException {
+    public boolean update(@NotNull ShowTime showTime) throws DatabaseFailedException {
         try{
             return dao.update(showTime.getId(), showTime.getMovie().getId(), showTime.getHall().getId());
-        } catch (SQLException e){
+        } catch (SQLiteException e){
             if(e.getErrorCode() == SQLiteErrorCode.SQLITE_CONSTRAINT_UNIQUE.code)
                 throw new DatabaseFailedException("Database update failed: this showtime already exists.");
             else if (e.getErrorCode() == SQLiteErrorCode.SQLITE_CONSTRAINT_NOTNULL.code)
                 throw new DatabaseFailedException("Database update failed: movie, hall and date can not be null.");
             else if (e.getErrorCode() == SQLiteErrorCode.SQLITE_CONSTRAINT_FOREIGNKEY.code)
                 throw new DatabaseFailedException("Database update failed: be sure that both the movie and hall have a valid ids.");
-            else throw e; // TODO throw it as DatabaseInsertionFailedException
+            else throw new RuntimeException(e); // TODO throw it as DatabaseInsertionFailedException
+        } catch (SQLException e){
+            throw new RuntimeException(e);
         }
     }
 
     @Override
-    public boolean delete(@NotNull ShowTime showTime) throws SQLException, UnableToOpenDatabaseException {
-        return dao.delete(showTime.getId());
+    public boolean delete(@NotNull ShowTime showTime) {
+        try {
+            return dao.delete(showTime.getId());
+        } catch (SQLException e){
+            throw new RuntimeException(e);
+        }
     }
 
     @Override
-    public ShowTime get(int showTimeId) throws SQLException, UnableToOpenDatabaseException {
+    public ShowTime get(int showTimeId) {
         try(ResultSet res = dao.get(showTimeId)){
             if(res.next())
                 return new ShowTime(res);
             return null;
+        } catch (SQLException e){
+            throw new RuntimeException(e);
         }
     }
 
     @Override
-    public List<ShowTime> get(@NotNull Movie movie) throws SQLException, UnableToOpenDatabaseException {
+    public List<ShowTime> get(@NotNull Movie movie) {
         try(ResultSet res = dao.get(movie)) {
-            return getList(res, () -> {
+            return getList(res, (showTimeList) -> {
                 Hall hall = HallFactory.createHall(res);
                 ShowTime showTime = new ShowTime(res);
                 showTime.setMovie(movie);
@@ -90,37 +98,8 @@ public class ShowTimeRepository extends Repository implements ShowTimeRepository
                 showTime.setDate(LocalDateTime.parse(res.getString(4), DateTimeFormatter.ISO_LOCAL_DATE_TIME));
                 return showTime;
             });
-        }
-    }
-
-    @Override
-    public void insertShowTimeSeat(int showTimeId, int seatId) throws SQLException, UnableToOpenDatabaseException, DatabaseFailedException {
-        try{
-            if(!dao.insertShowTimeSeat(showTimeId, seatId))
-                throw new DatabaseFailedException("Database insertion failed");
-        } catch (SQLiteException e){
-            if(e.getResultCode() == SQLiteErrorCode.SQLITE_CONSTRAINT_UNIQUE)
-                throw new DatabaseFailedException("Database insertion failed: this entity already exists."); // TODO maybe use InvalidSeatException?
-            else if (e.getResultCode() == SQLiteErrorCode.SQLITE_CONSTRAINT_NOTNULL)
-                throw new DatabaseFailedException("Database insertion failed: showtime, seat and booking can not be null.");
-            else if (e.getResultCode() == SQLiteErrorCode.SQLITE_CONSTRAINT_FOREIGNKEY)
-                throw new DatabaseFailedException("Database insertion failed: be sure that both the seat has a valid id and the booking has a valid booking number.");
-            else throw e; // TODO throw it as DatabaseInsertionFailedException
-        }
-    }
-
-    @Override
-    public boolean updateShowTimeSeat(ShowTime showTime, Seat seat, int bookingNumber) throws SQLException, UnableToOpenDatabaseException, DatabaseFailedException {
-        try{
-            return dao.updateShowTimeSeat(showTime.getId(), seat.getId(), bookingNumber);
-        } catch (SQLiteException e){
-            if(e.getResultCode() == SQLiteErrorCode.SQLITE_CONSTRAINT_UNIQUE)
-                throw new DatabaseFailedException("Database update failed: this entity already exists.");
-            else if (e.getResultCode() == SQLiteErrorCode.SQLITE_CONSTRAINT_NOTNULL)
-                throw new DatabaseFailedException("Database update failed: showtime, seat and booking can not be null.");
-            else if (e.getResultCode() == SQLiteErrorCode.SQLITE_CONSTRAINT_FOREIGNKEY)
-                throw new DatabaseFailedException("Database update failed: be sure that both the seat has a valid id and the booking has a valid booking number.");
-            else throw e; // TODO throw it as DatabaseInsertionFailedException
+        } catch (SQLException e){
+            throw new RuntimeException(e);
         }
     }
 

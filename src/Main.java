@@ -1,7 +1,7 @@
 import BusinessLogic.CinemaDatabase;
 import BusinessLogic.exceptions.DatabaseFailedException;
+import BusinessLogic.exceptions.InvalidIdException;
 import BusinessLogic.exceptions.NotEnoughFundsException;
-import BusinessLogic.exceptions.UnableToOpenDatabaseException;
 import BusinessLogic.services.DatabaseService;
 import Domain.*;
 import org.jetbrains.annotations.NotNull;
@@ -18,7 +18,7 @@ import static ui.InputOutputHandler.*;
 public class Main {
 
 
-    public static void main(String[] args) throws SQLException, UnableToOpenDatabaseException, NotEnoughFundsException, NoSuchAlgorithmException, DatabaseFailedException {
+    public static void main(String[] args) throws DatabaseFailedException, InvalidIdException {
 
         populateDatabase();
         InputOutputHandler ui = InputOutputHandler.getInstance();
@@ -28,7 +28,7 @@ public class Main {
         ShowTime selectedShowTime = null;
         List<Seat> selectedSeats = null;
         User user = null;
-        Booking bookingManaged = null;
+        Booking userBooking = null;
         boolean exit = false;
 
         Page currentPage = Page.HOMEPAGE;
@@ -51,6 +51,29 @@ public class Main {
                 case Page.MANAGE_ACCOUNT -> {
                     currentPage = ui.accountManagementPage(user);
                 }
+                case Page.DELETE_ACCOUNT ->{
+                    user = null;
+                    currentPage = Page.HOMEPAGE;
+                }
+                case Page.MANAGE_BOOKINGS -> {
+                    assert user != null;
+                    userBooking = ui.bookingManagePage(user);
+                    currentPage = userBooking != null ? Page.EDIT_BOOKINGS : Page.HOMEPAGE;
+                }
+                case Page.EDIT_BOOKINGS -> {
+                    assert userBooking != null;
+                    currentPage = ui.editBooking(userBooking, user);
+                    if(currentPage == Page.SEAT_SELECTION){
+                        selectedCinema = userBooking.getShowTime().getCinema();
+                        selectedMovie = userBooking.getShowTime().getMovie();
+                        selectedShowTime = userBooking.getShowTime();
+                        selectedSeats = userBooking.getSeats();
+                    }
+                }
+                case DELETE_BOOKING -> {
+                    userBooking = null;
+                    currentPage = Page.HOMEPAGE;
+                }
                 case Page.CINEMA_SELECTION -> {
                     selectedCinema = ui.cinemaSelectionPage();
                     currentPage = selectedCinema == null ? Page.HOMEPAGE : Page.MOVIE_SELECTION;
@@ -67,8 +90,12 @@ public class Main {
                 }
                 case SEAT_SELECTION -> {
                     assert selectedShowTime != null;
-                    selectedSeats = ui.seatsSelectionPage(selectedShowTime);
-                    currentPage = selectedSeats == null ? Page.SHOWTIME_SELECTION : Page.BOOKING_CONFIRMED;
+                    List<Seat> oldSeats = selectedSeats;
+                    selectedSeats = ui.seatsSelectionPage(selectedShowTime, userBooking);
+                    if(oldSeats != null && selectedSeats == null)
+                        currentPage = Page.EDIT_BOOKINGS;
+                    else
+                        currentPage = selectedSeats == null ? Page.SHOWTIME_SELECTION : Page.BOOKING_CONFIRMED;
                 }
                 case BOOKING_CONFIRMED -> {
                     if(user == null){
@@ -78,7 +105,7 @@ public class Main {
                         assert selectedSeats != null;
                         List<User> users = ui.addPeopleToBookingPage(selectedSeats.size() - 1);
                         Booking booking = new Booking(selectedShowTime, selectedSeats);
-                        boolean success = ui.confirmPaymentPage(booking, user, users);
+                        boolean success = ui.confirmPaymentPage(booking, user, users, userBooking);
                         if(success)
                             System.out.println("Booking confirmed!");
                         else
@@ -89,24 +116,6 @@ public class Main {
                         selectedSeats = null;
                         currentPage = Page.HOMEPAGE;
                     }
-                }
-
-                // TODO cases below have to be fixed
-
-                case Page.MANAGE_BOOKINGS -> {
-                    if (user == null) {
-                        currentPage = Page.LOGIN_OR_REGISTER;
-                        break;
-                    }
-                    bookingManaged = ui.bookingManagePage(user);
-                    currentPage = bookingManaged != null ? Page.EDIT_BOOKINGS : Page.HOMEPAGE;
-                }
-                case Page.EDIT_BOOKINGS -> {
-                    if (bookingManaged == null) {
-                        currentPage = Page.HOMEPAGE;
-                        break;
-                    }
-                    currentPage = ui.editBooking(bookingManaged, user);
                 }
             }
         }
@@ -132,7 +141,7 @@ public class Main {
         return seats;
     }
 
-    private static void populateDatabase(){
+    private static void populateDatabase() throws DatabaseFailedException, InvalidIdException {
         try {
             if(CinemaDatabase.isDatabaseEmpty()) {
                 System.out.println("Populating the database...");
@@ -192,14 +201,15 @@ public class Main {
                 System.out.println("Finished.");
             }
 
-        } catch (Exception e){
+        } catch (SQLException e){
+            throw new RuntimeException(e);
             /*
              * Since we are populating the database i.e.
              * we are setting up the workspace every exception launched
              * in this process should make the program stops.
              */
-            System.out.println(e.getMessage());
-            System.exit(-1);
+//            System.out.println(e.getMessage());
+//            System.exit(-1);
         }
     }
 

@@ -1,7 +1,7 @@
 package Domain;
 
 import BusinessLogic.exceptions.NotEnoughFundsException;
-import BusinessLogic.exceptions.UnableToOpenDatabaseException;
+
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.*;

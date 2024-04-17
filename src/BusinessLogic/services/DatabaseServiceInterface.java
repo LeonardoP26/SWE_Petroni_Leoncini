@@ -11,46 +11,45 @@ import java.util.List;
 
 public interface DatabaseServiceInterface {
 
-    void addHall(@NotNull Hall hall, @NotNull Cinema cinema) throws SQLException, UnableToOpenDatabaseException, DatabaseFailedException, InvalidIdException;
+    void addHall(@NotNull Hall hall, @NotNull Cinema cinema) throws DatabaseFailedException, InvalidIdException;
 
-    void addSeat(@NotNull Seat seat, @NotNull Hall hall) throws SQLException, UnableToOpenDatabaseException, DatabaseFailedException, InvalidIdException;
+    void addSeat(@NotNull Seat seat, @NotNull Hall hall) throws DatabaseFailedException, InvalidIdException;
 
-    void addMovie(@NotNull Movie movie) throws SQLException, UnableToOpenDatabaseException, DatabaseFailedException;
+    void addMovie(@NotNull Movie movie) throws DatabaseFailedException;
 
-    void addShowTime(@NotNull ShowTime showTime) throws SQLException, UnableToOpenDatabaseException, DatabaseFailedException;
+    void addShowTime(@NotNull ShowTime showTime) throws DatabaseFailedException;
 
-    void addMovie(@NotNull Movie movie, @NotNull Cinema cinema, @NotNull Hall hall, LocalDateTime date) throws DatabaseFailedException, SQLException, UnableToOpenDatabaseException, InvalidIdException;
+    void addMovie(@NotNull Movie movie, @NotNull Cinema cinema, @NotNull Hall hall, LocalDateTime date) throws DatabaseFailedException, InvalidIdException;
 
-    void addCinema(@NotNull Cinema cinema) throws SQLException, UnableToOpenDatabaseException, DatabaseFailedException;
+    void addCinema(@NotNull Cinema cinema) throws DatabaseFailedException;
 
-    void addUser(@NotNull User user) throws SQLException, UnableToOpenDatabaseException, DatabaseFailedException;
+    void addUser(@NotNull User user) throws DatabaseFailedException;
 
-    void addBooking(@NotNull Booking booking, List<User> users) throws SQLException, UnableToOpenDatabaseException, DatabaseFailedException;
+    void addBooking(@NotNull Booking booking, List<User> users) throws DatabaseFailedException;
 
     List<Cinema> retrieveCinemas();
 
-    List<Movie> retrieveCinemaMovies(@NotNull Cinema cinema) throws SQLException, UnableToOpenDatabaseException;
+    List<Movie> retrieveCinemaMovies(@NotNull Cinema cinema);
 
-    List<ShowTime> retrieveMovieShowTimes(@NotNull Movie movie) throws SQLException, UnableToOpenDatabaseException;
+    List<ShowTime> retrieveMovieShowTimes(@NotNull Movie movie);
 
-    List<Seat> retrieveShowTimeHallSeats(@NotNull ShowTime showTime) throws SQLException, UnableToOpenDatabaseException;
+    List<Seat> retrieveShowTimeHallSeats(@NotNull ShowTime showTime);
 
-    User login(String username, String password) throws NoSuchAlgorithmException, SQLException, UnableToOpenDatabaseException;
+    User login(String username, String password);
 
-    User register(String username, String password) throws NoSuchAlgorithmException, SQLException, UnableToOpenDatabaseException, DatabaseFailedException;
+    User register(String username, String password) throws DatabaseFailedException;
 
-    User retrieveUser(String username) throws SQLException, UnableToOpenDatabaseException;
+    User retrieveUser(String username);
 
-    boolean rechargeAccount(User user, long amount) throws NotEnoughFundsException, SQLException, UnableToOpenDatabaseException;
+    boolean rechargeAccount(User user, long amount) throws NotEnoughFundsException;
 
-    boolean pay(Booking booking, User owner, List<User> others) throws NotEnoughFundsException, InvalidSeatException, SQLException, UnableToOpenDatabaseException, DatabaseFailedException;
+    boolean pay(@NotNull Booking booking, @NotNull User owner, List<User> others, long cost) throws NotEnoughFundsException, InvalidSeatException, DatabaseFailedException;
 
-    boolean deleteUser(User user) throws SQLException, UnableToOpenDatabaseException;
+    boolean deleteUser(User user);
 
+    List<Booking> retrieveBookings(User user);
 
-    List<Booking> retrieveBookings(User user) throws SQLException, UnableToOpenDatabaseException;
+    boolean deleteBooking(@NotNull Booking booking);
 
-    boolean deleteBooking(@NotNull Booking booking) throws SQLException, UnableToOpenDatabaseException;
-
-    Hall retrieveShowTimeHall(@NotNull ShowTime showTime) throws SQLException, UnableToOpenDatabaseException;
+    Hall retrieveShowTimeHall(@NotNull ShowTime showTime);
 }

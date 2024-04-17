@@ -1,7 +1,6 @@
 package daos;
 
 import BusinessLogic.CinemaDatabase;
-import BusinessLogic.exceptions.UnableToOpenDatabaseException;
 import Domain.Hall;
 import Domain.ShowTime;
 import org.jetbrains.annotations.NotNull;
@@ -21,7 +20,7 @@ public class HallDao implements HallDaoInterface{
     private HallDao() { }
 
     @Override
-    public ResultSet insert(int hallNumber, int cinemaId, Hall.HallTypes type) throws SQLException, UnableToOpenDatabaseException {
+    public ResultSet insert(int hallNumber, int cinemaId, Hall.HallTypes type) throws SQLException {
         Connection conn = CinemaDatabase.getConnection();
         PreparedStatement s = conn.prepareStatement(
                 "INSERT OR IGNORE INTO Halls(hall_number, cinema_id, type) VALUES (?, ?, ?)"
@@ -35,7 +34,7 @@ public class HallDao implements HallDaoInterface{
     }
 
     @Override
-    public boolean update(int hallId, int hallNumber, int cinemaId, Hall.HallTypes type) throws SQLException, UnableToOpenDatabaseException {
+    public boolean update(int hallId, int hallNumber, int cinemaId, Hall.HallTypes type) throws SQLException {
         try(PreparedStatement s = CinemaDatabase.getConnection().prepareStatement(
                 "UPDATE Halls SET hall_number = ?, cinema_id = ?, type = ? WHERE hall_id = ?"
         )){
@@ -48,7 +47,7 @@ public class HallDao implements HallDaoInterface{
     }
 
     @Override
-    public boolean delete(int hallId) throws SQLException, UnableToOpenDatabaseException {
+    public boolean delete(int hallId) throws SQLException {
         try (PreparedStatement s = CinemaDatabase.getConnection().prepareStatement(
                 "DELETE FROM Halls WHERE hall_id = ?"
         )){
@@ -58,7 +57,7 @@ public class HallDao implements HallDaoInterface{
     }
 
     @Override
-    public ResultSet get(int hallId) throws SQLException, UnableToOpenDatabaseException {
+    public ResultSet get(int hallId) throws SQLException {
         Connection conn = CinemaDatabase.getConnection();
         PreparedStatement s = conn.prepareStatement(
                 "SELECT * FROM Halls WHERE hall_id = ?"
@@ -68,7 +67,7 @@ public class HallDao implements HallDaoInterface{
     }
 
     @Override
-    public ResultSet get(@NotNull ShowTime showTime) throws SQLException, UnableToOpenDatabaseException {
+    public ResultSet get(@NotNull ShowTime showTime) throws SQLException {
         Connection conn = CinemaDatabase.getConnection();
         PreparedStatement s = conn.prepareStatement(
                 "SELECT Halls.hall_id, hall_number, type FROM ShowTimes JOIN Halls ON ShowTimes.hall_id = Halls.hall_id WHERE ShowTimes.showtime_id = ?"

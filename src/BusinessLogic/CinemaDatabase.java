@@ -1,6 +1,6 @@
 package BusinessLogic;
 
-import BusinessLogic.exceptions.UnableToOpenDatabaseException;
+import utils.ThrowingSupplier;
 
 import java.sql.*;
 
@@ -16,6 +16,7 @@ public class CinemaDatabase {
         connection = DriverManager.getConnection(dbUrl);
         if (connection != null) {
             Statement stmt = connection.createStatement();
+            stmt.execute("PRAGMA foreign_keys = ON");
             stmt.execute(
                     "CREATE TABLE IF NOT EXISTS Cinemas(" +
                             "cinema_id INTEGER PRIMARY KEY, " +
@@ -80,28 +81,51 @@ public class CinemaDatabase {
                             "PRIMARY KEY(showtime_id, seat_id, user_id)" +
                             ")"
             );
-            stmt.execute(
-                    "CREATE TABLE IF NOT EXISTS ShowTimeSeats(" +
-                            "showtime_id INTEGER, " +
-                            "seat_id INTEGER, " +
-                            "booking_number INTEGER DEFAULT 0, " +
-                            "PRIMARY KEY (showtime_id, seat_id), " +
-                            "FOREIGN KEY (showtime_id) REFERENCES ShowTimes(showtime_id) ON DELETE CASCADE ON UPDATE CASCADE, " +
-                            "FOREIGN KEY (seat_id) REFERENCES Seats(seat_id) ON DELETE CASCADE ON UPDATE CASCADE, " +
-                            "FOREIGN KEY (booking_number) REFERENCES Bookings(booking_number) ON DELETE SET DEFAULT ON UPDATE CASCADE" +
-                            ")"
-            );
         }
         return connection;
     }
 
-    public static Connection getConnection() throws SQLException, UnableToOpenDatabaseException {
-        if(connection == null || connection.isClosed()) {
-            connection = connect();
-            if (connection == null)
-                throw new UnableToOpenDatabaseException("Unable to open the database.");
+    public static Connection getConnection() {
+        try {
+            if (connection == null || connection.isClosed()) {
+                connection = connect();
+                if (connection == null)
+                    throw new RuntimeException("Unable to open the database.");
+            }
+            return connection;
+        } catch(SQLException e){
+            throw new RuntimeException(e);
         }
-        return connection;
+    }
+
+    public static <E extends Exception> boolean withTransaction(ThrowingSupplier<Boolean, E> lambda) throws E{
+        Connection conn = getConnection();
+        boolean oldAutoCommit = true;
+        try{
+            oldAutoCommit = conn.getAutoCommit();
+            conn.setAutoCommit(false);
+            if(lambda.get()) {
+                conn.commit();
+                return true;
+            }
+            else {
+                conn.rollback();
+                return false;
+            }
+        } catch (SQLException e){
+            try{
+                conn.rollback();
+                return false;
+            } catch (SQLException ex) {
+                throw new RuntimeException(ex);
+            }
+        } finally{
+            try{
+                conn.setAutoCommit(oldAutoCommit);
+            } catch (SQLException e){
+                throw new RuntimeException(e);
+            }
+        }
     }
 
     public static boolean isDatabaseEmpty() throws SQLException {

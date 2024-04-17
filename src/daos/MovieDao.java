@@ -1,7 +1,6 @@
 package daos;
 
 import BusinessLogic.CinemaDatabase;
-import BusinessLogic.exceptions.UnableToOpenDatabaseException;
 import Domain.Cinema;
 import org.jetbrains.annotations.NotNull;
 
@@ -24,7 +23,7 @@ public class MovieDao implements MovieDaoInterface{
     private MovieDao() { }
 
     @Override
-    public ResultSet insert(String movieName, Duration movieDuration) throws SQLException, UnableToOpenDatabaseException {
+    public ResultSet insert(String movieName, Duration movieDuration) throws SQLException {
         Connection conn = CinemaDatabase.getConnection();
         PreparedStatement s = conn.prepareStatement(
                 "INSERT OR IGNORE INTO Movies(movie_id, movie_name, duration) VALUES (null, ?, ?)"
@@ -37,7 +36,7 @@ public class MovieDao implements MovieDaoInterface{
     }
 
     @Override
-    public boolean update(int movieId, String movieName, Duration movieDuration) throws SQLException, UnableToOpenDatabaseException {
+    public boolean update(int movieId, String movieName, Duration movieDuration) throws SQLException {
         try(PreparedStatement s = CinemaDatabase.getConnection().prepareStatement(
                 "UPDATE Movies SET movie_name = ?, duration = ? WHERE movie_id = ?"
         )){
@@ -49,7 +48,7 @@ public class MovieDao implements MovieDaoInterface{
     }
 
     @Override
-    public boolean delete(int movieId) throws SQLException, UnableToOpenDatabaseException {
+    public boolean delete(int movieId) throws SQLException {
         try (PreparedStatement s = CinemaDatabase.getConnection().prepareStatement(
                 "DELETE FROM Movies WHERE movie_id = ?"
         )) {
@@ -59,7 +58,7 @@ public class MovieDao implements MovieDaoInterface{
     }
 
     @Override
-    public ResultSet get(int movieId) throws SQLException, UnableToOpenDatabaseException {
+    public ResultSet get(int movieId) throws SQLException {
         Connection conn = CinemaDatabase.getConnection();
         PreparedStatement s = conn.prepareStatement(
                 "SELECT * FROM Movies WHERE movie_id = ?"
@@ -69,7 +68,7 @@ public class MovieDao implements MovieDaoInterface{
     }
 
     @Override
-    public ResultSet get(@NotNull Cinema cinema) throws SQLException, UnableToOpenDatabaseException {
+    public ResultSet get(@NotNull Cinema cinema) throws SQLException {
         Connection conn = CinemaDatabase.getConnection();
         PreparedStatement s = conn.prepareStatement(
                 "SELECT DISTINCT Movies.movie_id, movie_name, duration FROM (ShowTimes JOIN Movies ON ShowTimes.movie_id = Movies.movie_id) JOIN Halls ON ShowTimes.hall_id = Halls.hall_id WHERE cinema_id = ?"

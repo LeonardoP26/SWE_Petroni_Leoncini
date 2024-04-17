@@ -37,9 +37,13 @@ public class DatabaseService implements DatabaseServiceInterface {
         return instance;
     }
 
-    private String encryptPassword(@NotNull String password) throws NoSuchAlgorithmException {
-        byte[] rawPassword = MessageDigest.getInstance("SHA-256").digest(password.getBytes(StandardCharsets.UTF_8));
-        return Base64.getEncoder().encodeToString(rawPassword);
+    private String encryptPassword(@NotNull String password) {
+        try{
+            byte[] rawPassword = MessageDigest.getInstance("SHA-256").digest(password.getBytes(StandardCharsets.UTF_8));
+            return Base64.getEncoder().encodeToString(rawPassword);
+        } catch (NoSuchAlgorithmException e){
+            throw new RuntimeException(e);
+        }
     }
 
 
@@ -64,7 +68,7 @@ public class DatabaseService implements DatabaseServiceInterface {
     }
 
     @Override
-    public void addHall(@NotNull Hall hall, @NotNull Cinema cinema) throws SQLException, UnableToOpenDatabaseException, DatabaseFailedException, InvalidIdException {
+    public void addHall(@NotNull Hall hall, @NotNull Cinema cinema) throws DatabaseFailedException, InvalidIdException {
         if(cinema.getId() == DatabaseEntity.ENTITY_WITHOUT_ID)
             throw new InvalidIdException("This cinema must be in the database before adding halls to it.");
         int hallId = hallRepo.insert(hall, cinema.getId());
@@ -74,7 +78,7 @@ public class DatabaseService implements DatabaseServiceInterface {
     }
 
     @Override
-    public void addSeat(@NotNull Seat seat, @NotNull Hall hall) throws SQLException, UnableToOpenDatabaseException, DatabaseFailedException, InvalidIdException {
+    public void addSeat(@NotNull Seat seat, @NotNull Hall hall) throws DatabaseFailedException, InvalidIdException {
         if(hall.getId() == DatabaseEntity.ENTITY_WITHOUT_ID)
             throw new InvalidIdException("This hall must be in the database before adding seats to it.");
         int seatId = seatsRepo.insert(seat, hall.getId());
@@ -90,18 +94,18 @@ public class DatabaseService implements DatabaseServiceInterface {
      */
 
     @Override
-    public void addMovie(@NotNull Movie movie) throws SQLException, UnableToOpenDatabaseException, DatabaseFailedException {
+    public void addMovie(@NotNull Movie movie) throws DatabaseFailedException {
         int movieId = movieRepo.insert(movie);
         movie.setId(movieId);
     }
 
     @Override
-    public void addShowTime(@NotNull ShowTime showTime) throws SQLException, UnableToOpenDatabaseException, DatabaseFailedException {
+    public void addShowTime(@NotNull ShowTime showTime) throws DatabaseFailedException {
             int showTimeId = showTimeRepo.insert(showTime);
             showTime.setId(showTimeId);
-            for (Seat seat : showTime.getHall().getSeats()) {
-                showTimeRepo.insertShowTimeSeat(showTimeId, seat.getId());
-            }
+//            for (Seat seat : showTime.getHall().getSeats()) {
+//                showTimeRepo.insertShowTimeSeat(showTimeId, seat.getId());
+//            }
     }
 
     /**
@@ -116,7 +120,7 @@ public class DatabaseService implements DatabaseServiceInterface {
      * @throws InvalidIdException if cinema id and hall id are equal to {@link DatabaseEntity#ENTITY_WITHOUT_ID}
      */
     @Override
-    public void addMovie(@NotNull Movie movie, @NotNull Cinema cinema, @NotNull Hall hall, LocalDateTime date) throws DatabaseFailedException, SQLException, UnableToOpenDatabaseException, InvalidIdException {
+    public void addMovie(@NotNull Movie movie, @NotNull Cinema cinema, @NotNull Hall hall, LocalDateTime date) throws DatabaseFailedException, InvalidIdException {
         if(cinema.getId() == DatabaseEntity.ENTITY_WITHOUT_ID)
             throw new InvalidIdException("You need to add this cinema in the database before planning a movie show.");
         if (hall.getId() == DatabaseEntity.ENTITY_WITHOUT_ID)
@@ -129,19 +133,19 @@ public class DatabaseService implements DatabaseServiceInterface {
     }
 
     @Override
-    public void addCinema(@NotNull Cinema cinema) throws SQLException, UnableToOpenDatabaseException, DatabaseFailedException {
+    public void addCinema(@NotNull Cinema cinema) throws DatabaseFailedException {
         int cinemaId = cinemaRepo.insert(cinema);
         cinema.setId(cinemaId);
     }
 
     @Override
-    public void addUser(@NotNull User user) throws SQLException, UnableToOpenDatabaseException, DatabaseFailedException {
+    public void addUser(@NotNull User user) throws DatabaseFailedException {
         int userId = userRepo.insert(user);
         user.setId(userId);
     }
 
     @Override
-    public void addBooking(@NotNull Booking booking, List<User> users) throws SQLException, UnableToOpenDatabaseException, DatabaseFailedException {
+    public void addBooking(@NotNull Booking booking, List<User> users) throws DatabaseFailedException {
         int bookingNumber = bookingRepo.insert(booking, users);
         booking.setBookingNumber(bookingNumber);
     }
@@ -157,74 +161,70 @@ public class DatabaseService implements DatabaseServiceInterface {
     }
 
     @Override
-    public List<Movie> retrieveCinemaMovies(@NotNull Cinema cinema) throws SQLException, UnableToOpenDatabaseException {
+    public List<Movie> retrieveCinemaMovies(@NotNull Cinema cinema) {
         return movieRepo.get(cinema);
     }
 
     @Override
-    public List<ShowTime> retrieveMovieShowTimes(@NotNull Movie movie) throws SQLException, UnableToOpenDatabaseException {
+    public List<ShowTime> retrieveMovieShowTimes(@NotNull Movie movie) {
         return showTimeRepo.get(movie);
     }
 
     @Override
-    public List<Seat> retrieveShowTimeHallSeats(@NotNull ShowTime showTime) throws SQLException, UnableToOpenDatabaseException {
+    public List<Seat> retrieveShowTimeHallSeats(@NotNull ShowTime showTime) {
         return seatsRepo.get(showTime);
     }
 
     @Override
-    public User login(String username, String password) throws NoSuchAlgorithmException, SQLException, UnableToOpenDatabaseException {
+    public User login(String username, String password) {
         return userRepo.get(username, encryptPassword(password));
     }
 
     @Override
-    public User register(String username, String password) throws NoSuchAlgorithmException, SQLException, UnableToOpenDatabaseException, DatabaseFailedException {
+    public User register(String username, String password) throws DatabaseFailedException {
         User newUser = new User(username, encryptPassword(password));
         addUser(newUser);
         return newUser;
     }
 
     @Override
-    public User retrieveUser(String username) throws SQLException, UnableToOpenDatabaseException {
+    public User retrieveUser(String username) {
         return userRepo.get(username);
     }
 
     @Override
-    public boolean rechargeAccount(User user, long amount) throws NotEnoughFundsException, SQLException, UnableToOpenDatabaseException {
+    public boolean rechargeAccount(User user, long amount) throws NotEnoughFundsException {
         return userRepo.update(user, amount);
     }
 
     @Override
-    public boolean pay(@NotNull Booking booking, @NotNull User owner, List<User> others) throws NotEnoughFundsException, InvalidSeatException, SQLException, UnableToOpenDatabaseException, DatabaseFailedException {
-        int totalSpending = booking.getSeats().size() * booking.getShowTime().getHall().getCost();
+    public boolean pay(@NotNull Booking booking, @NotNull User owner, List<User> others, long cost) throws NotEnoughFundsException, InvalidSeatException, DatabaseFailedException {
         if(booking.getSeats().stream().anyMatch(Seat::isBooked))
             throw new InvalidSeatException("Some of these seats are already taken.");
-        if(owner.getBalance() - totalSpending < 0)
-            owner.setBalance(owner.getBalance() - totalSpending);
+        if(owner.getBalance() - cost < 0)
+            owner.setBalance(owner.getBalance() - cost);
         addBooking(booking, Stream.concat(others.stream(), Stream.of(owner)).toList());
-        for (Seat seat : booking.getSeats()){
-            showTimeRepo.updateShowTimeSeat(booking.getShowTime(), seat, booking.getBookingNumber());
-        }
-        userRepo.update(owner, owner.getBalance() - totalSpending);
+        userRepo.update(owner, owner.getBalance() - cost);
         return true;
     }
 
     @Override
-    public boolean deleteUser(User user) throws SQLException, UnableToOpenDatabaseException {
+    public boolean deleteUser(User user) {
         return userRepo.delete(user);
     }
 
     @Override
-    public List<Booking> retrieveBookings(User user) throws SQLException, UnableToOpenDatabaseException {
+    public List<Booking> retrieveBookings(User user) {
         return bookingRepo.get(user);
     }
 
     @Override
-    public boolean deleteBooking(@NotNull Booking booking) throws SQLException, UnableToOpenDatabaseException {
+    public boolean deleteBooking(@NotNull Booking booking) {
         return bookingRepo.delete(booking);
     }
 
     @Override
-    public Hall retrieveShowTimeHall(@NotNull ShowTime showTime) throws SQLException, UnableToOpenDatabaseException {
+    public Hall retrieveShowTimeHall(@NotNull ShowTime showTime) {
         return hallRepo.get(showTime);
     }
 

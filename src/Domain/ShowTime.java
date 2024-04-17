@@ -1,16 +1,8 @@
 package Domain;
 
-import BusinessLogic.exceptions.UnableToOpenDatabaseException;
-import BusinessLogic.repositories.HallRepository;
-import BusinessLogic.repositories.HallRepositoryInterface;
-import BusinessLogic.repositories.MovieRepository;
-import BusinessLogic.repositories.MovieRepositoryInterface;
-
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
-import java.time.temporal.ChronoUnit;
 
 public class ShowTime implements DatabaseEntity {
 

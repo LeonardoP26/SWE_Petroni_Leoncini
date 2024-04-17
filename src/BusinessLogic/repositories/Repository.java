@@ -3,7 +3,7 @@ package BusinessLogic.repositories;
 import Domain.DatabaseEntity;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import utils.ThrowingSupplier;
+import utils.ThrowingFunction;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -12,18 +12,26 @@ import java.util.List;
 
 class Repository {
 
-    final protected boolean isQueryResultEmpty(@NotNull ResultSet res) throws SQLException {
-        return !res.isBeforeFirst();
+    final protected boolean isQueryResultEmpty(@NotNull ResultSet res) {
+        try{
+            return !res.isBeforeFirst();
+        } catch (SQLException e){
+            throw  new RuntimeException(e);
+        }
     }
 
-    final protected <T extends DatabaseEntity, E extends Exception> @Nullable List<T> getList(ResultSet res, ThrowingSupplier<T, E> lambda) throws E, SQLException {
+    final protected <T extends DatabaseEntity, E extends Exception> @Nullable List<T> getList(@NotNull ResultSet res, @NotNull ThrowingFunction<List<T>, T, E> lambda) throws E {
         if (isQueryResultEmpty(res))
             return null;
         List<T> t = new ArrayList<>();
-        while (res.next()) {
-            t.add(lambda.get());
+        try {
+            while (res.next()) {
+                t.add(lambda.apply(t));
+            }
+            return t;
+        } catch (SQLException e){
+            throw new RuntimeException(e);
         }
-        return t;
     }
 
 

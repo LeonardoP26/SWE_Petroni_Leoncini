@@ -1,8 +1,6 @@
 package daos;
 
 import BusinessLogic.CinemaDatabase;
-import BusinessLogic.exceptions.UnableToOpenDatabaseException;
-import org.jetbrains.annotations.NotNull;
 
 import java.sql.*;
 
@@ -19,7 +17,7 @@ public class UserDao implements UserDaoInterface{
     private UserDao() { }
 
     @Override
-    public ResultSet insert(String username, String password, long balance) throws SQLException, UnableToOpenDatabaseException {
+    public ResultSet insert(String username, String password, long balance) throws SQLException {
         Connection conn = CinemaDatabase.getConnection();
         PreparedStatement s = conn.prepareStatement(
                 "INSERT INTO Users(username, password, balance) VALUES (?, ?, ?)"
@@ -33,7 +31,7 @@ public class UserDao implements UserDaoInterface{
     }
 
     @Override
-    public boolean update(int userId, String username, String password, long balance) throws SQLException, UnableToOpenDatabaseException {
+    public boolean update(int userId, String username, String password, long balance) throws SQLException {
         try (PreparedStatement s = CinemaDatabase.getConnection().prepareStatement(
                 "UPDATE Users SET username = ?, password = ?, balance = ? WHERE user_id = ?"
         )) {
@@ -46,7 +44,7 @@ public class UserDao implements UserDaoInterface{
     }
 
     @Override
-    public boolean delete(int userId) throws SQLException, UnableToOpenDatabaseException {
+    public boolean delete(int userId) throws SQLException {
         try (PreparedStatement s = CinemaDatabase.getConnection().prepareStatement(
                 "DELETE FROM Users WHERE user_id = ?"
         )) {
@@ -56,7 +54,7 @@ public class UserDao implements UserDaoInterface{
     }
 
     @Override
-    public ResultSet get(int userId) throws SQLException, UnableToOpenDatabaseException {
+    public ResultSet get(int userId) throws SQLException {
         Connection conn = CinemaDatabase.getConnection();
         PreparedStatement s = conn.prepareStatement(
                 "SELECT * FROM Users WHERE user_id = ?"
@@ -66,7 +64,7 @@ public class UserDao implements UserDaoInterface{
     }
 
     @Override
-    public ResultSet get(String username, String password) throws SQLException, UnableToOpenDatabaseException {
+    public ResultSet get(String username, String password) throws SQLException {
         Connection conn = CinemaDatabase.getConnection();
         PreparedStatement s = conn.prepareStatement(
                 "SELECT * FROM Users WHERE username = ? AND password = ?"
@@ -77,7 +75,7 @@ public class UserDao implements UserDaoInterface{
     }
 
     @Override
-    public ResultSet get(String username) throws SQLException, UnableToOpenDatabaseException {
+    public ResultSet get(String username) throws SQLException {
         Connection conn = CinemaDatabase.getConnection();
         PreparedStatement s = conn.prepareStatement(
                 "SELECT * FROM Users WHERE username = ?"
@@ -87,7 +85,7 @@ public class UserDao implements UserDaoInterface{
     }
 
     @Override
-    public boolean update(int userId, long balance) throws SQLException, UnableToOpenDatabaseException {
+    public boolean update(int userId, long balance) throws SQLException {
         Connection conn = CinemaDatabase.getConnection();
         PreparedStatement s = conn.prepareStatement(
                 "UPDATE Users SET balance = ? WHERE user_id = ?"
