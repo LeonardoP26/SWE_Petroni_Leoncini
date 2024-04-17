@@ -1,13 +1,10 @@
 import BusinessLogic.CinemaDatabase;
 import BusinessLogic.exceptions.DatabaseFailedException;
 import BusinessLogic.exceptions.InvalidIdException;
-import BusinessLogic.exceptions.NotEnoughFundsException;
 import BusinessLogic.services.DatabaseService;
 import Domain.*;
 import org.jetbrains.annotations.NotNull;
 import ui.InputOutputHandler;
-
-import java.security.NoSuchAlgorithmException;
 import java.sql.SQLException;
 import java.time.Duration;
 import java.time.LocalDateTime;
