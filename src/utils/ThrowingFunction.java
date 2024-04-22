@@ -1,10 +1,8 @@
 package utils;
 
-import java.sql.SQLException;
-
 @FunctionalInterface
-public interface ThrowingFunction<P, R, E extends Exception> {
+public interface ThrowingFunction<P, R> {
 
-    R apply(P p) throws E, SQLException;
+    R apply(P p) throws Exception;
 
 }

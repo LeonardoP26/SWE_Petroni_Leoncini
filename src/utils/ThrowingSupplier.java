@@ -1,8 +1,8 @@
 package utils;
 
 @FunctionalInterface
-public interface ThrowingSupplier<R, E extends Exception> {
+public interface ThrowingSupplier<R> {
 
-    R get() throws E;
+    R get() throws Exception;
 
 }

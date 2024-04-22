@@ -1,8 +1,8 @@
 package daos;
 
-import BusinessLogic.CinemaDatabase;
-import Domain.Hall;
-import Domain.ShowTime;
+import business_logic.CinemaDatabase;
+import domain.Hall;
+import domain.ShowTime;
 import org.jetbrains.annotations.NotNull;
 
 import java.sql.*;
@@ -29,7 +29,9 @@ public class HallDao implements HallDaoInterface{
         s.setInt(2, cinemaId);
         s.setString(3, type.toString());
         s.executeUpdate();
-        PreparedStatement getId = conn.prepareStatement("SELECT last_insert_rowid()");
+        PreparedStatement getId = conn.prepareStatement(
+                "SELECT last_insert_rowid() as hall_id where (select last_insert_rowid()) > 0"
+        );
         return getId.executeQuery();
     }
 

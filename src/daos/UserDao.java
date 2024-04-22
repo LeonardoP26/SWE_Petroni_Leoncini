@@ -1,6 +1,6 @@
 package daos;
 
-import BusinessLogic.CinemaDatabase;
+import business_logic.CinemaDatabase;
 
 import java.sql.*;
 
@@ -26,7 +26,9 @@ public class UserDao implements UserDaoInterface{
         s.setString(2, password);
         s.setLong(3, balance);
         s.executeUpdate();
-        PreparedStatement getId = conn.prepareStatement("SELECT last_insert_rowid()");
+        PreparedStatement getId = conn.prepareStatement(
+                "SELECT last_insert_rowid() as user_id where (select last_insert_rowid()) > 0"
+        );
         return getId.executeQuery();
     }
 
@@ -82,17 +84,6 @@ public class UserDao implements UserDaoInterface{
         );
         s.setString(1, username);
         return s.executeQuery();
-    }
-
-    @Override
-    public boolean update(int userId, long balance) throws SQLException {
-        Connection conn = CinemaDatabase.getConnection();
-        PreparedStatement s = conn.prepareStatement(
-                "UPDATE Users SET balance = ? WHERE user_id = ?"
-        );
-        s.setLong(1, balance);
-        s.setInt(2, userId);
-        return s.executeUpdate() > 0;
     }
 
 }

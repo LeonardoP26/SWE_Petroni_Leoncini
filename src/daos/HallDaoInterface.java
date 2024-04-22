@@ -1,7 +1,7 @@
 package daos;
 
-import Domain.Hall;
-import Domain.ShowTime;
+import domain.Hall;
+import domain.ShowTime;
 import org.jetbrains.annotations.NotNull;
 
 import java.sql.ResultSet;

@@ -1,6 +1,6 @@
 package daos;
 
-import BusinessLogic.CinemaDatabase;
+import business_logic.CinemaDatabase;
 
 import java.sql.*;
 
@@ -21,11 +21,13 @@ public class CinemaDao implements CinemaDaoInterface {
     public ResultSet insert(String cinemaName) throws SQLException {
         Connection conn = CinemaDatabase.getConnection();
         PreparedStatement s = conn.prepareStatement(
-                "INSERT OR IGNORE INTO Cinemas(cinema_name) VALUES (?)"
+                "INSERT OR ROLLBACK INTO Cinemas(cinema_name) VALUES (?)"
         );
         s.setString(1, cinemaName);
         s.executeUpdate();
-        PreparedStatement getIdStmt = conn.prepareStatement("SELECT last_insert_rowid()");
+        PreparedStatement getIdStmt = conn.prepareStatement(
+                "SELECT last_insert_rowid() as cinema_id where (select last_insert_rowid()) > 0"
+        );
         return getIdStmt.executeQuery();
     }
 

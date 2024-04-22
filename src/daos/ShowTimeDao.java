@@ -1,7 +1,7 @@
 package daos;
 
-import BusinessLogic.CinemaDatabase;
-import Domain.Movie;
+import business_logic.CinemaDatabase;
+import domain.Movie;
 import org.jetbrains.annotations.NotNull;
 
 import java.sql.*;
@@ -29,7 +29,9 @@ public class ShowTimeDao implements ShowTimeDaoInterface {
         s.setInt(2, hallId);
         s.setString(3, date.toString());
         s.executeUpdate();
-        PreparedStatement getId = conn.prepareStatement("SELECT last_insert_rowid()");
+        PreparedStatement getId = conn.prepareStatement(
+                "SELECT last_insert_rowid() as showtime_id where (select last_insert_rowid()) > 0"
+        );
         return getId.executeQuery();
     }
 

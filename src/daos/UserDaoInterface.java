@@ -16,6 +16,4 @@ public interface UserDaoInterface {
     ResultSet get(String username, String password) throws SQLException;
 
     ResultSet get(String username) throws SQLException;
-
-    boolean update(int userId, long balance) throws SQLException;
 }

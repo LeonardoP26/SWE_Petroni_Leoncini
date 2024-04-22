@@ -1,17 +1,14 @@
 package ui;
 
-import BusinessLogic.CinemaDatabase;
-import BusinessLogic.exceptions.DatabaseFailedException;
-import BusinessLogic.exceptions.InvalidSeatException;
-import BusinessLogic.exceptions.NotEnoughFundsException;
-import BusinessLogic.services.DatabaseService;
-import BusinessLogic.services.DatabaseServiceInterface;
-import Domain.*;
+import business_logic.CinemaDatabase;
+import business_logic.exceptions.DatabaseFailedException;
+import business_logic.exceptions.InvalidSeatException;
+import business_logic.exceptions.NotEnoughFundsException;
+import business_logic.services.DatabaseService;
+import business_logic.services.DatabaseServiceInterface;
+import domain.*;
 import org.jetbrains.annotations.NotNull;
 
-import java.security.NoSuchAlgorithmException;
-import java.sql.Connection;
-import java.sql.SQLException;
 import java.util.*;
 
 import static ui.InputOutputHandler.Page.*;
@@ -163,6 +160,7 @@ public class InputOutputHandler {
 
     public Booking bookingManagePage(@NotNull User user) {
         List<Booking> bookings = databaseService.retrieveBookings(user);
+        user.setBookings(bookings);
         if(bookings == null)
             bookings = List.of();
         int input = chooseOption(bookings.stream().map(Booking::getName).toList(), "Choose the booking to edit:", "Back");
@@ -232,27 +230,7 @@ public class InputOutputHandler {
         ).toList();
     }
 
-
-    public List<User> addPeopleToBookingPage(int max) {
-        List<User> users = new ArrayList<>(max);
-        System.out.println("Add people's usernames to this booking or leave it blank to finish:");
-        while (users.size() < max){
-            System.out.print(">>");
-            Scanner sc = new Scanner(System.in);
-            String username = sc.nextLine();
-            if(username.isBlank())
-                return users;
-            User user = databaseService.retrieveUser(username);
-            if(user != null) {
-                users.add(user);
-            } else {
-                System.out.println("User does not exist.");
-            }
-        }
-        return users;
-    }
-
-    public boolean confirmPaymentPage(Booking booking, User owner, List<User> others, Booking oldBooking) {
+    public boolean confirmPaymentPage(Booking booking, User owner, Booking oldBooking) {
         int cost = booking.getShowTime().getHall().getCost() * booking.getSeats().size();
         if(oldBooking != null)
             cost -= oldBooking.getShowTime().getHall().getCost() * oldBooking.getSeats().size();
@@ -273,13 +251,18 @@ public class InputOutputHandler {
                 return CinemaDatabase.withTransaction(() -> {
                     boolean deletionSuccessful = true;
                     if (oldBooking != null) {
-                        deletionSuccessful = databaseService.deleteBooking(oldBooking);
+                        try{
+                            databaseService.deleteBooking(oldBooking);
+                        } catch (DatabaseFailedException e){
+                            System.out.println(e.getMessage());
+                            deletionSuccessful = false;
+                        }
                     }
-                    boolean paymentSuccessful = databaseService.pay(booking, owner, others, finalCost);
+                    boolean paymentSuccessful = databaseService.pay(booking, owner, finalCost);
                     return deletionSuccessful && paymentSuccessful;
                 });
             } catch (NotEnoughFundsException e) {
-                System.err.println(e.getMessage());
+                System.out.println(e.getMessage());
                 System.out.println("Do you want to recharge your account?\n1. Yes\n2. No");
                 int input1;
                 int maxChoices1 = 2;
@@ -293,7 +276,7 @@ public class InputOutputHandler {
                 }
                 if (input1 == 1)
                     if (rechargeAccount(owner))
-                        return confirmPaymentPage(booking, owner, others, oldBooking);
+                        return confirmPaymentPage(booking, owner, oldBooking);
                 return false;
             } catch(InvalidSeatException | DatabaseFailedException e){
                 System.out.println(e.getMessage());
@@ -316,14 +299,9 @@ public class InputOutputHandler {
                 System.out.println("Enter a number greater than 0.");
             }
         }
-        boolean success;
         try{
-            success = databaseService.rechargeAccount(user, input);
-        } catch (NotEnoughFundsException e) {
-            // It won't throw, input will be always > 0
-            throw new RuntimeException(e);
-        }
-        if(!success){
+            databaseService.rechargeAccount(user, input);
+        } catch (DatabaseFailedException e){
             System.out.println("Recharge failed. Do you want to try again?\n1. Yes\n2. No");
             int input1;
             int maxChoices = 2;
@@ -331,13 +309,16 @@ public class InputOutputHandler {
                 try{
                     input1 = readInput(maxChoices);
                     break;
-                } catch (NoSuchElementException | IllegalStateException e){
+                } catch (NoSuchElementException | IllegalStateException ex){
                     System.out.println("Choose a number between 1 and " + maxChoices);
                 }
             }
             if(input1 == 1)
                 rechargeAccount(user);
             else return false;
+        } catch (NotEnoughFundsException e) {
+            // It won't throw, input will be always > 0
+            throw new RuntimeException(e);
         }
         return true;
     }
@@ -386,10 +367,11 @@ public class InputOutputHandler {
             case 1 -> MANAGE_BOOKINGS;
             case 2 -> EDIT_ACCOUNT;
             case 3 -> {
-                if(databaseService.deleteUser(user))
+                try {
+                    databaseService.deleteUser(user);
                     yield DELETE_ACCOUNT;
-                else {
-                    System.out.println("Deletion failed. Try again.");
+                } catch (DatabaseFailedException e) {
+                    System.out.println(e.getMessage());
                     yield HOMEPAGE;
                 }
             }
@@ -442,19 +424,28 @@ public class InputOutputHandler {
 
 
     private boolean refundUser(Booking booking, User user) {
-        return CinemaDatabase.withTransaction(() -> {
-            boolean refundSuccessful;
-            boolean deletionSuccessful;
-            long refund = (long) booking.getShowTime().getHall().getCost() * booking.getSeats().size();
-            try{
-                refundSuccessful = databaseService.rechargeAccount(user, user.getBalance() + refund);
-            } catch (NotEnoughFundsException e){
-                // It won't throw, user balance will be surely positive.
-                throw new RuntimeException(e);
-            }
-            deletionSuccessful = databaseService.deleteBooking(booking);
-            return refundSuccessful && deletionSuccessful;
-        });
+        try {
+            return CinemaDatabase.withTransaction(() -> {
+                boolean success = true;
+                long refund = (long) booking.getShowTime().getHall().getCost() * booking.getSeats().size();
+                try {
+                    databaseService.rechargeAccount(user, user.getBalance() + refund);
+                    databaseService.deleteBooking(booking);
+                } catch (DatabaseFailedException e){
+                    System.out.println(e.getMessage());
+                    success = false;
+                }
+                catch (NotEnoughFundsException e) {
+                    // It won't throw, user balance will be surely positive.
+                    throw new RuntimeException(e);
+                }
+
+                return success;
+            });
+        } catch (Exception e) {
+            // It won't throw
+            throw new RuntimeException(e);
+        }
     }
 
 }

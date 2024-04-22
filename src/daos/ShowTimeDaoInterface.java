@@ -1,6 +1,6 @@
 package daos;
 
-import Domain.Movie;
+import domain.Movie;
 import org.jetbrains.annotations.NotNull;
 
 import java.sql.ResultSet;

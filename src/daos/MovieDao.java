@@ -1,7 +1,7 @@
 package daos;
 
-import BusinessLogic.CinemaDatabase;
-import Domain.Cinema;
+import business_logic.CinemaDatabase;
+import domain.Cinema;
 import org.jetbrains.annotations.NotNull;
 
 import java.sql.Connection;
@@ -31,7 +31,9 @@ public class MovieDao implements MovieDaoInterface{
         s.setString(1, movieName);
         s.setLong(2, movieDuration.toMinutes());
         s.executeUpdate();
-        PreparedStatement getId = conn.prepareStatement("SELECT last_insert_rowid()");
+        PreparedStatement getId = conn.prepareStatement(
+                "SELECT last_insert_rowid() as movie_id where (select last_insert_rowid()) > 0"
+        );
         return getId.executeQuery();
     }
 

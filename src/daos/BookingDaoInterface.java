@@ -1,8 +1,8 @@
 package daos;
 
-import Domain.Seat;
-import Domain.ShowTime;
-import Domain.User;
+import domain.Seat;
+import domain.ShowTime;
+import domain.User;
 import org.jetbrains.annotations.NotNull;
 
 import java.sql.ResultSet;
@@ -11,7 +11,7 @@ import java.util.List;
 
 public interface BookingDaoInterface  {
 
-    boolean insert(int bookingNumber, @NotNull ShowTime showTime, List<Seat> seats, List<User> users) throws SQLException;
+    boolean insert(int bookingNumber, @NotNull ShowTime showTime, List<Seat> seats, User user) throws SQLException;
 
     boolean delete(int bookingNumber) throws SQLException;
 

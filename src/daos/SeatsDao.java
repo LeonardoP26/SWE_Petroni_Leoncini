@@ -1,7 +1,7 @@
 package daos;
 
-import BusinessLogic.CinemaDatabase;
-import Domain.ShowTime;
+import business_logic.CinemaDatabase;
+import domain.ShowTime;
 import org.jetbrains.annotations.NotNull;
 
 import java.sql.*;
@@ -28,7 +28,9 @@ public class SeatsDao implements SeatsDaoInterface{
         s.setInt(2, number);
         s.setInt(3, hallId);
         s.executeUpdate();
-        PreparedStatement getId = conn.prepareStatement("SELECT last_insert_rowid()");
+        PreparedStatement getId = conn.prepareStatement(
+                "SELECT last_insert_rowid() as seat_id where (select last_insert_rowid()) > 0"
+        );
         return getId.executeQuery();
     }
 

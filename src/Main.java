@@ -1,8 +1,8 @@
-import BusinessLogic.CinemaDatabase;
-import BusinessLogic.exceptions.DatabaseFailedException;
-import BusinessLogic.exceptions.InvalidIdException;
-import BusinessLogic.services.DatabaseService;
-import Domain.*;
+import business_logic.CinemaDatabase;
+import business_logic.exceptions.DatabaseFailedException;
+import business_logic.exceptions.InvalidIdException;
+import business_logic.services.DatabaseService;
+import domain.*;
 import org.jetbrains.annotations.NotNull;
 import ui.InputOutputHandler;
 import java.sql.SQLException;
@@ -48,14 +48,14 @@ public class Main {
                 case Page.MANAGE_ACCOUNT -> {
                     currentPage = ui.accountManagementPage(user);
                 }
-                case Page.DELETE_ACCOUNT ->{
+                case Page.DELETE_ACCOUNT -> {
                     user = null;
                     currentPage = Page.HOMEPAGE;
                 }
                 case Page.MANAGE_BOOKINGS -> {
                     assert user != null;
                     userBooking = ui.bookingManagePage(user);
-                    currentPage = userBooking != null ? Page.EDIT_BOOKINGS : Page.HOMEPAGE;
+                    currentPage = userBooking != null ? Page.EDIT_BOOKINGS : Page.MANAGE_ACCOUNT;
                 }
                 case Page.EDIT_BOOKINGS -> {
                     assert userBooking != null;
@@ -89,8 +89,12 @@ public class Main {
                     assert selectedShowTime != null;
                     List<Seat> oldSeats = selectedSeats;
                     selectedSeats = ui.seatsSelectionPage(selectedShowTime, userBooking);
-                    if(oldSeats != null && selectedSeats == null)
+                    if(oldSeats != null && selectedSeats == null) {
                         currentPage = Page.EDIT_BOOKINGS;
+                        selectedCinema = null;
+                        selectedMovie = null;
+                        selectedShowTime = null;
+                    }
                     else
                         currentPage = selectedSeats == null ? Page.SHOWTIME_SELECTION : Page.BOOKING_CONFIRMED;
                 }
@@ -100,9 +104,8 @@ public class Main {
                     }
                     else {
                         assert selectedSeats != null;
-                        List<User> users = ui.addPeopleToBookingPage(selectedSeats.size() - 1);
                         Booking booking = new Booking(selectedShowTime, selectedSeats);
-                        boolean success = ui.confirmPaymentPage(booking, user, users, userBooking);
+                        boolean success = ui.confirmPaymentPage(booking, user, userBooking);
                         if(success)
                             System.out.println("Booking confirmed!");
                         else

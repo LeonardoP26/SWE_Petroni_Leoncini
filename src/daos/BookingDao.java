@@ -1,9 +1,9 @@
 package daos;
 
-import BusinessLogic.CinemaDatabase;
-import Domain.Seat;
-import Domain.ShowTime;
-import Domain.User;
+import business_logic.CinemaDatabase;
+import domain.Seat;
+import domain.ShowTime;
+import domain.User;
 import org.jetbrains.annotations.NotNull;
 
 import java.sql.*;
@@ -23,22 +23,20 @@ public class BookingDao implements BookingDaoInterface{
 
 
     @Override
-    public boolean insert(int bookingNumber, @NotNull ShowTime showTime, List<Seat> seats, List<User> users) throws SQLException {
+    public boolean insert(int bookingNumber, @NotNull ShowTime showTime, List<Seat> seats, User user) throws SQLException {
         Connection conn = CinemaDatabase.getConnection();
         boolean oldAutoCommit = conn.getAutoCommit();
         conn.setAutoCommit(false);
         try {
-            for (User user : users) {
-                for (Seat seat : seats) {
-                    try (PreparedStatement s = conn.prepareStatement(
-                            "INSERT INTO Bookings(showtime_id, seat_id, user_id, booking_number) VALUES (?, ?, ?, ?)"
-                    )) {
-                        s.setInt(1, showTime.getId());
-                        s.setInt(2, seat.getId());
-                        s.setInt(3, user.getId());
-                        s.setInt(4, bookingNumber);
-                        s.executeUpdate();
-                    }
+            for (Seat seat : seats) {
+                try (PreparedStatement s = conn.prepareStatement(
+                        "INSERT INTO Bookings(showtime_id, seat_id, user_id, booking_number) VALUES (?, ?, ?, ?)"
+                )) {
+                    s.setInt(1, showTime.getId());
+                    s.setInt(2, seat.getId());
+                    s.setInt(3, user.getId());
+                    s.setInt(4, bookingNumber);
+                    s.executeUpdate();
                 }
             }
             conn.commit();
@@ -68,7 +66,7 @@ public class BookingDao implements BookingDaoInterface{
         Connection conn = CinemaDatabase.getConnection();
         Statement s = conn.createStatement();
         return s.executeQuery(
-                "SELECT MIN(booking_number) + 1 FROM Bookings WHERE Bookings.booking_number + 1 NOT IN (SELECT booking_number FROM Bookings)"
+                "SELECT MIN(t) AS booking_number FROM (SELECT DISTINCT 1 AS t FROM Bookings WHERE (SELECT MIN(booking_number) FROM Bookings) > 1 UNION SELECT Bookings.booking_number + 1 FROM Bookings WHERE booking_number + 1 NOT IN (SELECT booking_number FROM Bookings))"
         );
     }
 
