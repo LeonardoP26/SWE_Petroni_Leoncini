@@ -2,7 +2,6 @@ package business_logic.repositories;
 
 import business_logic.Observer;
 import business_logic.exceptions.DatabaseFailedException;
-import business_logic.exceptions.UserAlreadyExistsException;
 import domain.User;
 import org.jetbrains.annotations.NotNull;
 

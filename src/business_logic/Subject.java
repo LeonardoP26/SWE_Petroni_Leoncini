@@ -1,7 +1,6 @@
 package business_logic;
 
 import business_logic.exceptions.DatabaseFailedException;
-import business_logic.exceptions.UserAlreadyExistsException;
 
 import java.util.ArrayList;
 import java.util.List;
