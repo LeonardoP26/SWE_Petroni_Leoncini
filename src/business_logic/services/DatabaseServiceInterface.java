@@ -15,7 +15,7 @@ public interface DatabaseServiceInterface {
 
     void addMovie(@NotNull Movie movie) throws DatabaseFailedException;
 
-    void addShowTime(@NotNull ShowTime showTime) throws DatabaseFailedException;
+    void addShowTime(@NotNull ShowTime showTime) throws DatabaseFailedException, InvalidIdException;
 
     void addMovie(@NotNull Movie movie, @NotNull Cinema cinema, @NotNull Hall hall, LocalDateTime date) throws DatabaseFailedException, InvalidIdException;
 
@@ -23,7 +23,7 @@ public interface DatabaseServiceInterface {
 
     void addUser(@NotNull User user) throws DatabaseFailedException;
 
-    void addBooking(@NotNull Booking booking, User user) throws DatabaseFailedException;
+    void addBooking(@NotNull Booking booking, User user) throws DatabaseFailedException, InvalidIdException;
 
     List<Cinema> retrieveCinemas();
 

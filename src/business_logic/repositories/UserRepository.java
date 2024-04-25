@@ -1,6 +1,7 @@
 package business_logic.repositories;
 
 import business_logic.exceptions.DatabaseFailedException;
+import business_logic.exceptions.UserAlreadyExistsException;
 import domain.User;
 import daos.UserDao;
 import daos.UserDaoInterface;
@@ -36,9 +37,9 @@ public class UserRepository extends Repository implements UserRepositoryInterfac
             user.setId(res);
         } catch (SQLiteException e) {
             if (e.getResultCode() == SQLiteErrorCode.SQLITE_CONSTRAINT_UNIQUE)
-                throw new DatabaseFailedException("Database insertion failed: username already exists.");
+                throw new DatabaseFailedException("Username already exists.");
             else if (e.getResultCode() == SQLiteErrorCode.SQLITE_CONSTRAINT_NOTNULL)
-                throw new DatabaseFailedException("Database insertion failed: username and password can not be null");
+                throw new DatabaseFailedException("Username and password can not be null");
             else throw new RuntimeException(e); // TODO throw it as DatabaseInsertionFailedException
         } catch (SQLException ex) {
             throw new RuntimeException(ex);
@@ -56,9 +57,9 @@ public class UserRepository extends Repository implements UserRepositoryInterfac
                 throw new DatabaseFailedException("Update failed.");
         } catch (SQLiteException e) {
             if (e.getResultCode() == SQLiteErrorCode.SQLITE_CONSTRAINT_UNIQUE)
-                throw new DatabaseFailedException("Database update failed: username already exists.");
+                throw new DatabaseFailedException("Username already exists.");
             else if (e.getResultCode() == SQLiteErrorCode.SQLITE_CONSTRAINT_NOTNULL)
-                throw new DatabaseFailedException("Database update failed: username and password can not be null");
+                throw new DatabaseFailedException("Username and password can not be null");
             else throw new RuntimeException(e); // TODO throw it as DatabaseInsertionFailedException
         } catch (SQLException ex) {
             throw new RuntimeException(ex);

@@ -7,6 +7,7 @@ import java.sql.*;
 public class UserDao implements UserDaoInterface{
 
     private static UserDaoInterface instance = null;
+    private final String dbUrl;
 
     public static UserDaoInterface getInstance(){
         if(instance == null)
@@ -14,11 +15,22 @@ public class UserDao implements UserDaoInterface{
         return instance;
     }
 
-    private UserDao() { }
+    public static UserDaoInterface getInstance(String dbUrl){
+        if(instance == null)
+            instance = new UserDao(dbUrl);
+        return instance;
+    }
+
+    private UserDao() {
+        this(CinemaDatabase.DB_URL);
+    }
+    private UserDao(String dbUrl){
+        this.dbUrl = dbUrl;
+    }
 
     @Override
     public ResultSet insert(String username, String password, long balance) throws SQLException {
-        Connection conn = CinemaDatabase.getConnection();
+        Connection conn = CinemaDatabase.getConnection(dbUrl);
         PreparedStatement s = conn.prepareStatement(
                 "INSERT INTO Users(username, password, balance) VALUES (?, ?, ?)"
         );

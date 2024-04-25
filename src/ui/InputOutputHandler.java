@@ -101,6 +101,8 @@ public class InputOutputHandler {
                 username = sc.nextLine();
                 if (username.isBlank())
                     break;
+                if(username.length() > 15 && input == 2)
+                    System.out.println("Username too long. It must contain 15 characters or less.");
                 System.out.print("Insert password:\n>> ");
                 sc = new Scanner(System.in);
                 password = sc.nextLine();
@@ -135,7 +137,7 @@ public class InputOutputHandler {
 
     public Cinema cinemaSelectionPage(){
         List<Cinema> cinemas = databaseService.retrieveCinemas();
-        int input = chooseOption(cinemas.stream().map(Cinema::getName).toList(), "Choose a cinema:", "Back");
+        int input = chooseOption(cinemas.stream().map(Cinema::getName).toList(), "Choose a cinema:");
         if (input == cinemas.size())
             return null;
         return cinemas.get(input);
@@ -144,7 +146,7 @@ public class InputOutputHandler {
     public Movie movieSelectionPage(@NotNull Cinema cinema) {
         List<Movie> movies = databaseService.retrieveCinemaMovies(cinema);
         cinema.setMovies(movies);
-        int input = chooseOption(movies.stream().map(Movie::getName).toList(), "Choose a movie", "Back");
+        int input = chooseOption(movies.stream().map(Movie::getName).toList(), "Choose a movie");
         if(input == movies.size())
             return null;
         return movies.get(input);
@@ -152,7 +154,7 @@ public class InputOutputHandler {
 
     public ShowTime showTimeSelectionPage(@NotNull Movie movie) {
         List<ShowTime> showTimes = databaseService.retrieveMovieShowTimes(movie);
-        int input = chooseOption(showTimes.stream().map(ShowTime::getName).toList(), "Choose a show time", "Back");
+        int input = chooseOption(showTimes.stream().map(ShowTime::getName).toList(), "Choose a show time");
         if(input == showTimes.size())
             return null;
         return showTimes.get(input);
@@ -163,7 +165,7 @@ public class InputOutputHandler {
         user.setBookings(bookings);
         if(bookings == null)
             bookings = List.of();
-        int input = chooseOption(bookings.stream().map(Booking::getName).toList(), "Choose the booking to edit:", "Back");
+        int input = chooseOption(bookings.stream().map(Booking::getName).toList(), "Choose the booking to edit:");
         if (input == bookings.size())
             return null;
         return bookings.get(input);
@@ -230,7 +232,7 @@ public class InputOutputHandler {
         ).toList();
     }
 
-    public boolean confirmPaymentPage(Booking booking, User owner, Booking oldBooking) {
+    public boolean confirmPaymentPage(@NotNull Booking booking, User owner, Booking oldBooking) {
         int cost = booking.getShowTime().getHall().getCost() * booking.getSeats().size();
         if(oldBooking != null)
             cost -= oldBooking.getShowTime().getHall().getCost() * oldBooking.getSeats().size();
@@ -248,19 +250,17 @@ public class InputOutputHandler {
         if (input == 1) {
             try {
                 int finalCost = cost;
-                return CinemaDatabase.withTransaction(() -> {
-                    boolean deletionSuccessful = true;
+                CinemaDatabase.withTransaction(() -> {
                     if (oldBooking != null) {
                         try{
                             databaseService.deleteBooking(oldBooking);
                         } catch (DatabaseFailedException e){
                             System.out.println(e.getMessage());
-                            deletionSuccessful = false;
                         }
                     }
-                    boolean paymentSuccessful = databaseService.pay(booking, owner, finalCost);
-                    return deletionSuccessful && paymentSuccessful;
+                    databaseService.pay(booking, owner, finalCost);
                 });
+                return true;
             } catch (NotEnoughFundsException e) {
                 System.out.println(e.getMessage());
                 System.out.println("Do you want to recharge your account?\n1. Yes\n2. No");
@@ -323,14 +323,14 @@ public class InputOutputHandler {
         return true;
     }
 
-    private int chooseOption(List<String> options, String title, String back){
+    private int chooseOption(List<String> options, String title){
         System.out.println(title);
         int i = 0;
         while(i < options.size()){
             System.out.println((i + 1) + ". " + options.get(i));
             i++;
         }
-        System.out.println((i + 1) + ". " + back);
+        System.out.println((i + 1) + ". " + "Back");
         int choice;
         while(true)
             try{
@@ -425,23 +425,20 @@ public class InputOutputHandler {
 
     private boolean refundUser(Booking booking, User user) {
         try {
-            return CinemaDatabase.withTransaction(() -> {
-                boolean success = true;
+            CinemaDatabase.withTransaction(() -> {
                 long refund = (long) booking.getShowTime().getHall().getCost() * booking.getSeats().size();
                 try {
                     databaseService.rechargeAccount(user, user.getBalance() + refund);
                     databaseService.deleteBooking(booking);
                 } catch (DatabaseFailedException e){
                     System.out.println(e.getMessage());
-                    success = false;
                 }
                 catch (NotEnoughFundsException e) {
                     // It won't throw, user balance will be surely positive.
                     throw new RuntimeException(e);
                 }
-
-                return success;
             });
+            return true;
         } catch (Exception e) {
             // It won't throw
             throw new RuntimeException(e);

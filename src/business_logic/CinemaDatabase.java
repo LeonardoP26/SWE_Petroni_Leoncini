@@ -1,19 +1,19 @@
 package business_logic;
 
 import org.jetbrains.annotations.NotNull;
-import utils.ThrowingSupplier;
+import utils.ThrowingRunnable;
 
 import java.sql.*;
 
 public class CinemaDatabase {
 
-    private CinemaDatabase() { }
+    protected CinemaDatabase() { }
 
-    private static Connection connection = null;
+    protected static Connection connection = null;
 
-    private final static String dbUrl = "jdbc:sqlite:./db/cinema.sqlite";
+    public final static String DB_URL = "jdbc:sqlite:./db/cinema.sqlite";
 
-    private static Connection connect() throws SQLException {
+    private static Connection connect(String dbUrl) throws SQLException {
         connection = DriverManager.getConnection(dbUrl);
         if (connection != null) {
             Statement stmt = connection.createStatement();
@@ -87,9 +87,17 @@ public class CinemaDatabase {
     }
 
     public static Connection getConnection() {
+        return setupConnection(DB_URL);
+    }
+
+    public static Connection getConnection(String dbUrl) {
+        return setupConnection(dbUrl);
+    }
+
+    private static Connection setupConnection(String dbUrl) {
         try {
             if (connection == null || connection.isClosed()) {
-                connection = connect();
+                connection = connect(dbUrl);
                 if (connection == null)
                     throw new RuntimeException("Unable to open the database.");
             }
@@ -99,24 +107,17 @@ public class CinemaDatabase {
         }
     }
 
-    public static boolean withTransaction(@NotNull ThrowingSupplier<Boolean> lambda) throws Exception {
+    public static void withTransaction(@NotNull ThrowingRunnable lambda) throws Exception {
         Connection conn = getConnection();
         boolean oldAutoCommit = true;
         try{
             oldAutoCommit = conn.getAutoCommit();
             conn.setAutoCommit(false);
-            if(lambda.get()) {
-                conn.commit();
-                return true;
-            }
-            else {
-                conn.rollback();
-                return false;
-            }
+            lambda.run();
+            conn.commit();
         } catch (SQLException e){
             try{
                 conn.rollback();
-                return false;
             } catch (SQLException ex) {
                 throw new RuntimeException(ex);
             }
@@ -131,7 +132,7 @@ public class CinemaDatabase {
 
     public static boolean isDatabaseEmpty() throws SQLException {
         try (
-                Connection conn = DriverManager.getConnection(dbUrl);
+                Connection conn = DriverManager.getConnection(DB_URL);
                 Statement s = conn.createStatement()
         ) {
             ResultSet res = s.executeQuery("SELECT COUNT(*) FROM sqlite_master");

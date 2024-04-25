@@ -3,6 +3,7 @@ package domain;
 import business_logic.Subject;
 import business_logic.exceptions.DatabaseFailedException;
 import business_logic.exceptions.NotEnoughFundsException;
+import business_logic.exceptions.UserAlreadyExistsException;
 import business_logic.repositories.UserRepository;
 import business_logic.repositories.UserRepositoryInterface;
 import org.jetbrains.annotations.NotNull;

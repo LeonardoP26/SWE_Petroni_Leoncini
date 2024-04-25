@@ -97,7 +97,13 @@ public class DatabaseService implements DatabaseServiceInterface {
     }
 
     @Override
-    public void addShowTime(@NotNull ShowTime showTime) throws DatabaseFailedException {
+    public void addShowTime(@NotNull ShowTime showTime) throws DatabaseFailedException, InvalidIdException {
+        if(showTime.getMovie().getId() == DatabaseEntity.ENTITY_WITHOUT_ID)
+            throw new InvalidIdException("The movie is not in the database.");
+        if(showTime.getHall().getId() == DatabaseEntity.ENTITY_WITHOUT_ID)
+            throw new InvalidIdException("The hall is not in the database.");
+        if(showTime.getCinema().getId() == DatabaseEntity.ENTITY_WITHOUT_ID)
+            throw new InvalidIdException("The cinema is not in the database.");
         showTimeRepo.insert(showTime);
     }
 
@@ -110,7 +116,7 @@ public class DatabaseService implements DatabaseServiceInterface {
      * @param hall in which hall the movie's show will take place, must be a hall of the cinema
      * @param date when the movie's show will start
      * @throws DatabaseFailedException if the hall does not belong to this cinema.
-     * @throws InvalidIdException if cinema id and hall id are equal to {@link DatabaseEntity#ENTITY_WITHOUT_ID}
+     * @throws InvalidIdException if cinema id and hall id are equal to {@link DatabaseEntity#ENTITY_WITHOUT_ID ENTITY_WITHOUT_ID}
      */
     @Override
     public void addMovie(@NotNull Movie movie, @NotNull Cinema cinema, @NotNull Hall hall, LocalDateTime date) throws DatabaseFailedException, InvalidIdException {
@@ -136,7 +142,11 @@ public class DatabaseService implements DatabaseServiceInterface {
     }
 
     @Override
-    public void addBooking(@NotNull Booking booking, User user) throws DatabaseFailedException {
+    public void addBooking(@NotNull Booking booking, User user) throws DatabaseFailedException, InvalidIdException {
+        if(booking.getSeats().stream().anyMatch(s -> s.getId() == DatabaseEntity.ENTITY_WITHOUT_ID))
+            throw new InvalidIdException("These seats are not in the database");
+        if(booking.getShowTime().getId() == DatabaseEntity.ENTITY_WITHOUT_ID)
+            throw new InvalidIdException("This showtime is not in the database");
         bookingRepo.insert(booking, user);
     }
 
@@ -195,7 +205,6 @@ public class DatabaseService implements DatabaseServiceInterface {
             CinemaDatabase.withTransaction(() -> {
                 addBooking(booking, owner);
                 owner.setBalance(owner.getBalance() - cost);
-                return true;
             });
         } catch (Exception e){
             if(e instanceof NotEnoughFundsException)
