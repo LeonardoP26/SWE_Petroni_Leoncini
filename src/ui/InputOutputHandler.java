@@ -4,8 +4,8 @@ import business_logic.CinemaDatabase;
 import business_logic.exceptions.DatabaseFailedException;
 import business_logic.exceptions.InvalidSeatException;
 import business_logic.exceptions.NotEnoughFundsException;
+import business_logic.services.DatabaseServiceImpl;
 import business_logic.services.DatabaseService;
-import business_logic.services.DatabaseServiceInterface;
 import domain.*;
 import org.jetbrains.annotations.NotNull;
 
@@ -31,10 +31,10 @@ public class InputOutputHandler {
         BOOKING_CONFIRMED
     }
 
-    private final DatabaseServiceInterface databaseService;
+    private final DatabaseService databaseService;
     private static InputOutputHandler instance = null;
 
-    public static InputOutputHandler getInstance(DatabaseServiceInterface databaseService){
+    public static InputOutputHandler getInstance(DatabaseService databaseService){
         if(instance == null)
             instance = new InputOutputHandler(databaseService);
         return instance;
@@ -46,11 +46,11 @@ public class InputOutputHandler {
         return instance;
     }
 
-    private InputOutputHandler(DatabaseServiceInterface databaseService){
+    private InputOutputHandler(DatabaseService databaseService){
         this.databaseService = databaseService;
     }
     private InputOutputHandler(){
-        this.databaseService = DatabaseService.getInstance();
+        this.databaseService = DatabaseServiceImpl.getInstance();
     }
 
     public Page homePage(boolean alreadyLoggedIn){

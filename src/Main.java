@@ -1,16 +1,19 @@
 import business_logic.CinemaDatabase;
 import business_logic.exceptions.DatabaseFailedException;
 import business_logic.exceptions.InvalidIdException;
-import business_logic.services.DatabaseService;
+import business_logic.services.DatabaseServiceImpl;
 import domain.*;
 import org.jetbrains.annotations.NotNull;
 import ui.InputOutputHandler;
+
 import java.sql.SQLException;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
-import java.util.*;
-import static ui.InputOutputHandler.*;
+import java.util.ArrayList;
+import java.util.List;
+
+import static ui.InputOutputHandler.Page;
 
 public class Main {
 
@@ -146,7 +149,7 @@ public class Main {
             if(CinemaDatabase.isDatabaseEmpty()) {
                 System.out.println("Populating the database...");
                 CinemaDatabase.getConnection();
-                DatabaseService databaseService = DatabaseService.getInstance();
+                DatabaseServiceImpl databaseService = DatabaseServiceImpl.getInstance();
 
                 Cinema uci = new Cinema("UCI Cinema");
                 Cinema theSpace = new Cinema("The Space");

@@ -1,82 +1,21 @@
 package daos;
 
-import business_logic.CinemaDatabase;
+import business_logic.exceptions.DatabaseFailedException;
 import domain.Cinema;
+import domain.Movie;
 import org.jetbrains.annotations.NotNull;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.time.Duration;
+import java.util.List;
 
-public class MovieDao implements MovieDaoInterface{
+public interface MovieDao extends Dao {
 
-    private static MovieDaoInterface instance = null;
+    void insert(@NotNull Movie movie) throws DatabaseFailedException;
 
-    public static MovieDaoInterface getInstance(){
-        if(instance == null)
-            instance = new MovieDao();
-        return instance;
-    }
+    void update(@NotNull Movie movie) throws DatabaseFailedException;
 
-    private MovieDao() { }
+    void delete(@NotNull Movie movie) throws DatabaseFailedException;
 
-    @Override
-    public ResultSet insert(String movieName, Duration movieDuration) throws SQLException {
-        Connection conn = CinemaDatabase.getConnection();
-        PreparedStatement s = conn.prepareStatement(
-                "INSERT OR IGNORE INTO Movies(movie_id, movie_name, duration) VALUES (null, ?, ?)"
-        );
-        s.setString(1, movieName);
-        s.setLong(2, movieDuration.toMinutes());
-        s.executeUpdate();
-        PreparedStatement getId = conn.prepareStatement(
-                "SELECT last_insert_rowid() as movie_id where (select last_insert_rowid()) > 0"
-        );
-        return getId.executeQuery();
-    }
+    Movie get(int movieId);
 
-    @Override
-    public boolean update(int movieId, String movieName, Duration movieDuration) throws SQLException {
-        try(PreparedStatement s = CinemaDatabase.getConnection().prepareStatement(
-                "UPDATE Movies SET movie_name = ?, duration = ? WHERE movie_id = ?"
-        )){
-            s.setString(1, movieName);
-            s.setLong(2, movieDuration.toMinutes());
-            s.setInt(3, movieId);
-            return s.executeUpdate() > 0;
-        }
-    }
-
-    @Override
-    public boolean delete(int movieId) throws SQLException {
-        try (PreparedStatement s = CinemaDatabase.getConnection().prepareStatement(
-                "DELETE FROM Movies WHERE movie_id = ?"
-        )) {
-            s.setInt(1, movieId);
-            return s.executeUpdate() > 0;
-        }
-    }
-
-    @Override
-    public ResultSet get(int movieId) throws SQLException {
-        Connection conn = CinemaDatabase.getConnection();
-        PreparedStatement s = conn.prepareStatement(
-                "SELECT * FROM Movies WHERE movie_id = ?"
-        );
-        s.setInt(1, movieId);
-        return s.executeQuery();
-    }
-
-    @Override
-    public ResultSet get(@NotNull Cinema cinema) throws SQLException {
-        Connection conn = CinemaDatabase.getConnection();
-        PreparedStatement s = conn.prepareStatement(
-                "SELECT DISTINCT Movies.movie_id, movie_name, duration FROM (ShowTimes JOIN Movies ON ShowTimes.movie_id = Movies.movie_id) JOIN Halls ON ShowTimes.hall_id = Halls.hall_id WHERE cinema_id = ?"
-        );
-        s.setInt(1, cinema.getId());
-        return s.executeQuery();
-    }
-
+    List<Movie> get(@NotNull Cinema cinema);
 }

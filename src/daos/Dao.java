@@ -1,4 +1,4 @@
-package business_logic.repositories;
+package daos;
 
 import domain.DatabaseEntity;
 import org.jetbrains.annotations.NotNull;
@@ -10,9 +10,9 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
-class Repository {
+public interface Dao {
 
-    final protected boolean isQueryResultEmpty(@NotNull ResultSet res) {
+    default boolean isQueryResultEmpty(@NotNull ResultSet res) {
         try{
             return !res.isBeforeFirst();
         } catch (SQLException e){
@@ -20,7 +20,7 @@ class Repository {
         }
     }
 
-    final protected <T extends DatabaseEntity> @Nullable List<T> getList(@NotNull ResultSet res, @NotNull ThrowingFunction<List<T>, T> lambda) throws Exception {
+    default <T extends DatabaseEntity> @Nullable List<T> getList(@NotNull ResultSet res, @NotNull ThrowingFunction<List<T>, T> lambda) throws Exception {
         if (isQueryResultEmpty(res))
             return null;
         List<T> t = new ArrayList<>();
@@ -33,7 +33,6 @@ class Repository {
             throw new RuntimeException(e);
         }
     }
-
 
 
 }

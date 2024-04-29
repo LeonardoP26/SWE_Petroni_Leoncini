@@ -3,13 +3,14 @@ package domain;
 import business_logic.Subject;
 import business_logic.exceptions.DatabaseFailedException;
 import business_logic.exceptions.NotEnoughFundsException;
-import business_logic.repositories.UserRepository;
-import business_logic.repositories.UserRepositoryInterface;
+import daos.UserDao;
+import daos.UserDaoImpl;
 import org.jetbrains.annotations.NotNull;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
 
 public class User extends Subject<User> implements DatabaseEntity {
 
@@ -25,10 +26,10 @@ public class User extends Subject<User> implements DatabaseEntity {
     public User(String username, String password) {
         this.username = username;
         this.password = password;
-        addObserver(UserRepository.getInstance());
+        addObserver(UserDaoImpl.getInstance());
     }
 
-    public User(String username, String password, UserRepositoryInterface userRepo) {
+    public User(String username, String password, UserDao userRepo) {
         this.username = username;
         this.password = password;
         addObserver(userRepo);

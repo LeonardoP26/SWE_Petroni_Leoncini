@@ -108,24 +108,25 @@ public class CinemaDatabase {
     }
 
     public static void withTransaction(@NotNull ThrowingRunnable lambda) throws Exception {
-        Connection conn = getConnection();
-        boolean oldAutoCommit = true;
-        try{
-            oldAutoCommit = conn.getAutoCommit();
-            conn.setAutoCommit(false);
-            lambda.run();
-            conn.commit();
-        } catch (SQLException e){
-            try{
-                conn.rollback();
-            } catch (SQLException ex) {
-                throw new RuntimeException(ex);
-            }
-        } finally{
-            try{
-                conn.setAutoCommit(oldAutoCommit);
-            } catch (SQLException e){
-                throw new RuntimeException(e);
+        try(Connection conn = getConnection()) {
+            boolean oldAutoCommit = true;
+            try {
+                oldAutoCommit = conn.getAutoCommit();
+                conn.setAutoCommit(false);
+                lambda.run();
+                conn.commit();
+            } catch (SQLException e) {
+                try {
+                    conn.rollback();
+                } catch (SQLException ex) {
+                    throw new RuntimeException(ex);
+                }
+            } finally {
+                try {
+                    conn.setAutoCommit(oldAutoCommit);
+                } catch (SQLException e) {
+                    throw new RuntimeException(e);
+                }
             }
         }
     }
