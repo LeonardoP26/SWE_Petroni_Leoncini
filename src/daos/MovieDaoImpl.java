@@ -2,7 +2,9 @@ package daos;
 
 import business_logic.CinemaDatabase;
 import business_logic.exceptions.DatabaseFailedException;
+import business_logic.exceptions.InvalidIdException;
 import domain.Cinema;
+import domain.DatabaseEntity;
 import domain.Movie;
 import org.jetbrains.annotations.NotNull;
 import org.sqlite.SQLiteErrorCode;
@@ -62,7 +64,9 @@ public class MovieDaoImpl implements MovieDao {
     }
 
     @Override
-    public void update(@NotNull Movie movie) throws DatabaseFailedException {
+    public void update(@NotNull Movie movie) throws DatabaseFailedException, InvalidIdException {
+        if(movie.getId() == DatabaseEntity.ENTITY_WITHOUT_ID)
+            throw new InvalidIdException("This movie is not in the database.");
         try {
             Connection conn = CinemaDatabase.getConnection();
             try (PreparedStatement s = conn.prepareStatement(
@@ -89,15 +93,22 @@ public class MovieDaoImpl implements MovieDao {
     }
 
     @Override
-    public void delete(@NotNull Movie movie) throws DatabaseFailedException {
+    public void delete(@NotNull Movie movie) throws DatabaseFailedException, InvalidIdException {
+        if(movie.getId() == DatabaseEntity.ENTITY_WITHOUT_ID)
+            throw new InvalidIdException("This movie is not in the database.");
         try {
             Connection conn = CinemaDatabase.getConnection();
             try (PreparedStatement s = conn.prepareStatement(
                     "DELETE FROM Movies WHERE movie_id = ?"
             )) {
                 s.setInt(1, movie.getId());
-                if(s.executeUpdate() == 0)
+                if (s.executeUpdate() == 0)
                     throw new DatabaseFailedException("Deletion failed.");
+            }
+            try(PreparedStatement s = conn.prepareStatement(
+                    "SELECT -1 AS movie_id"
+            )){
+                movie.setId(s.executeQuery());
             } finally {
                 if(conn.getAutoCommit())
                     conn.close();
@@ -108,7 +119,9 @@ public class MovieDaoImpl implements MovieDao {
     }
 
     @Override
-    public Movie get(int movieId) {
+    public Movie get(int movieId) throws InvalidIdException {
+        if(movieId < 1)
+            throw new InvalidIdException("Id not valid");
         try {
             Connection conn = CinemaDatabase.getConnection();
             try(PreparedStatement s = conn.prepareStatement(
@@ -127,7 +140,9 @@ public class MovieDaoImpl implements MovieDao {
     }
 
     @Override
-    public List<Movie> get(@NotNull Cinema cinema) {
+    public List<Movie> get(@NotNull Cinema cinema) throws InvalidIdException {
+        if(cinema.getId() == DatabaseEntity.ENTITY_WITHOUT_ID)
+            throw new InvalidIdException("This cinema is not in the database.");
         try {
             Connection conn = CinemaDatabase.getConnection();
             try(PreparedStatement s = conn.prepareStatement(

@@ -1,6 +1,7 @@
 package daos;
 
 import business_logic.exceptions.DatabaseFailedException;
+import business_logic.exceptions.InvalidIdException;
 import domain.Cinema;
 import org.jetbrains.annotations.NotNull;
 
@@ -10,11 +11,11 @@ public interface CinemaDao extends Dao{
 
     void insert(@NotNull Cinema cinema) throws DatabaseFailedException;
 
-    void update(@NotNull Cinema cinema) throws DatabaseFailedException;
+    void update(@NotNull Cinema cinema) throws DatabaseFailedException, InvalidIdException;
 
-    void delete(@NotNull Cinema cinema) throws DatabaseFailedException;
+    void delete(@NotNull Cinema cinema) throws DatabaseFailedException, InvalidIdException;
 
-    Cinema get(int cinemaId);
+    Cinema get(int cinemaId) throws InvalidIdException;
 
     List<Cinema> get();
 

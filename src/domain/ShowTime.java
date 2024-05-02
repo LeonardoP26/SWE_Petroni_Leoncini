@@ -1,5 +1,6 @@
 package domain;
 
+import business_logic.exceptions.InvalidIdException;
 import org.jetbrains.annotations.NotNull;
 
 import java.sql.ResultSet;
@@ -57,7 +58,7 @@ public class ShowTime implements DatabaseEntity {
     }
 
     public void setId(@NotNull ResultSet resultSet) throws SQLException {
-        this.id = resultSet.getInt("showtime_id");
+        int id = resultSet.getInt("showtime_id");
     }
 
     public void setCinema(Cinema cinema){

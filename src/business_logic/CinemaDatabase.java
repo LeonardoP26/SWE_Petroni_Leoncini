@@ -121,13 +121,8 @@ public class CinemaDatabase {
                 } catch (SQLException ex) {
                     throw new RuntimeException(ex);
                 }
-            } finally {
-                try {
-                    conn.setAutoCommit(oldAutoCommit);
-                } catch (SQLException e) {
-                    throw new RuntimeException(e);
-                }
             }
+            conn.setAutoCommit(oldAutoCommit);
         }
     }
 

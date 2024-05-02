@@ -1,5 +1,6 @@
 package domain;
 
+import business_logic.exceptions.InvalidIdException;
 import org.jetbrains.annotations.NotNull;
 
 import java.sql.ResultSet;
@@ -21,23 +22,23 @@ public class Cinema implements DatabaseEntity {
         this.name = name;
     }
 
-    private List<Hall> halls = new ArrayList<>();
-    private List<Movie> movies = new ArrayList<>();
+    private ArrayList<Hall> halls = new ArrayList<>();
+    private ArrayList<Movie> movies = new ArrayList<>();
 
 
-    public List<Hall> getHalls() {
+    public ArrayList<Hall> getHalls() {
         return halls;
     }
 
-    public List<Movie> getMovies() {
+    public ArrayList<Movie> getMovies() {
         return movies;
     }
 
-    public void setMovies(@NotNull List<Movie> movies){
+    public void setMovies(@NotNull ArrayList<Movie> movies){
         this.movies = movies;
     }
 
-    public void setHalls(List<Hall> halls) {
+    public void setHalls(@NotNull ArrayList<Hall> halls) {
         this.halls = halls;
     }
 

@@ -1,6 +1,7 @@
 package daos;
 
 import business_logic.exceptions.DatabaseFailedException;
+import business_logic.exceptions.InvalidIdException;
 import domain.Movie;
 import domain.ShowTime;
 import org.jetbrains.annotations.NotNull;
@@ -9,17 +10,14 @@ import java.util.List;
 
 public interface ShowTimeDao extends Dao {
 
-    void insert(@NotNull ShowTime showTime) throws DatabaseFailedException;
+    void insert(@NotNull ShowTime showTime) throws DatabaseFailedException, InvalidIdException;
 
-    void update(@NotNull ShowTime showTime) throws DatabaseFailedException;
+    void update(@NotNull ShowTime showTime) throws DatabaseFailedException, InvalidIdException;
 
-    void delete(@NotNull ShowTime showTime) throws DatabaseFailedException;
+    void delete(@NotNull ShowTime showTime) throws DatabaseFailedException, InvalidIdException;
 
-    ShowTime get(int showTimeId);
+    ShowTime get(int showTimeId) throws InvalidIdException;
 
-    List<ShowTime> get(@NotNull Movie movie);
+    List<ShowTime> get(@NotNull Movie movie) throws InvalidIdException;
 
-//    boolean insertShowTimeSeat(int showTimeId, int seatId) throws SQLException;
-//
-//    boolean updateShowTimeSeat(int showTimeId, int seatId, int bookingNumber) throws SQLException;
 }

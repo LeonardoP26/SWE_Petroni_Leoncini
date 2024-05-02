@@ -2,7 +2,6 @@ package dao;
 
 import business_logic.CinemaDatabase;
 import daos.UserDaoImpl;
-import daos.UserDao;
 import db.CinemaDatabaseTest;
 import domain.User;
 import org.junit.Test;
@@ -39,4 +38,5 @@ public class UserDaoTest {
 //    public void get() {
 //
 //    }
+
 }

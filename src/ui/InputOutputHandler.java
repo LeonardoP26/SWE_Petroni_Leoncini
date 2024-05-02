@@ -2,6 +2,7 @@ package ui;
 
 import business_logic.CinemaDatabase;
 import business_logic.exceptions.DatabaseFailedException;
+import business_logic.exceptions.InvalidIdException;
 import business_logic.exceptions.InvalidSeatException;
 import business_logic.exceptions.NotEnoughFundsException;
 import business_logic.services.DatabaseServiceImpl;
@@ -144,92 +145,114 @@ public class InputOutputHandler {
     }
 
     public Movie movieSelectionPage(@NotNull Cinema cinema) {
-        List<Movie> movies = databaseService.retrieveCinemaMovies(cinema);
-        cinema.setMovies(movies);
-        int input = chooseOption(movies.stream().map(Movie::getName).toList(), "Choose a movie");
-        if(input == movies.size())
+        try {
+            List<Movie> movies = databaseService.retrieveCinemaMovies(cinema);
+            if(movies == null)
+                movies = List.of();
+            cinema.setMovies(new ArrayList<>(movies));
+            int input = chooseOption(movies.stream().map(Movie::getName).toList(), "Choose a movie");
+            if (input == movies.size())
+                return null;
+            return movies.get(input);
+        } catch (InvalidIdException e){
+            System.out.println(e.getMessage());
             return null;
-        return movies.get(input);
+        }
     }
 
     public ShowTime showTimeSelectionPage(@NotNull Movie movie) {
-        List<ShowTime> showTimes = databaseService.retrieveMovieShowTimes(movie);
-        int input = chooseOption(showTimes.stream().map(ShowTime::getName).toList(), "Choose a show time");
-        if(input == showTimes.size())
+        try {
+            List<ShowTime> showTimes = databaseService.retrieveMovieShowTimes(movie);
+            int input = chooseOption(showTimes.stream().map(ShowTime::getName).toList(), "Choose a show time");
+            if (input == showTimes.size())
+                return null;
+            return showTimes.get(input);
+        } catch (InvalidIdException e){
+            System.out.println(e.getMessage());
             return null;
-        return showTimes.get(input);
+        }
     }
 
     public Booking bookingManagePage(@NotNull User user) {
-        List<Booking> bookings = databaseService.retrieveBookings(user);
-        user.setBookings(bookings);
-        if(bookings == null)
-            bookings = List.of();
-        int input = chooseOption(bookings.stream().map(Booking::getName).toList(), "Choose the booking to edit:");
-        if (input == bookings.size())
+        try {
+            List<Booking> bookings = databaseService.retrieveBookings(user);
+            if (bookings == null)
+                bookings = List.of();
+            user.setBookings(new ArrayList<>(bookings));
+            int input = chooseOption(bookings.stream().map(Booking::getName).toList(), "Choose the booking to edit:");
+            if (input == bookings.size())
+                return null;
+            return bookings.get(input);
+        } catch (InvalidIdException e) {
+            System.out.println(e.getMessage());
             return null;
-        return bookings.get(input);
+        }
     }
 
     public List<Seat> seatsSelectionPage(@NotNull ShowTime showTime, Booking currentBooking) {
-        List<Seat> seats = databaseService.retrieveShowTimeHallSeats(showTime);
-        System.out.println("Choose your seats following this pattern \"a1-a2-a3\" or leave it blank to return to the previous page:");
-        if(currentBooking != null)
-            System.out.println("Seats signed with \"C\" are your current seats.");
-        char row = seats.getFirst().getRow();
-        System.out.print(row + "\t\t");
-        for (Seat s : seats){
-            if(row != s.getRow()) {
-                System.out.print("\n" + s.getRow() + "\t\t");
-                row = s.getRow();
-            }
-            if (currentBooking != null && currentBooking.getSeats().stream().anyMatch(cs -> cs.getRow() == s.getRow() && cs.getNumber() == s.getNumber()))
-                System.out.print("C\t");
-            else if(!s.isBooked())
-                System.out.print(s.getNumber() + "\t");
-            else
-                System.out.print("X\t");
-        }
-        System.out.println();
-        List<String> strings = new ArrayList<>();
-        boolean inputNotValid = true;
-        while(inputNotValid){
-            System.out.print(">> ");
-            Scanner sc = new Scanner(System.in);
-            String input = sc.nextLine();
-            if(input.isBlank()){
-                return null;
-            }
-            while (!input.isEmpty()){
-                if(!Character.isDigit(input.charAt(input.length() - 1)))
-                    break;
-                String subString;
-                if(input.indexOf('-') != -1) {
-                    subString = input.substring(0, input.indexOf('-'));
-                    input = input.replace(subString + "-", "");
-                } else {
-                    subString = input;
-                    input = "";
+        try {
+            List<Seat> seats = databaseService.retrieveShowTimeHallSeats(showTime);
+            System.out.println("Choose your seats following this pattern \"a1-a2-a3\" or leave it blank to return to the previous page:");
+            if (currentBooking != null)
+                System.out.println("Seats signed with \"C\" are your current seats.");
+            char row = seats.getFirst().getRow();
+            System.out.print(row + "\t\t");
+            for (Seat s : seats) {
+                if (row != s.getRow()) {
+                    System.out.print("\n" + s.getRow() + "\t\t");
+                    row = s.getRow();
                 }
-                if(seats.stream().noneMatch(s -> s.getRow() == subString.charAt(0)))
-                    break;
-                try{
-                    int number = Integer.parseInt(subString.substring(1));
-                    if (seats.stream().noneMatch(s -> s.getNumber() == number))
+                if (currentBooking != null && currentBooking.getSeats().stream().anyMatch(cs -> cs.getRow() == s.getRow() && cs.getNumber() == s.getNumber()))
+                    System.out.print("C\t");
+                else if (!s.isBooked())
+                    System.out.print(s.getNumber() + "\t");
+                else
+                    System.out.print("X\t");
+            }
+            System.out.println();
+            List<String> strings = new ArrayList<>();
+            boolean inputNotValid = true;
+            while (inputNotValid) {
+                System.out.print(">> ");
+                Scanner sc = new Scanner(System.in);
+                String input = sc.nextLine();
+                if (input.isBlank()) {
+                    return null;
+                }
+                while (!input.isEmpty()) {
+                    if (!Character.isDigit(input.charAt(input.length() - 1)))
                         break;
-                } catch (NumberFormatException e){
-                    break;
+                    String subString;
+                    if (input.indexOf('-') != -1) {
+                        subString = input.substring(0, input.indexOf('-'));
+                        input = input.replace(subString + "-", "");
+                    } else {
+                        subString = input;
+                        input = "";
+                    }
+                    if (seats.stream().noneMatch(s -> s.getRow() == subString.charAt(0)))
+                        break;
+                    try {
+                        int number = Integer.parseInt(subString.substring(1));
+                        if (seats.stream().noneMatch(s -> s.getNumber() == number))
+                            break;
+                    } catch (NumberFormatException e) {
+                        break;
+                    }
+                    strings.add(subString);
                 }
-                strings.add(subString);
+                inputNotValid = false;
             }
-            inputNotValid = false;
+            return seats.stream().filter(s ->
+                    strings.stream().anyMatch(c ->
+                            s.getRow() == c.charAt(0) &&
+                                    String.valueOf(s.getNumber()).equals(c.substring(1))
+                    )
+            ).toList();
+        } catch (InvalidIdException e) {
+            System.out.println(e.getMessage());
+            return null;
         }
-        return seats.stream().filter(s ->
-                strings.stream().anyMatch(c ->
-                        s.getRow() == c.charAt(0) &&
-                        String.valueOf(s.getNumber()).equals(c.substring(1))
-                )
-        ).toList();
     }
 
     public boolean confirmPaymentPage(@NotNull Booking booking, User owner, Booking oldBooking) {
@@ -249,17 +272,7 @@ public class InputOutputHandler {
         }
         if (input == 1) {
             try {
-                int finalCost = cost;
-                CinemaDatabase.withTransaction(() -> {
-                    if (oldBooking != null) {
-                        try{
-                            databaseService.deleteBooking(oldBooking);
-                        } catch (DatabaseFailedException e){
-                            System.out.println(e.getMessage());
-                        }
-                    }
-                    databaseService.pay(booking, owner, finalCost);
-                });
+                databaseService.pay(booking, oldBooking, owner, cost);
                 return true;
             } catch (NotEnoughFundsException e) {
                 System.out.println(e.getMessage());
@@ -370,7 +383,7 @@ public class InputOutputHandler {
                 try {
                     databaseService.deleteUser(user);
                     yield DELETE_ACCOUNT;
-                } catch (DatabaseFailedException e) {
+                } catch (DatabaseFailedException | InvalidIdException e) {
                     System.out.println(e.getMessage());
                     yield HOMEPAGE;
                 }
@@ -393,18 +406,35 @@ public class InputOutputHandler {
         }
         return switch(input){
             case 1 -> {
-                Hall hall = databaseService.retrieveShowTimeHall(booking.getShowTime());
-                List<Seat> seats = databaseService.retrieveShowTimeHallSeats(booking.getShowTime());
+                Hall hall;
+                try{
+                    hall = databaseService.retrieveShowTimeHall(booking.getShowTime());
+                } catch (InvalidIdException e) {
+                    System.out.println(e.getMessage());
+                    hall = null;
+                }
+                List<Seat> seats;
+                try {
+                    seats = databaseService.retrieveShowTimeHallSeats(booking.getShowTime());
+                } catch (InvalidIdException e){
+                    seats = null;
+                }
                 if(hall == null || seats == null){
                     System.out.println("The hall or its seats do not exist anymore. Probably the show time has been canceled.");
                     yield HOMEPAGE;
                 }
-                hall.setSeats(seats);
+                hall.setSeats(new ArrayList<>(seats));
                 booking.getShowTime().setHall(hall);
                 yield SEAT_SELECTION;
             }
             case 2 -> {
-                Hall hall = databaseService.retrieveShowTimeHall(booking.getShowTime());
+                Hall hall;
+                try{
+                    hall = databaseService.retrieveShowTimeHall(booking.getShowTime());
+                } catch (InvalidIdException e) {
+                    System.out.println(e.getMessage());
+                    hall = null;
+                }
                 if(hall == null) {
                     System.out.println("The hall does not exist anymore. Probably the show time has been canceled.");
                     yield EDIT_BOOKINGS;

@@ -2,7 +2,9 @@ package daos;
 
 import business_logic.CinemaDatabase;
 import business_logic.exceptions.DatabaseFailedException;
+import business_logic.exceptions.InvalidIdException;
 import domain.Cinema;
+import domain.DatabaseEntity;
 import org.jetbrains.annotations.NotNull;
 import org.sqlite.SQLiteErrorCode;
 import org.sqlite.SQLiteException;
@@ -61,7 +63,9 @@ public class CinemaDaoImpl implements CinemaDao {
     }
 
     @Override
-    public void update(@NotNull Cinema cinema) throws DatabaseFailedException {
+    public void update(@NotNull Cinema cinema) throws DatabaseFailedException, InvalidIdException {
+        if(cinema.getId() == DatabaseEntity.ENTITY_WITHOUT_ID)
+            throw new InvalidIdException("This cinema is not in the database.");
         try {
             Connection conn = CinemaDatabase.getConnection();
             try (PreparedStatement s = conn.prepareStatement(
@@ -87,7 +91,9 @@ public class CinemaDaoImpl implements CinemaDao {
     }
 
     @Override
-    public void delete(@NotNull Cinema cinema) throws DatabaseFailedException {
+    public void delete(@NotNull Cinema cinema) throws DatabaseFailedException, InvalidIdException {
+        if(cinema.getId() == DatabaseEntity.ENTITY_WITHOUT_ID)
+            throw new InvalidIdException("This cinema is not in the database.");
         try {
             Connection conn = CinemaDatabase.getConnection();
             try (PreparedStatement s = conn.prepareStatement(
@@ -103,7 +109,9 @@ public class CinemaDaoImpl implements CinemaDao {
     }
 
     @Override
-    public Cinema get(int cinemaId) {
+    public Cinema get(int cinemaId) throws InvalidIdException {
+        if(cinemaId == DatabaseEntity.ENTITY_WITHOUT_ID)
+            throw new InvalidIdException("This cinema is not in the database.");
         try {
             Connection conn = CinemaDatabase.getConnection();
             try (PreparedStatement s = conn.prepareStatement(

@@ -3,8 +3,6 @@ package domain;
 import business_logic.Subject;
 import business_logic.exceptions.DatabaseFailedException;
 import business_logic.exceptions.NotEnoughFundsException;
-import daos.UserDao;
-import daos.UserDaoImpl;
 import org.jetbrains.annotations.NotNull;
 
 import java.sql.ResultSet;
@@ -12,11 +10,9 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
-public class User extends Subject<User> implements DatabaseEntity {
+public class User implements DatabaseEntity {
 
-    public static String USER_ID = "user_id";
-
-    public User(ResultSet res) throws SQLException {
+    public User(@NotNull ResultSet res) throws SQLException {
         this.id = res.getInt("user_id");
         this.username = res.getString("username");
         this.password = res.getString("password");
@@ -26,16 +22,9 @@ public class User extends Subject<User> implements DatabaseEntity {
     public User(String username, String password) {
         this.username = username;
         this.password = password;
-        addObserver(UserDaoImpl.getInstance());
     }
 
-    public User(String username, String password, UserDao userRepo) {
-        this.username = username;
-        this.password = password;
-        addObserver(userRepo);
-    }
-
-    private User(int id, String username, String password, long balance, List<Booking> bookings){
+    private User(int id, String username, String password, long balance, ArrayList<Booking> bookings){
         this.id = id;
         this.username = username;
         this.password = password;
@@ -48,7 +37,7 @@ public class User extends Subject<User> implements DatabaseEntity {
     private String username;
     private String password;
     private long balance = 0;
-    private List<Booking> bookings = new ArrayList<>();
+    private ArrayList<Booking> bookings = new ArrayList<>();
 
 
 
@@ -67,9 +56,9 @@ public class User extends Subject<User> implements DatabaseEntity {
     @Override
     public String getName() { return getUsername(); }
 
-    public List<Booking> getBookings() { return bookings; }
+    public ArrayList<Booking> getBookings() { return bookings; }
 
-    public void setBookings(List<Booking> bookings) { this.bookings = bookings; }
+    public void setBookings(ArrayList<Booking> bookings) { this.bookings = bookings; }
 
     public int getId() { return id; }
 
@@ -80,12 +69,13 @@ public class User extends Subject<User> implements DatabaseEntity {
     public void setBalance(long balance) throws NotEnoughFundsException, DatabaseFailedException {
         if(balance < 0)
             throw new NotEnoughFundsException("You do not have enough money, please recharge your account.");
-        notifyObservers(new User(id, username, password, balance, bookings));
+//        notifyObservers(new User(id, username, password, balance, bookings));
         this.balance = balance;
     }
 
     public void setId(@NotNull ResultSet resultSet) throws SQLException {
         this.id = resultSet.getInt("user_id");
     }
+
 
 }

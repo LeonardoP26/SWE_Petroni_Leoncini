@@ -1,6 +1,8 @@
 package business_logic.services;
 
 import business_logic.CinemaDatabase;
+import business_logic.ReceiptPrinter;
+import business_logic.Subject;
 import business_logic.exceptions.DatabaseFailedException;
 import business_logic.exceptions.InvalidIdException;
 import business_logic.exceptions.InvalidSeatException;
@@ -8,17 +10,20 @@ import business_logic.exceptions.NotEnoughFundsException;
 import daos.*;
 import domain.*;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.Base64;
 import java.util.List;
 import java.util.stream.Stream;
 
-public class DatabaseServiceImpl implements DatabaseService {
+public class DatabaseServiceImpl extends Subject<Booking> implements DatabaseService {
 
+    private final ReceiptPrinter receiptPrinter = ReceiptPrinter.getInstance();
     private final CinemaDao cinemaDao;
     private final HallDao hallDao;
     private final MovieDao movieDao;
@@ -26,15 +31,15 @@ public class DatabaseServiceImpl implements DatabaseService {
     private final SeatsDao seatsDao;
     private final UserDao userDao;
     private final BookingDao bookingDao;
-    private static DatabaseServiceImpl instance = null;
+    private static DatabaseService instance = null;
 
-    public static DatabaseServiceImpl getInstance(CinemaDao cinemaRepo, HallDao hallRepo, MovieDao movieRepo, ShowTimeDao showTimeRepo, SeatsDao seatsRepo, UserDao userRepo, BookingDao bookingRepo){
+    public static DatabaseService getInstance(CinemaDao cinemaRepo, HallDao hallRepo, MovieDao movieRepo, ShowTimeDao showTimeRepo, SeatsDao seatsRepo, UserDao userRepo, BookingDao bookingRepo){
         if(instance == null)
             instance = new DatabaseServiceImpl(cinemaRepo, hallRepo, movieRepo, showTimeRepo, seatsRepo, userRepo, bookingRepo);
         return instance;
     }
 
-    public static DatabaseServiceImpl getInstance(){
+    public static DatabaseService getInstance(){
         if(instance == null)
             instance = new DatabaseServiceImpl();
         return instance;
@@ -58,33 +63,34 @@ public class DatabaseServiceImpl implements DatabaseService {
         this.seatsDao = seatsDao;
         this.userDao = userDao;
         this.bookingDao = bookingDao;
+        addObserver(receiptPrinter);
     }
 
     private DatabaseServiceImpl() {
-        this.cinemaDao = CinemaDaoImpl.getInstance();
-        this.hallDao = HallDaoImpl.getInstance();
-        this.movieDao = MovieDaoImpl.getInstance();
-        this.showTimeDao = ShowTimeDaoImpl.getInstance();
-        this.seatsDao = SeatsDaoImpl.getInstance();
-        this.userDao = UserDaoImpl.getInstance();
-        this.bookingDao = BookingDaoImpl.getInstance();
+        this(CinemaDaoImpl.getInstance(),
+                HallDaoImpl.getInstance(),
+                MovieDaoImpl.getInstance(),
+                ShowTimeDaoImpl.getInstance(),
+                SeatsDaoImpl.getInstance(),
+                UserDaoImpl.getInstance(),
+                BookingDaoImpl.getInstance()
+        );
     }
 
     @Override
     public void addHall(@NotNull Hall hall, @NotNull Cinema cinema) throws DatabaseFailedException, InvalidIdException {
-        if(cinema.getId() == DatabaseEntity.ENTITY_WITHOUT_ID)
-            throw new InvalidIdException("This cinema must be in the database before adding halls to it.");
-        hallDao.insert(hall, cinema.getId());
-        cinema.setHalls(cinema.getHalls() == null ? List.of(hall) : Stream.concat(cinema.getHalls().stream(), Stream.of(hall)).toList());
-
+        hallDao.insert(hall, cinema);
+        if(cinema.getHalls() == null)
+            cinema.setHalls(new ArrayList<>());
+        cinema.getHalls().add(hall);
     }
 
     @Override
     public void addSeat(@NotNull Seat seat, @NotNull Hall hall) throws DatabaseFailedException, InvalidIdException {
-        if(hall.getId() == DatabaseEntity.ENTITY_WITHOUT_ID)
-            throw new InvalidIdException("This hall must be in the database before adding seats to it.");
-        seatsDao.insert(seat, hall.getId());
-        hall.setSeats(hall.getSeats() == null ? List.of(seat) : Stream.concat(hall.getSeats().stream(), Stream.of(seat)).toList());
+        seatsDao.insert(seat, hall);
+        if(hall.getSeats() == null)
+            hall.setSeats(new ArrayList<>());
+        hall.getSeats().add(seat);
     }
 
     /**
@@ -101,12 +107,6 @@ public class DatabaseServiceImpl implements DatabaseService {
 
     @Override
     public void addShowTime(@NotNull ShowTime showTime) throws DatabaseFailedException, InvalidIdException {
-        if(showTime.getMovie().getId() == DatabaseEntity.ENTITY_WITHOUT_ID)
-            throw new InvalidIdException("The movie is not in the database.");
-        if(showTime.getHall().getId() == DatabaseEntity.ENTITY_WITHOUT_ID)
-            throw new InvalidIdException("The hall is not in the database.");
-        if(showTime.getCinema().getId() == DatabaseEntity.ENTITY_WITHOUT_ID)
-            throw new InvalidIdException("The cinema is not in the database.");
         showTimeDao.insert(showTime);
     }
 
@@ -123,15 +123,9 @@ public class DatabaseServiceImpl implements DatabaseService {
      */
     @Override
     public void addMovie(@NotNull Movie movie, @NotNull Cinema cinema, @NotNull Hall hall, LocalDateTime date) throws DatabaseFailedException, InvalidIdException {
-        if(cinema.getId() == DatabaseEntity.ENTITY_WITHOUT_ID)
-            throw new InvalidIdException("You need to add this cinema in the database before planning a movie show.");
-        if (hall.getId() == DatabaseEntity.ENTITY_WITHOUT_ID)
-            throw new InvalidIdException("You need to add this hall in the database before planning a movie show.");
-        if(cinema.getHalls().stream().noneMatch(h -> h.getId() == hall.getId()))
-            throw new DatabaseFailedException("The hall does not belong to this cinema.");
         ShowTime sht = new ShowTime(movie, hall, date);
         addShowTime(sht);
-        cinema.setMovies(Stream.concat(cinema.getMovies().stream() ,Stream.of(movie)).toList());
+        cinema.getMovies().add(movie);
     }
 
     @Override
@@ -146,37 +140,27 @@ public class DatabaseServiceImpl implements DatabaseService {
 
     @Override
     public void addBooking(@NotNull Booking booking, User user) throws DatabaseFailedException, InvalidIdException {
-        if(booking.getSeats().stream().anyMatch(s -> s.getId() == DatabaseEntity.ENTITY_WITHOUT_ID))
-            throw new InvalidIdException("These seats are not in the database");
-        if(booking.getShowTime().getId() == DatabaseEntity.ENTITY_WITHOUT_ID)
-            throw new InvalidIdException("This showtime is not in the database");
-        if(user.getId() == DatabaseEntity.ENTITY_WITHOUT_ID)
-            throw new InvalidIdException("This user is not in the database");
-        bookingDao.insert(booking.getShowTime(), booking.getSeats(), user);
+        bookingDao.insert(booking, user);
+        user.getBookings().add(booking);
     }
 
     @Override
     public List<Cinema> retrieveCinemas() {
-        try {
-            return cinemaDao.get();
-        } catch(Exception e){
-            System.err.println(e.getMessage());
-            return null;
-        }
+        return cinemaDao.get();
     }
 
     @Override
-    public List<Movie> retrieveCinemaMovies(@NotNull Cinema cinema) {
+    public List<Movie> retrieveCinemaMovies(@NotNull Cinema cinema) throws InvalidIdException {
         return movieDao.get(cinema);
     }
 
     @Override
-    public List<ShowTime> retrieveMovieShowTimes(@NotNull Movie movie) {
+    public List<ShowTime> retrieveMovieShowTimes(@NotNull Movie movie) throws InvalidIdException {
         return showTimeDao.get(movie);
     }
 
     @Override
-    public List<Seat> retrieveShowTimeHallSeats(@NotNull ShowTime showTime) {
+    public List<Seat> retrieveShowTimeHallSeats(@NotNull ShowTime showTime) throws InvalidIdException {
         return seatsDao.get(showTime);
     }
 
@@ -203,42 +187,48 @@ public class DatabaseServiceImpl implements DatabaseService {
     }
 
     @Override
-    public boolean pay(@NotNull Booking booking, @NotNull User owner, long cost) throws NotEnoughFundsException, InvalidSeatException, DatabaseFailedException {
+    public void pay(@NotNull Booking booking, @Nullable Booking oldBooking, @NotNull User user, long cost) throws NotEnoughFundsException, InvalidSeatException, DatabaseFailedException {
         if(booking.getSeats().stream().anyMatch(Seat::isBooked))
             throw new InvalidSeatException("Some of these seats are already taken.");
+        user.setBalance(user.getBalance() - cost);
         try{
             CinemaDatabase.withTransaction(() -> {
-                addBooking(booking, owner);
-                owner.setBalance(owner.getBalance() - cost);
+                if(oldBooking != null)
+                    deleteBooking(oldBooking);
+                addBooking(booking, user);
+                userDao.update(user);
             });
-            owner.setBookings(Stream.concat(owner.getBookings().stream(), Stream.of(booking)).toList());
+            booking.getSeats().forEach(s -> s.setBooked(true));
+            notifyObservers(booking);
         } catch (Exception e){
+            user.getBookings().remove(booking);
             if(e instanceof NotEnoughFundsException)
                 throw (NotEnoughFundsException) e;
-            else if(e instanceof DatabaseFailedException)
+            else if(e instanceof DatabaseFailedException) {
+                user.setBalance(user.getBalance() + cost);
                 throw (DatabaseFailedException) e;
+            }
             else throw new RuntimeException(e);
         }
-        return true;
     }
 
     @Override
-    public void deleteUser(User user) throws DatabaseFailedException {
+    public void deleteUser(User user) throws DatabaseFailedException, InvalidIdException {
         userDao.delete(user);
     }
 
     @Override
-    public List<Booking> retrieveBookings(User user) {
+    public List<Booking> retrieveBookings(User user) throws InvalidIdException {
         return bookingDao.get(user);
     }
 
     @Override
-    public void deleteBooking(@NotNull Booking booking) throws DatabaseFailedException {
+    public void deleteBooking(@NotNull Booking booking) throws DatabaseFailedException, InvalidIdException {
         bookingDao.delete(booking);
     }
 
     @Override
-    public Hall retrieveShowTimeHall(@NotNull ShowTime showTime) {
+    public Hall retrieveShowTimeHall(@NotNull ShowTime showTime) throws InvalidIdException {
         return hallDao.get(showTime);
     }
 

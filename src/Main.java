@@ -1,6 +1,7 @@
 import business_logic.CinemaDatabase;
 import business_logic.exceptions.DatabaseFailedException;
 import business_logic.exceptions.InvalidIdException;
+import business_logic.services.DatabaseService;
 import business_logic.services.DatabaseServiceImpl;
 import domain.*;
 import org.jetbrains.annotations.NotNull;
@@ -107,7 +108,7 @@ public class Main {
                     }
                     else {
                         assert selectedSeats != null;
-                        Booking booking = new Booking(selectedShowTime, selectedSeats);
+                        Booking booking = new Booking(selectedShowTime, new ArrayList<>(selectedSeats));
                         boolean success = ui.confirmPaymentPage(booking, user, userBooking);
                         if(success)
                             System.out.println("Booking confirmed!");
@@ -149,7 +150,7 @@ public class Main {
             if(CinemaDatabase.isDatabaseEmpty()) {
                 System.out.println("Populating the database...");
                 CinemaDatabase.getConnection();
-                DatabaseServiceImpl databaseService = DatabaseServiceImpl.getInstance();
+                DatabaseService databaseService = DatabaseServiceImpl.getInstance();
 
                 Cinema uci = new Cinema("UCI Cinema");
                 Cinema theSpace = new Cinema("The Space");

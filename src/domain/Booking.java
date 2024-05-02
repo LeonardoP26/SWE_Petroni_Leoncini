@@ -1,24 +1,28 @@
 package domain;
 
+import business_logic.Observer;
+import business_logic.exceptions.DatabaseFailedException;
+import business_logic.exceptions.InvalidIdException;
 import org.jetbrains.annotations.NotNull;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.List;
 
-public class Booking implements DatabaseEntity{
+public class Booking implements DatabaseEntity {
 
     public Booking(ResultSet res) throws SQLException {
         this.bookingNumber = res.getInt("booking_number");
     }
 
-    public Booking(ShowTime showTime, List<Seat> seats) {
+    public Booking(ShowTime showTime, ArrayList<Seat> seats) {
         this.showTime = showTime;
         this.seats = seats;
     }
 
     private int bookingNumber = ENTITY_WITHOUT_ID;
-    private List<Seat> seats;
+    private ArrayList<Seat> seats;
     private ShowTime showTime;
 
 
@@ -39,11 +43,11 @@ public class Booking implements DatabaseEntity{
         this.bookingNumber = resultSet.getInt("booking_number");
     }
 
-    public List<Seat> getSeats() {
+    public ArrayList<Seat> getSeats() {
         return seats;
     }
 
-    public void setSeats(List<Seat> seats) {
+    public void setSeats(ArrayList<Seat> seats) {
         this.seats = seats;
     }
 
@@ -54,4 +58,5 @@ public class Booking implements DatabaseEntity{
     public void setShowTime(ShowTime showTime) {
         this.showTime = showTime;
     }
+
 }

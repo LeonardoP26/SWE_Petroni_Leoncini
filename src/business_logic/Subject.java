@@ -1,9 +1,10 @@
 package business_logic;
 
 import business_logic.exceptions.DatabaseFailedException;
+import domain.DatabaseEntity;
+import org.jetbrains.annotations.NotNull;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 public abstract class Subject<T> {
 
@@ -13,7 +14,7 @@ public abstract class Subject<T> {
         observers.add(observer);
     }
 
-    protected void notifyObservers(T entity) throws DatabaseFailedException {
+    protected void notifyObservers(T entity) {
         for(Observer<T> observer: observers){
             observer.update(entity);
         }

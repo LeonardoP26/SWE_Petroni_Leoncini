@@ -2,6 +2,8 @@ package daos;
 
 import business_logic.CinemaDatabase;
 import business_logic.exceptions.DatabaseFailedException;
+import business_logic.exceptions.InvalidIdException;
+import domain.DatabaseEntity;
 import domain.User;
 import org.jetbrains.annotations.NotNull;
 import org.sqlite.SQLiteErrorCode;
@@ -38,9 +40,10 @@ public class UserDaoImpl implements UserDao {
 
     @Override
     public void insert(@NotNull User user) throws DatabaseFailedException {
-        try(Connection conn = CinemaDatabase.getConnection(dbUrl)) {
+        try {
+            Connection conn = CinemaDatabase.getConnection(dbUrl);
             try(PreparedStatement s = conn.prepareStatement(
-                    "INSERT INTO Users(username, password, balance) VALUES (?, ?, ?)"
+                    "INSERT OR ROLLBACK INTO Users(username, password, balance) VALUES (?, ?, ?)"
             )) {
                 s.setString(1, user.getUsername());
                 s.setString(2, user.getPassword());
@@ -53,6 +56,7 @@ public class UserDaoImpl implements UserDao {
                         if(!res.next())
                             throw new DatabaseFailedException("Database insertion failed.");
                         user.setId(res);
+
                     }
                 }
             } finally {
@@ -71,8 +75,11 @@ public class UserDaoImpl implements UserDao {
     }
 
     @Override
-    public void update(@NotNull User user) throws DatabaseFailedException {
-        try(Connection conn = CinemaDatabase.getConnection()) {
+    public void update(@NotNull User user) throws DatabaseFailedException, InvalidIdException {
+        if(user.getId() == DatabaseEntity.ENTITY_WITHOUT_ID)
+            throw new InvalidIdException("This user is not in the database.");
+        try {
+            Connection conn = CinemaDatabase.getConnection();
             try (PreparedStatement s = conn.prepareStatement(
                     "UPDATE Users SET username = ?, password = ?, balance = ? WHERE user_id = ?"
             )) {
@@ -98,14 +105,22 @@ public class UserDaoImpl implements UserDao {
     }
 
     @Override
-    public void delete(@NotNull User user) throws DatabaseFailedException {
-        try(Connection conn = CinemaDatabase.getConnection()) {
+    public void delete(@NotNull User user) throws DatabaseFailedException, InvalidIdException {
+        if(user.getId() == DatabaseEntity.ENTITY_WITHOUT_ID)
+            throw new InvalidIdException("This user is not in the database.");
+        try {
+            Connection conn = CinemaDatabase.getConnection();
             try (PreparedStatement s = conn.prepareStatement(
                     "DELETE FROM Users WHERE user_id = ?"
             )) {
                 s.setInt(1, user.getId());
                 if(s.executeUpdate() == 0)
                     throw new DatabaseFailedException("Deletion failed.");
+            }
+            try (PreparedStatement s = conn.prepareStatement(
+                    "SELECT -1 AS user_id"
+            )) {
+                user.setId(s.executeQuery());
             } finally {
                 if(conn.getAutoCommit())
                     conn.close();

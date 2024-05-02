@@ -1,9 +1,11 @@
 package domain;
 
+import business_logic.exceptions.InvalidIdException;
 import org.jetbrains.annotations.NotNull;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.List;
 
 public class Hall implements DatabaseEntity {
@@ -24,7 +26,7 @@ public class Hall implements DatabaseEntity {
     protected int id = ENTITY_WITHOUT_ID;
     protected final int cost = 10;
     private final HallTypes type = HallTypes.STANDARD;
-    protected List<Seat> seats = null;
+    protected ArrayList<Seat> seats = null;
     protected int hallNumber;
 
     public int getId() {
@@ -50,11 +52,11 @@ public class Hall implements DatabaseEntity {
         return hallNumber;
     }
 
-    public List<Seat> getSeats() {
+    public ArrayList<Seat> getSeats() {
         return seats;
     }
 
-    public void setSeats(@NotNull List<Seat> seats){
+    public void setSeats(@NotNull ArrayList<Seat> seats){
         this.seats = seats;
     }
 

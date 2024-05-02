@@ -1,19 +1,21 @@
 package daos;
 
 import business_logic.exceptions.DatabaseFailedException;
+import business_logic.exceptions.InvalidIdException;
+import domain.Cinema;
 import domain.Hall;
 import domain.ShowTime;
 import org.jetbrains.annotations.NotNull;
 
 public interface HallDao extends Dao {
 
-    void insert(@NotNull Hall hall, int cinemaId) throws DatabaseFailedException;
+    void insert(@NotNull Hall hall, @NotNull Cinema cinema) throws DatabaseFailedException, InvalidIdException;
 
-    void update(@NotNull Hall hall, int cinemaId) throws DatabaseFailedException;
+    void update(@NotNull Hall hall, @NotNull Cinema cinema) throws DatabaseFailedException, InvalidIdException;
 
-    void delete(@NotNull Hall hall) throws DatabaseFailedException;
+    void delete(@NotNull Hall hall) throws DatabaseFailedException, InvalidIdException;
 
-    Hall get(int hallId);
+    Hall get(int hallId) throws InvalidIdException;
 
-    Hall get(@NotNull ShowTime showTime);
+    Hall get(@NotNull ShowTime showTime) throws InvalidIdException;
 }

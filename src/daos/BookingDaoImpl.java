@@ -3,6 +3,7 @@ package daos;
 import business_logic.CinemaDatabase;
 import business_logic.HallFactory;
 import business_logic.exceptions.DatabaseFailedException;
+import business_logic.exceptions.InvalidIdException;
 import domain.*;
 import org.jetbrains.annotations.NotNull;
 import org.sqlite.SQLiteErrorCode;
@@ -14,6 +15,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Stream;
 
@@ -31,7 +33,15 @@ public class BookingDaoImpl implements BookingDao {
 
 
     @Override
-    public void insert(@NotNull ShowTime showTime, List<Seat> seats, User user) throws DatabaseFailedException {
+    public void insert(@NotNull Booking booking, User user) throws DatabaseFailedException, InvalidIdException {
+        List<Seat> seats = booking.getSeats();
+        ShowTime showTime = booking.getShowTime();
+        if (seats.stream().anyMatch(s -> s.getId() == DatabaseEntity.ENTITY_WITHOUT_ID))
+            throw new InvalidIdException("These seats are not in the database");
+        if (showTime.getId() == DatabaseEntity.ENTITY_WITHOUT_ID)
+            throw new InvalidIdException("This showtime is not in the database");
+        if (user.getId() == DatabaseEntity.ENTITY_WITHOUT_ID)
+            throw new InvalidIdException("This user is not in the database");
         try {
             Connection conn = CinemaDatabase.getConnection();
             boolean oldAutoCommit = conn.getAutoCommit();
@@ -55,6 +65,7 @@ public class BookingDaoImpl implements BookingDao {
                                 throw new DatabaseFailedException("Database insertion failed.");
                         }
                     }
+                    booking.setBookingNumber(res);
                     conn.commit();
                 }
             } catch (SQLiteException e) {
@@ -77,7 +88,9 @@ public class BookingDaoImpl implements BookingDao {
     // TODO Add update, delete and get methods to respect CRUD principle
 
     @Override
-    public void delete(@NotNull Booking booking) throws DatabaseFailedException {
+    public void delete(@NotNull Booking booking) throws DatabaseFailedException, InvalidIdException {
+        if(booking.getBookingNumber() == DatabaseEntity.ENTITY_WITHOUT_ID)
+            throw new InvalidIdException("This booking is already not in the database");
         try {
             Connection conn = CinemaDatabase.getConnection();
             try (PreparedStatement s = conn.prepareStatement(
@@ -96,7 +109,9 @@ public class BookingDaoImpl implements BookingDao {
     }
 
     @Override
-    public List<Booking> get(@NotNull User user) {
+    public List<Booking> get(@NotNull User user) throws InvalidIdException {
+        if(user.getId() == DatabaseEntity.ENTITY_WITHOUT_ID)
+            throw new InvalidIdException("This user is not in the database.");
         try {
             Connection conn = CinemaDatabase.getConnection();
             try (PreparedStatement s = conn.prepareStatement(
@@ -126,9 +141,9 @@ public class BookingDaoImpl implements BookingDao {
                             bookingList.removeLast();
                         Seat seat = new Seat(res);
                         if(prevBooking.getSeats() == null)
-                            prevBooking.setSeats(List.of(seat));
+                            prevBooking.setSeats(new ArrayList<>(List.of(seat)));
                         else
-                            prevBooking.setSeats(Stream.concat(prevBooking.getSeats().stream(), Stream.of(seat)).toList());
+                            prevBooking.getSeats().add(seat);
                         return prevBooking;
                     });
                 }
