@@ -13,9 +13,8 @@ import java.util.List;
 public class User implements DatabaseEntity {
 
     public User(@NotNull ResultSet res) throws SQLException {
+        this(res.getString("username"), res.getString("password"));
         this.id = res.getInt("user_id");
-        this.username = res.getString("username");
-        this.password = res.getString("password");
         this.balance = res.getLong("balance");
     }
 
@@ -66,10 +65,9 @@ public class User implements DatabaseEntity {
 
     public String getPassword() { return password; }
 
-    public void setBalance(long balance) throws NotEnoughFundsException, DatabaseFailedException {
+    public void setBalance(long balance) throws NotEnoughFundsException {
         if(balance < 0)
             throw new NotEnoughFundsException("You do not have enough money, please recharge your account.");
-//        notifyObservers(new User(id, username, password, balance, bookings));
         this.balance = balance;
     }
 

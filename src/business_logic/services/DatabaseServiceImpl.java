@@ -172,13 +172,12 @@ public class DatabaseServiceImpl extends Subject<Booking> implements DatabaseSer
     @Override
     public User register(String username, String password) throws DatabaseFailedException {
         User newUser = new User(username, encryptPassword(password));
+        if(newUser.getUsername().isBlank())
+            newUser.setUsername(null);
+        if(newUser.getPassword().isBlank())
+            newUser.setPassword(null);
         addUser(newUser);
         return newUser;
-    }
-
-    @Override
-    public User retrieveUser(String username) {
-        return userDao.get(username);
     }
 
     @Override

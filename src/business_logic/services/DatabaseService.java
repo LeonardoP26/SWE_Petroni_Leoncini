@@ -41,8 +41,6 @@ public interface DatabaseService {
 
     User register(String username, String password) throws DatabaseFailedException;
 
-    User retrieveUser(String username);
-
     void rechargeAccount(User user, long amount) throws NotEnoughFundsException, DatabaseFailedException;
 
     void pay(@NotNull Booking booking, @Nullable Booking oldBooking, @NotNull User owner, long cost) throws NotEnoughFundsException, InvalidSeatException, DatabaseFailedException;

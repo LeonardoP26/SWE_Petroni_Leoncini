@@ -19,18 +19,30 @@ import java.sql.SQLException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.Objects;
 
 public class ShowTimeDaoImpl implements ShowTimeDao {
 
     private static ShowTimeDao instance = null;
+    private final String dbUrl;
 
     public static ShowTimeDao getInstance(){
-        if(instance == null)
-            instance = new ShowTimeDaoImpl();
+        return getInstance(CinemaDatabase.DB_URL);
+    }
+
+    public static ShowTimeDao getInstance(String dbUrl){
+        if(instance == null) {
+            instance = new ShowTimeDaoImpl(dbUrl);
+            return instance;
+        }
+        if(!Objects.equals(((ShowTimeDaoImpl) instance).dbUrl, dbUrl))
+            instance = new ShowTimeDaoImpl(dbUrl);
         return instance;
     }
 
-    private ShowTimeDaoImpl() { }
+    private ShowTimeDaoImpl(String dbUrl) {
+        this.dbUrl = dbUrl;
+    }
 
     @Override
     public void insert(@NotNull ShowTime showTime) throws DatabaseFailedException, InvalidIdException {
@@ -41,7 +53,7 @@ public class ShowTimeDaoImpl implements ShowTimeDao {
         if(showTime.getMovie().getId() == DatabaseEntity.ENTITY_WITHOUT_ID)
             throw new InvalidIdException("This movie is not in the database.");
         try {
-            Connection conn = CinemaDatabase.getConnection();
+            Connection conn = CinemaDatabase.getConnection(dbUrl);
             try(PreparedStatement s = conn.prepareStatement(
                     "INSERT OR IGNORE INTO ShowTimes(movie_id, hall_id, date) VALUES (?, ?, ?)"
             )) {
@@ -87,7 +99,7 @@ public class ShowTimeDaoImpl implements ShowTimeDao {
         if(showTime.getMovie().getId() == DatabaseEntity.ENTITY_WITHOUT_ID)
             throw new InvalidIdException("This movie is not in the database.");
         try {
-            Connection conn = CinemaDatabase.getConnection();
+            Connection conn = CinemaDatabase.getConnection(dbUrl);
             try (PreparedStatement s = conn.prepareStatement(
                     "UPDATE ShowTimes SET movie_id = ?, hall_id = ?, date = ? WHERE showtime_id = ?"
             )) {
@@ -119,7 +131,7 @@ public class ShowTimeDaoImpl implements ShowTimeDao {
         if(showTime.getId() == DatabaseEntity.ENTITY_WITHOUT_ID)
             throw new InvalidIdException("This showtime is not in the database.");
         try {
-            Connection conn = CinemaDatabase.getConnection();
+            Connection conn = CinemaDatabase.getConnection(dbUrl);
             try (PreparedStatement s = conn.prepareStatement(
                     "DELETE FROM ShowTimes WHERE showtime_id = ?"
             )) {
@@ -144,7 +156,7 @@ public class ShowTimeDaoImpl implements ShowTimeDao {
         if(showTimeId < 1)
             throw new InvalidIdException("Id not valid.");
         try {
-            Connection conn = CinemaDatabase.getConnection();
+            Connection conn = CinemaDatabase.getConnection(dbUrl);
             try(PreparedStatement s = conn.prepareStatement(
                     "SELECT * FROM ShowTimes WHERE showtime_id = ?"
             )) {
@@ -168,7 +180,7 @@ public class ShowTimeDaoImpl implements ShowTimeDao {
         if(movie.getId() == DatabaseEntity.ENTITY_WITHOUT_ID)
             throw new InvalidIdException("This movie is not in the database.");
         try {
-            Connection conn = CinemaDatabase.getConnection();
+            Connection conn = CinemaDatabase.getConnection(dbUrl);
             try(PreparedStatement s = conn.prepareStatement(
                     "SELECT * FROM ShowTimes JOIN Halls on ShowTimes.hall_id = Halls.hall_id WHERE movie_id = ?"
             )) {

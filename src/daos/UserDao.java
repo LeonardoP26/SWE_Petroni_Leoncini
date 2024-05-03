@@ -14,10 +14,6 @@ public interface UserDao extends Dao {
 
     void delete(@NotNull User user) throws DatabaseFailedException, InvalidIdException;
 
-    User get(int userId) throws InvalidIdException;
-
     User get(String username, String password);
-
-    User get(String username);
 
 }

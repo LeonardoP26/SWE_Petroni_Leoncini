@@ -13,6 +13,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.Objects;
 
 public class UserDaoImpl implements UserDao {
 
@@ -20,20 +21,19 @@ public class UserDaoImpl implements UserDao {
     private final String dbUrl;
 
     public static UserDao getInstance(){
-        if(instance == null)
-            instance = new UserDaoImpl();
-        return instance;
+        return getInstance(CinemaDatabase.DB_URL);
     }
 
     public static UserDao getInstance(String dbUrl){
-        if(instance == null)
+        if(instance == null) {
+            instance = new UserDaoImpl(dbUrl);
+            return instance;
+        }
+        if(!Objects.equals(((UserDaoImpl) instance).dbUrl, dbUrl))
             instance = new UserDaoImpl(dbUrl);
         return instance;
     }
 
-    private UserDaoImpl() {
-        this(CinemaDatabase.DB_URL);
-    }
     private UserDaoImpl(String dbUrl){
         this.dbUrl = dbUrl;
     }
@@ -79,7 +79,7 @@ public class UserDaoImpl implements UserDao {
         if(user.getId() == DatabaseEntity.ENTITY_WITHOUT_ID)
             throw new InvalidIdException("This user is not in the database.");
         try {
-            Connection conn = CinemaDatabase.getConnection();
+            Connection conn = CinemaDatabase.getConnection(dbUrl);
             try (PreparedStatement s = conn.prepareStatement(
                     "UPDATE Users SET username = ?, password = ?, balance = ? WHERE user_id = ?"
             )) {
@@ -109,7 +109,7 @@ public class UserDaoImpl implements UserDao {
         if(user.getId() == DatabaseEntity.ENTITY_WITHOUT_ID)
             throw new InvalidIdException("This user is not in the database.");
         try {
-            Connection conn = CinemaDatabase.getConnection();
+            Connection conn = CinemaDatabase.getConnection(dbUrl);
             try (PreparedStatement s = conn.prepareStatement(
                     "DELETE FROM Users WHERE user_id = ?"
             )) {
@@ -131,29 +131,8 @@ public class UserDaoImpl implements UserDao {
     }
 
     @Override
-    public User get(int userId) {
-        try(Connection conn = CinemaDatabase.getConnection()) {
-            try(PreparedStatement s = conn.prepareStatement(
-                    "SELECT * FROM Users WHERE user_id = ?"
-            )) {
-                s.setInt(1, userId);
-                try(ResultSet res = s.executeQuery()) {
-                    if (res.next())
-                        return new User(res);
-                    return null;
-                }
-            } finally {
-                if(conn.getAutoCommit())
-                    conn.close();
-            }
-        } catch (SQLException ex) {
-            throw new RuntimeException(ex);
-        }
-    }
-
-    @Override
     public User get(String username, String password) {
-        try (Connection conn = CinemaDatabase.getConnection()) {
+        try (Connection conn = CinemaDatabase.getConnection(dbUrl)) {
             try (PreparedStatement s = conn.prepareStatement(
                     "SELECT * FROM Users WHERE username = ? AND password = ?"
             )) {
@@ -161,24 +140,6 @@ public class UserDaoImpl implements UserDao {
                 s.setString(2, password);
                 try(ResultSet res = s.executeQuery()){
                     if(res.next())
-                        return new User(res);
-                    return null;
-                }
-            }
-        } catch (SQLException ex) {
-            throw new RuntimeException(ex);
-        }
-    }
-
-    @Override
-    public User get(String username) {
-        try (Connection conn = CinemaDatabase.getConnection()) {
-            try (PreparedStatement s = conn.prepareStatement(
-                    "SELECT * FROM Users WHERE username = ?"
-            )) {
-                s.setString(1, username);
-                try (ResultSet res = s.executeQuery()) {
-                    if (res.next())
                         return new User(res);
                     return null;
                 }

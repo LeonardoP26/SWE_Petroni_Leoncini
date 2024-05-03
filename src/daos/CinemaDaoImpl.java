@@ -14,24 +14,36 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.List;
+import java.util.Objects;
 
 public class CinemaDaoImpl implements CinemaDao {
 
     private static CinemaDao instance = null;
+    private final String dbUrl;
 
     public static CinemaDao getInstance(){
-        if(instance == null)
-            instance = new CinemaDaoImpl();
+        return getInstance(CinemaDatabase.DB_URL);
+    }
+
+    public static CinemaDao getInstance(String dbUrl){
+        if(instance == null) {
+            instance = new CinemaDaoImpl(dbUrl);
+            return instance;
+        }
+        if(!Objects.equals(((CinemaDaoImpl) instance).dbUrl, dbUrl))
+            instance = new CinemaDaoImpl(dbUrl);
         return instance;
     }
 
-    private CinemaDaoImpl() { }
+    private CinemaDaoImpl(String dbUrl){
+        this.dbUrl = dbUrl;
+    }
 
 
     @Override
     public void insert(@NotNull Cinema cinema) throws DatabaseFailedException {
         try {
-            Connection conn = CinemaDatabase.getConnection();
+            Connection conn = CinemaDatabase.getConnection(dbUrl);
             try (PreparedStatement s = conn.prepareStatement(
                     "INSERT OR ROLLBACK INTO Cinemas(cinema_name) VALUES (?)"
             )) {
@@ -67,7 +79,7 @@ public class CinemaDaoImpl implements CinemaDao {
         if(cinema.getId() == DatabaseEntity.ENTITY_WITHOUT_ID)
             throw new InvalidIdException("This cinema is not in the database.");
         try {
-            Connection conn = CinemaDatabase.getConnection();
+            Connection conn = CinemaDatabase.getConnection(dbUrl);
             try (PreparedStatement s = conn.prepareStatement(
                     "UPDATE Cinemas SET cinema_name = ? WHERE cinema_id = ?"
             )) {
@@ -95,13 +107,20 @@ public class CinemaDaoImpl implements CinemaDao {
         if(cinema.getId() == DatabaseEntity.ENTITY_WITHOUT_ID)
             throw new InvalidIdException("This cinema is not in the database.");
         try {
-            Connection conn = CinemaDatabase.getConnection();
+            Connection conn = CinemaDatabase.getConnection(dbUrl);
             try (PreparedStatement s = conn.prepareStatement(
                     "DELETE FROM Cinemas WHERE cinema_id = ?"
             )) {
                 s.setInt(1, cinema.getId());
                 if (s.executeUpdate() == 0)
                     throw new DatabaseFailedException("Deletion failed.");
+            }try (PreparedStatement s = conn.prepareStatement(
+                    "SELECT -1 AS cinema_id"
+            )) {
+                cinema.setId(s.executeQuery());
+            } finally {
+                if(conn.getAutoCommit())
+                    conn.close();
             }
         } catch (SQLException e) {
             throw new RuntimeException(e);
@@ -113,7 +132,7 @@ public class CinemaDaoImpl implements CinemaDao {
         if(cinemaId == DatabaseEntity.ENTITY_WITHOUT_ID)
             throw new InvalidIdException("This cinema is not in the database.");
         try {
-            Connection conn = CinemaDatabase.getConnection();
+            Connection conn = CinemaDatabase.getConnection(dbUrl);
             try (PreparedStatement s = conn.prepareStatement(
                     "SELECT * FROM Cinemas WHERE cinema_id = ?"
             )) {
@@ -122,6 +141,9 @@ public class CinemaDaoImpl implements CinemaDao {
                     if (res.next())
                         return new Cinema(res);
                     return null;
+                } finally {
+                    if(conn.getAutoCommit())
+                        conn.close();
                 }
             }
         } catch (SQLException e) {
@@ -133,7 +155,7 @@ public class CinemaDaoImpl implements CinemaDao {
     @Override
     public List<Cinema> get() {
         try {
-            Connection conn = CinemaDatabase.getConnection();
+            Connection conn = CinemaDatabase.getConnection(dbUrl);
             try(PreparedStatement s = conn.prepareStatement("SELECT * FROM Cinemas")) {
                 try(ResultSet res = s.executeQuery()){
                     return getList(res, (cinemaList) -> new Cinema(res));

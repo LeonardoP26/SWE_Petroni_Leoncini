@@ -16,25 +16,37 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.List;
+import java.util.Objects;
 
 public class SeatsDaoImpl implements SeatsDao {
 
     private static SeatsDao instance = null;
+    private final String dbUrl;
 
     public static SeatsDao getInstance(){
-        if(instance == null)
-            instance = new SeatsDaoImpl();
+        return getInstance(CinemaDatabase.DB_URL);
+    }
+
+    public static SeatsDao getInstance(String dbUrl){
+        if(instance == null) {
+            instance = new SeatsDaoImpl(dbUrl);
+            return instance;
+        }
+        if(!Objects.equals(((SeatsDaoImpl) instance).dbUrl, dbUrl))
+            instance = new SeatsDaoImpl(dbUrl);
         return instance;
     }
 
-    private SeatsDaoImpl() { }
+    private SeatsDaoImpl(String dbUrl) {
+        this.dbUrl = dbUrl;
+    }
 
     @Override
     public void insert(@NotNull Seat seat, @NotNull Hall hall) throws DatabaseFailedException, InvalidIdException {
         if(hall.getId() == DatabaseEntity.ENTITY_WITHOUT_ID)
             throw new InvalidIdException("This hall is not in the database.");
         try {
-            Connection conn = CinemaDatabase.getConnection();
+            Connection conn = CinemaDatabase.getConnection(dbUrl);
             try(PreparedStatement s = conn.prepareStatement(
                     "INSERT OR IGNORE INTO Seats(row, number, hall_id) VALUES (?, ?, ?)"
             )) {
@@ -76,7 +88,7 @@ public class SeatsDaoImpl implements SeatsDao {
         if(seat.getId() == DatabaseEntity.ENTITY_WITHOUT_ID)
             throw new InvalidIdException("This seat is not in the database.");
         try {
-            Connection conn = CinemaDatabase.getConnection();
+            Connection conn = CinemaDatabase.getConnection(dbUrl);
             try (PreparedStatement s = conn.prepareStatement(
                     "UPDATE Seats SET row = ?, number = ?, hall_id = ? WHERE seat_id = ?"
             )) {
@@ -108,7 +120,7 @@ public class SeatsDaoImpl implements SeatsDao {
         if(seat.getId() == DatabaseEntity.ENTITY_WITHOUT_ID)
             throw new InvalidIdException("This seat is not in the database.");
         try {
-            Connection conn = CinemaDatabase.getConnection();
+            Connection conn = CinemaDatabase.getConnection(dbUrl);
             try (PreparedStatement s = conn.prepareStatement(
                     "DELETE FROM Seats WHERE seat_id = ?"
             )) {
@@ -132,7 +144,7 @@ public class SeatsDaoImpl implements SeatsDao {
         if(seatId < 1)
             throw new InvalidIdException("Id not valid.");
         try {
-            Connection conn = CinemaDatabase.getConnection();
+            Connection conn = CinemaDatabase.getConnection(dbUrl);
             try(PreparedStatement s = conn.prepareStatement(
                     "SELECT * FROM Seats WHERE seat_id = ?"
             )) {
@@ -156,7 +168,7 @@ public class SeatsDaoImpl implements SeatsDao {
         if(showTime.getId() == DatabaseEntity.ENTITY_WITHOUT_ID)
             throw new InvalidIdException("This showtime is not in the database.");
         try {
-            Connection conn = CinemaDatabase.getConnection();
+            Connection conn = CinemaDatabase.getConnection(dbUrl);
             try(PreparedStatement s = conn.prepareStatement(
                     "SELECT DISTINCT Seats.seat_id, row, number, booking_number FROM (ShowTimes JOIN Seats ON Seats.hall_id = ShowTimes.hall_id) LEFT JOIN Bookings ON (ShowTimes.showtime_id = Bookings.showtime_id AND Seats.seat_id = Bookings.seat_id) WHERE ShowTimes.showtime_id = ?"
             )) {

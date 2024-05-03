@@ -15,23 +15,35 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.List;
+import java.util.Objects;
 
 public class MovieDaoImpl implements MovieDao {
 
     private static MovieDao instance = null;
+    private final String dbUrl;
 
     public static MovieDao getInstance(){
-        if(instance == null)
-            instance = new MovieDaoImpl();
+        return getInstance(CinemaDatabase.DB_URL);
+    }
+
+    public static MovieDao getInstance(String dbUrl){
+        if(instance == null) {
+            instance = new MovieDaoImpl(dbUrl);
+            return instance;
+        }
+        if(!Objects.equals(((MovieDaoImpl) instance).dbUrl, dbUrl))
+            instance = new MovieDaoImpl(dbUrl);
         return instance;
     }
 
-    private MovieDaoImpl() { }
+    private MovieDaoImpl(String dbUrl){
+        this.dbUrl = dbUrl;
+    }
 
     @Override
     public void insert(@NotNull Movie movie) throws DatabaseFailedException {
         try {
-            Connection conn = CinemaDatabase.getConnection();
+            Connection conn = CinemaDatabase.getConnection(dbUrl);
             try (PreparedStatement s = conn.prepareStatement(
                     "INSERT OR IGNORE INTO Movies(movie_id, movie_name, duration) VALUES (null, ?, ?)"
             )) {
@@ -68,7 +80,7 @@ public class MovieDaoImpl implements MovieDao {
         if(movie.getId() == DatabaseEntity.ENTITY_WITHOUT_ID)
             throw new InvalidIdException("This movie is not in the database.");
         try {
-            Connection conn = CinemaDatabase.getConnection();
+            Connection conn = CinemaDatabase.getConnection(dbUrl);
             try (PreparedStatement s = conn.prepareStatement(
                     "UPDATE Movies SET movie_name = ?, duration = ? WHERE movie_id = ?"
             )) {
@@ -97,7 +109,7 @@ public class MovieDaoImpl implements MovieDao {
         if(movie.getId() == DatabaseEntity.ENTITY_WITHOUT_ID)
             throw new InvalidIdException("This movie is not in the database.");
         try {
-            Connection conn = CinemaDatabase.getConnection();
+            Connection conn = CinemaDatabase.getConnection(dbUrl);
             try (PreparedStatement s = conn.prepareStatement(
                     "DELETE FROM Movies WHERE movie_id = ?"
             )) {
@@ -123,7 +135,7 @@ public class MovieDaoImpl implements MovieDao {
         if(movieId < 1)
             throw new InvalidIdException("Id not valid");
         try {
-            Connection conn = CinemaDatabase.getConnection();
+            Connection conn = CinemaDatabase.getConnection(dbUrl);
             try(PreparedStatement s = conn.prepareStatement(
                     "SELECT * FROM Movies WHERE movie_id = ?"
             )) {
@@ -144,7 +156,7 @@ public class MovieDaoImpl implements MovieDao {
         if(cinema.getId() == DatabaseEntity.ENTITY_WITHOUT_ID)
             throw new InvalidIdException("This cinema is not in the database.");
         try {
-            Connection conn = CinemaDatabase.getConnection();
+            Connection conn = CinemaDatabase.getConnection(dbUrl);
             try(PreparedStatement s = conn.prepareStatement(
                     "SELECT DISTINCT Movies.movie_id, movie_name, duration FROM (ShowTimes JOIN Movies ON ShowTimes.movie_id = Movies.movie_id) JOIN Halls ON ShowTimes.hall_id = Halls.hall_id WHERE cinema_id = ?"
             )) {

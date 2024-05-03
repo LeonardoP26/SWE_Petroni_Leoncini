@@ -149,7 +149,7 @@ public class Main {
         try {
             if(CinemaDatabase.isDatabaseEmpty()) {
                 System.out.println("Populating the database...");
-                CinemaDatabase.getConnection();
+                CinemaDatabase.getConnection(CinemaDatabase.DB_URL);
                 DatabaseService databaseService = DatabaseServiceImpl.getInstance();
 
                 Cinema uci = new Cinema("UCI Cinema");

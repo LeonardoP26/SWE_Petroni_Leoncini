@@ -16,25 +16,37 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.Objects;
 
 public class HallDaoImpl implements HallDao {
 
     private static HallDao instance = null;
+    private final String dbUrl;
 
     public static HallDao getInstance(){
-        if(instance == null)
-            instance = new HallDaoImpl();
+        return getInstance(CinemaDatabase.DB_URL);
+    }
+
+    public static HallDao getInstance(String dbUrl){
+        if(instance == null) {
+            instance = new HallDaoImpl(dbUrl);
+            return instance;
+        }
+        if(!Objects.equals(((HallDaoImpl) instance).dbUrl, dbUrl))
+            instance = new HallDaoImpl(dbUrl);
         return instance;
     }
 
-    private HallDaoImpl() { }
+    private HallDaoImpl(String dbUrl){
+        this.dbUrl = dbUrl;
+    }
 
     @Override
     public void insert(@NotNull Hall hall, @NotNull Cinema cinema) throws DatabaseFailedException, InvalidIdException {
         if(cinema.getId() == DatabaseEntity.ENTITY_WITHOUT_ID)
             throw new InvalidIdException("This cinema is not in the database.");
         try {
-            Connection conn = CinemaDatabase.getConnection();
+            Connection conn = CinemaDatabase.getConnection(dbUrl);
             try (PreparedStatement s = conn.prepareStatement(
                     "INSERT OR IGNORE INTO Halls(hall_number, cinema_id, type) VALUES (?, ?, ?)"
             )) {
@@ -76,7 +88,7 @@ public class HallDaoImpl implements HallDao {
         if(cinema.getId() == DatabaseEntity.ENTITY_WITHOUT_ID)
             throw new InvalidIdException("This cinema is not in the database.");
         try {
-            Connection conn = CinemaDatabase.getConnection();
+            Connection conn = CinemaDatabase.getConnection(dbUrl);
             try (PreparedStatement s = conn.prepareStatement(
                     "UPDATE Halls SET hall_number = ?, cinema_id = ?, type = ? WHERE hall_id = ?"
             )) {
@@ -108,13 +120,18 @@ public class HallDaoImpl implements HallDao {
         if(hall.getId() == DatabaseEntity.ENTITY_WITHOUT_ID)
             throw new InvalidIdException("This hall is not in the database.");
         try {
-            Connection conn = CinemaDatabase.getConnection();
+            Connection conn = CinemaDatabase.getConnection(dbUrl);
             try (PreparedStatement s = conn.prepareStatement(
                     "DELETE FROM Halls WHERE hall_id = ?"
             )) {
                 s.setInt(1, hall.getId());
                 if(s.executeUpdate() == 0)
                     throw new DatabaseFailedException("Deletion failed.");
+            }
+            try (PreparedStatement s = conn.prepareStatement(
+                    "SELECT -1 AS hall_id"
+            )) {
+                hall.setId(s.executeQuery());
             } finally {
                 if(conn.getAutoCommit())
                     conn.close();
@@ -129,7 +146,7 @@ public class HallDaoImpl implements HallDao {
         if (hallId < 0)
             throw new InvalidIdException("This id is not valid.");
         try {
-            Connection conn = CinemaDatabase.getConnection();
+            Connection conn = CinemaDatabase.getConnection(dbUrl);
             try(PreparedStatement s = conn.prepareStatement(
                     "SELECT * FROM Halls WHERE hall_id = ?"
             )) {
@@ -153,7 +170,7 @@ public class HallDaoImpl implements HallDao {
         if(showTime.getId() == DatabaseEntity.ENTITY_WITHOUT_ID)
             throw new InvalidIdException("This showtime is not in the database.");
         try {
-            Connection conn = CinemaDatabase.getConnection();
+            Connection conn = CinemaDatabase.getConnection(dbUrl);
             try(PreparedStatement s = conn.prepareStatement(
                     "SELECT Halls.hall_id, hall_number, type FROM ShowTimes JOIN Halls ON ShowTimes.hall_id = Halls.hall_id WHERE ShowTimes.showtime_id = ?"
             )) {
