@@ -3,8 +3,6 @@ package daos;
 import business_logic.exceptions.DatabaseFailedException;
 import business_logic.exceptions.InvalidIdException;
 import domain.Booking;
-import domain.Seat;
-import domain.ShowTime;
 import domain.User;
 import org.jetbrains.annotations.NotNull;
 

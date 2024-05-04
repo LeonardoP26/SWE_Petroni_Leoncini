@@ -1,14 +1,10 @@
 package domain;
 
-import business_logic.Observer;
-import business_logic.exceptions.DatabaseFailedException;
-import business_logic.exceptions.InvalidIdException;
 import org.jetbrains.annotations.NotNull;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.List;
 
 public class Booking implements DatabaseEntity {
 

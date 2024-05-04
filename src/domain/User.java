@@ -1,14 +1,11 @@
 package domain;
 
-import business_logic.Subject;
-import business_logic.exceptions.DatabaseFailedException;
 import business_logic.exceptions.NotEnoughFundsException;
 import org.jetbrains.annotations.NotNull;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.List;
 
 public class User implements DatabaseEntity {
 

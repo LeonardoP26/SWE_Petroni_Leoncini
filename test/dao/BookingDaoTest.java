@@ -10,10 +10,13 @@ import domain.Seat;
 import domain.ShowTime;
 import domain.User;
 import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+
 import java.util.ArrayList;
-import static org.junit.jupiter.api.Assertions.*;
+
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 public class BookingDaoTest {
 
@@ -38,7 +41,7 @@ public class BookingDaoTest {
     }
 
     @Test
-    public void insertBooking_doubleBooking_throwException(){
+    public void insertBooking_withDoubleBooking_throwException(){
         assertThrows(
                 DatabaseFailedException.class,
                 () -> bookingDao.insert(CinemaDatabaseTest.getTestBooking(), CinemaDatabaseTest.getTestUser())
@@ -46,7 +49,7 @@ public class BookingDaoTest {
     }
 
     @Test
-    public void insertBooking_nullValues_throwException(){
+    public void insertBooking_withNullValues_throwException(){
         Booking nullValuesBooking = CinemaDatabaseTest.getTestBooking();
         ShowTime oldShowTime = nullValuesBooking.getShowTime();
         nullValuesBooking.setShowTime(null);
@@ -69,7 +72,7 @@ public class BookingDaoTest {
     }
 
     @Test
-    public void insertBooking_invalidIds_throwException(){
+    public void insertBooking_withInvalidIds_throwException(){
         Booking testBooking = CinemaDatabaseTest.getTestBooking();
         ShowTime oldShowTime = testBooking.getShowTime();
         testBooking.setShowTime(new ShowTime(oldShowTime.getMovie(), oldShowTime.getHall(), oldShowTime.getDate()));

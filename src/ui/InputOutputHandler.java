@@ -5,8 +5,8 @@ import business_logic.exceptions.DatabaseFailedException;
 import business_logic.exceptions.InvalidIdException;
 import business_logic.exceptions.InvalidSeatException;
 import business_logic.exceptions.NotEnoughFundsException;
-import business_logic.services.DatabaseServiceImpl;
 import business_logic.services.DatabaseService;
+import business_logic.services.DatabaseServiceImpl;
 import domain.*;
 import org.jetbrains.annotations.NotNull;
 

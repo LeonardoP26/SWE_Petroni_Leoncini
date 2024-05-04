@@ -1,6 +1,5 @@
 package daos;
 
-import business_logic.Observer;
 import business_logic.exceptions.DatabaseFailedException;
 import business_logic.exceptions.InvalidIdException;
 import domain.User;
