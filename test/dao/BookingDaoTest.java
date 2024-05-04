@@ -28,7 +28,7 @@ public class BookingDaoTest {
     }
 
     @AfterEach
-    public void tearDown(){
+    public void tearDownEach(){
         CinemaDatabaseTest.tearDown();
     }
 
