@@ -13,12 +13,12 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.HashMap;
 import java.util.List;
-import java.util.Objects;
 
 public class CinemaDaoImpl implements CinemaDao {
 
-    private static CinemaDao instance = null;
+    private static final HashMap<String, CinemaDao> instances = new HashMap<>();
     private final String dbUrl;
 
     public static CinemaDao getInstance(){
@@ -26,13 +26,11 @@ public class CinemaDaoImpl implements CinemaDao {
     }
 
     public static CinemaDao getInstance(String dbUrl){
-        if(instance == null) {
-            instance = new CinemaDaoImpl(dbUrl);
-            return instance;
-        }
-        if(!Objects.equals(((CinemaDaoImpl) instance).dbUrl, dbUrl))
-            instance = new CinemaDaoImpl(dbUrl);
-        return instance;
+        if(instances.containsKey(dbUrl))
+            return instances.get(dbUrl);
+        CinemaDao newInstance = new CinemaDaoImpl(dbUrl);
+        instances.put(dbUrl, newInstance);
+        return newInstance;
     }
 
     private CinemaDaoImpl(String dbUrl){
@@ -81,7 +79,7 @@ public class CinemaDaoImpl implements CinemaDao {
         try {
             Connection conn = CinemaDatabase.getConnection(dbUrl);
             try (PreparedStatement s = conn.prepareStatement(
-                    "UPDATE Cinemas SET cinema_name = ? WHERE cinema_id = ?"
+                    "UPDATE OR ROLLBACK Cinemas SET cinema_name = ? WHERE cinema_id = ?"
             )) {
                 s.setString(1, cinema.getName());
                 s.setInt(2, cinema.getId());
@@ -93,9 +91,9 @@ public class CinemaDaoImpl implements CinemaDao {
             }
         } catch (SQLiteException e){
             if(e.getResultCode() == SQLiteErrorCode.SQLITE_CONSTRAINT_UNIQUE)
-                throw new DatabaseFailedException("Database update failed: this cinema already exists.");
+                throw new DatabaseFailedException("This cinema already exists.");
             else if (e.getResultCode() == SQLiteErrorCode.SQLITE_CONSTRAINT_NOTNULL)
-                throw new DatabaseFailedException("Database update failed: ensure cinema's id and name are not null.");
+                throw new DatabaseFailedException("Ensure cinema's id and name are not null.");
             else throw new RuntimeException(e); // TODO throw it as DatabaseInsertionFailedException
         } catch (SQLException e){
             throw new RuntimeException(e);
@@ -126,31 +124,6 @@ public class CinemaDaoImpl implements CinemaDao {
             throw new RuntimeException(e);
         }
     }
-
-    @Override
-    public Cinema get(int cinemaId) throws InvalidIdException {
-        if(cinemaId == DatabaseEntity.ENTITY_WITHOUT_ID)
-            throw new InvalidIdException("This cinema is not in the database.");
-        try {
-            Connection conn = CinemaDatabase.getConnection(dbUrl);
-            try (PreparedStatement s = conn.prepareStatement(
-                    "SELECT * FROM Cinemas WHERE cinema_id = ?"
-            )) {
-                s.setInt(1, cinemaId);
-                try (ResultSet res = s.executeQuery()) {
-                    if (res.next())
-                        return new Cinema(res);
-                    return null;
-                } finally {
-                    if(conn.getAutoCommit())
-                        conn.close();
-                }
-            }
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
 
     @Override
     public List<Cinema> get() {

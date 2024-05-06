@@ -67,4 +67,5 @@ public class ShowTime implements DatabaseEntity {
     public Cinema getCinema() {
         return cinema;
     }
+
 }

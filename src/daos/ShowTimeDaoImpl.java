@@ -18,12 +18,12 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.HashMap;
 import java.util.List;
-import java.util.Objects;
 
 public class ShowTimeDaoImpl implements ShowTimeDao {
 
-    private static ShowTimeDao instance = null;
+    private static final HashMap<String, ShowTimeDao> instances = new HashMap<>();
     private final String dbUrl;
 
     public static ShowTimeDao getInstance(){
@@ -31,13 +31,11 @@ public class ShowTimeDaoImpl implements ShowTimeDao {
     }
 
     public static ShowTimeDao getInstance(String dbUrl){
-        if(instance == null) {
-            instance = new ShowTimeDaoImpl(dbUrl);
-            return instance;
-        }
-        if(!Objects.equals(((ShowTimeDaoImpl) instance).dbUrl, dbUrl))
-            instance = new ShowTimeDaoImpl(dbUrl);
-        return instance;
+        if(instances.containsKey(dbUrl))
+            return instances.get(dbUrl);
+        ShowTimeDao newInstance = new ShowTimeDaoImpl(dbUrl);
+        instances.put(dbUrl, newInstance);
+        return newInstance;
     }
 
     private ShowTimeDaoImpl(String dbUrl) {

@@ -8,16 +8,15 @@ import domain.User;
 import org.jetbrains.annotations.NotNull;
 import org.sqlite.SQLiteErrorCode;
 import org.sqlite.SQLiteException;
-
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.Objects;
+import java.util.HashMap;
 
 public class UserDaoImpl implements UserDao {
 
-    private static UserDao instance = null;
+    private static final HashMap<String, UserDao> instances = new HashMap<>();
     private final String dbUrl;
 
     public static UserDao getInstance(){
@@ -25,13 +24,11 @@ public class UserDaoImpl implements UserDao {
     }
 
     public static UserDao getInstance(String dbUrl){
-        if(instance == null) {
-            instance = new UserDaoImpl(dbUrl);
-            return instance;
-        }
-        if(!Objects.equals(((UserDaoImpl) instance).dbUrl, dbUrl))
-            instance = new UserDaoImpl(dbUrl);
-        return instance;
+        if(instances.containsKey(dbUrl))
+            return instances.get(dbUrl);
+        UserDao newInstance = new UserDaoImpl(dbUrl);
+        instances.put(dbUrl, newInstance);
+        return newInstance;
     }
 
     private UserDaoImpl(String dbUrl){

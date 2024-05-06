@@ -44,4 +44,5 @@ public class Movie implements DatabaseEntity {
     public void setId(@NotNull ResultSet resultSet) throws SQLException {
         this.id = resultSet.getInt("movie_id");
     }
+
 }

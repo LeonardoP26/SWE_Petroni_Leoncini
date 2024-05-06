@@ -16,12 +16,12 @@ import java.sql.SQLException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
-import java.util.Objects;
 
 public class BookingDaoImpl implements BookingDao {
 
-    private static BookingDao instance = null;
+    private static final HashMap<String, BookingDao> instances = new HashMap<>();
     private final String dbUrl;
 
     public static BookingDao getInstance(){
@@ -29,13 +29,11 @@ public class BookingDaoImpl implements BookingDao {
     }
 
     public static BookingDao getInstance(String dbUrl){
-        if(instance == null) {
-            instance = new BookingDaoImpl(dbUrl);
-            return instance;
-        }
-        if(!Objects.equals(((BookingDaoImpl) instance).dbUrl, dbUrl))
-            instance = new BookingDaoImpl(dbUrl);
-        return instance;
+        if(instances.containsKey(dbUrl))
+            return instances.get(dbUrl);
+        BookingDao newInstance = new BookingDaoImpl(dbUrl);
+        instances.put(dbUrl, newInstance);
+        return newInstance;
     }
 
     private BookingDaoImpl(String dbUrl){
@@ -60,8 +58,6 @@ public class BookingDaoImpl implements BookingDao {
             throw new InvalidIdException("This user is not in the database");
         try {
             Connection conn = CinemaDatabase.getConnection(dbUrl);
-            boolean oldAutoCommit = conn.getAutoCommit();
-            conn.setAutoCommit(false);
             try(PreparedStatement ps = conn.prepareStatement(
                     "SELECT MIN(t) AS booking_number FROM (SELECT DISTINCT 1 AS t FROM Bookings WHERE (SELECT MIN(booking_number) FROM Bookings) > 1 UNION SELECT Bookings.booking_number + 1 FROM Bookings WHERE booking_number + 1 NOT IN (SELECT booking_number FROM Bookings))"
             )) {
@@ -69,28 +65,22 @@ public class BookingDaoImpl implements BookingDao {
                     if(!res.next())
                         throw new DatabaseFailedException("Database insertion failed.");
                     int bookingNumber = res.getInt("booking_number");
-                    for (Seat seat : seats) {
-                        try (PreparedStatement s = conn.prepareStatement(
-                                "INSERT INTO Bookings(showtime_id, seat_id, user_id, booking_number) VALUES (?, ?, ?, ?)"
-                        )) {
-                            s.setInt(1, showTime.getId());
-                            s.setInt(2, seat.getId());
-                            s.setInt(3, user.getId());
-                            s.setInt(4, bookingNumber);
+                    StringBuilder sql = new StringBuilder("INSERT INTO Bookings(showtime_id, seat_id, user_id, booking_number) VALUES ");
+                    for(Seat seat: seats) {
+                        sql.append("(%d, %d, %d, %d), ".formatted(showTime.getId(), seat.getId(), user.getId(), bookingNumber));
+                    }
+                    sql.replace(sql.length() - 2, sql.length(), "");
+                        try (PreparedStatement s = conn.prepareStatement(sql.toString())) {
                             if (s.executeUpdate() == 0)
                                 throw new DatabaseFailedException("Database insertion failed.");
                         }
-                    }
                     booking.setBookingNumber(res);
-                    conn.commit();
                 }
             } catch (SQLiteException e) {
-                conn.rollback();
                 if(e.getResultCode() == SQLiteErrorCode.SQLITE_CONSTRAINT_PRIMARYKEY)
                     throw new DatabaseFailedException("This booking already exists.");
                 else throw new RuntimeException(e); // TODO throw it as DatabaseInsertionFailedException
             } finally {
-                conn.setAutoCommit(oldAutoCommit);
                 if (conn.getAutoCommit())
                     conn.close();
             }

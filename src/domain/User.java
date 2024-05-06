@@ -72,5 +72,4 @@ public class User implements DatabaseEntity {
         this.id = resultSet.getInt("user_id");
     }
 
-
 }

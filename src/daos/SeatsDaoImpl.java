@@ -15,12 +15,12 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.HashMap;
 import java.util.List;
-import java.util.Objects;
 
 public class SeatsDaoImpl implements SeatsDao {
 
-    private static SeatsDao instance = null;
+    private static final HashMap<String, SeatsDao> instances = new HashMap<>();
     private final String dbUrl;
 
     public static SeatsDao getInstance(){
@@ -28,13 +28,11 @@ public class SeatsDaoImpl implements SeatsDao {
     }
 
     public static SeatsDao getInstance(String dbUrl){
-        if(instance == null) {
-            instance = new SeatsDaoImpl(dbUrl);
-            return instance;
-        }
-        if(!Objects.equals(((SeatsDaoImpl) instance).dbUrl, dbUrl))
-            instance = new SeatsDaoImpl(dbUrl);
-        return instance;
+        if(instances.containsKey(dbUrl))
+            return instances.get(dbUrl);
+        SeatsDao newInstance = new SeatsDaoImpl(dbUrl);
+        instances.put(dbUrl, newInstance);
+        return newInstance;
     }
 
     private SeatsDaoImpl(String dbUrl) {

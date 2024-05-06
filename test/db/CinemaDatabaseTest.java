@@ -3,6 +3,7 @@ package db;
 import business_logic.CinemaDatabase;
 import business_logic.HallFactory;
 import domain.*;
+import utils.ThrowingFunction;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -22,6 +23,17 @@ public class CinemaDatabaseTest extends CinemaDatabase{
     private static ArrayList<Seat> testSeats;
     private static ShowTime testShowTime;
     private static User testUser;
+
+    public static <T> T runQuery(String sql, ThrowingFunction<ResultSet, T> function){
+        try(Connection conn = CinemaDatabaseTest.getConnection(DB_URL);
+            PreparedStatement s = conn.prepareStatement(sql);
+            ResultSet res = s.executeQuery()
+        ){
+            return function.apply(res);
+        } catch (Exception e){
+            throw new RuntimeException(e);
+        }
+    }
 
     public static void setUp(){
         Connection connection = getConnection(DB_URL);
@@ -47,7 +59,7 @@ public class CinemaDatabaseTest extends CinemaDatabase{
             }
             try(
                     PreparedStatement s = connection.prepareStatement(
-                            "INSERT OR IGNORE INTO Users(user_id, username, password, balance) VALUES (1, 'user1', 'user1', 100) RETURNING *"
+                            "INSERT INTO Users(user_id, username, password, balance) VALUES (1, 'user1', 'user1', 100) RETURNING *"
                     );
                     ResultSet res = s.executeQuery()
             ) {
@@ -67,11 +79,10 @@ public class CinemaDatabaseTest extends CinemaDatabase{
             StringBuilder sql = new StringBuilder("INSERT OR IGNORE INTO Seats(row, number, hall_id) VALUES ");
             for(char row = 'a'; row < 'c'; row++) {
                 for (int number = 1; number < 4; number++) {
-                    sql.append("('%s', %d, 1),".formatted(row, number));
+                    sql.append("('%s', %d, 1), ".formatted(row, number));
                 }
             }
-            sql.deleteCharAt(sql.length() - 1);
-            sql.append(" RETURNING *");
+            sql.replace(sql.length() - 2, sql.length(), " RETURNING *");
             try (
                     PreparedStatement s = connection.prepareStatement(sql.toString());
                     ResultSet res = s.executeQuery()
@@ -83,13 +94,15 @@ public class CinemaDatabaseTest extends CinemaDatabase{
                 testHall.setSeats(testSeats);
             }
             try(PreparedStatement s = connection.prepareStatement("INSERT OR IGNORE INTO ShowTimes(showtime_id, movie_id, hall_id, date) VALUES (1, 1, 1, ?) RETURNING *")){
-                s.setString(1, LocalDateTime.now().truncatedTo(ChronoUnit.HOURS).toString());
+                LocalDateTime now =  LocalDateTime.now().truncatedTo(ChronoUnit.HOURS);
+                s.setString(1, now.toString());
                 try(ResultSet res = s.executeQuery()){
                     if(res.next()) {
                         testShowTime = new ShowTime(res);
                         testShowTime.setCinema(testCinema);
                         testShowTime.setHall(testHall);
                         testShowTime.setMovie(testMovie);
+                        testShowTime.setDate(now);
                     }
                 }
             }

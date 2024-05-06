@@ -16,11 +16,11 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.Objects;
+import java.util.HashMap;
 
 public class HallDaoImpl implements HallDao {
 
-    private static HallDao instance = null;
+    private static final HashMap<String, HallDao> instances = new HashMap<>();
     private final String dbUrl;
 
     public static HallDao getInstance(){
@@ -28,13 +28,11 @@ public class HallDaoImpl implements HallDao {
     }
 
     public static HallDao getInstance(String dbUrl){
-        if(instance == null) {
-            instance = new HallDaoImpl(dbUrl);
-            return instance;
-        }
-        if(!Objects.equals(((HallDaoImpl) instance).dbUrl, dbUrl))
-            instance = new HallDaoImpl(dbUrl);
-        return instance;
+        if(instances.containsKey(dbUrl))
+            return instances.get(dbUrl);
+        HallDao newInstance = new HallDaoImpl(dbUrl);
+        instances.put(dbUrl, newInstance);
+        return newInstance;
     }
 
     private HallDaoImpl(String dbUrl){

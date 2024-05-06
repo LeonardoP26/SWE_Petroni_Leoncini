@@ -14,12 +14,12 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.HashMap;
 import java.util.List;
-import java.util.Objects;
 
 public class MovieDaoImpl implements MovieDao {
 
-    private static MovieDao instance = null;
+    private static final HashMap<String, MovieDao> instances = new HashMap<>();
     private final String dbUrl;
 
     public static MovieDao getInstance(){
@@ -27,13 +27,11 @@ public class MovieDaoImpl implements MovieDao {
     }
 
     public static MovieDao getInstance(String dbUrl){
-        if(instance == null) {
-            instance = new MovieDaoImpl(dbUrl);
-            return instance;
-        }
-        if(!Objects.equals(((MovieDaoImpl) instance).dbUrl, dbUrl))
-            instance = new MovieDaoImpl(dbUrl);
-        return instance;
+        if(instances.containsKey(dbUrl))
+            return instances.get(dbUrl);
+        MovieDao newInstance = new MovieDaoImpl(dbUrl);
+        instances.put(dbUrl, newInstance);
+        return newInstance;
     }
 
     private MovieDaoImpl(String dbUrl){
