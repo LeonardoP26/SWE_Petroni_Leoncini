@@ -11,11 +11,9 @@ public interface HallDao extends Dao {
 
     void insert(@NotNull Hall hall, @NotNull Cinema cinema) throws DatabaseFailedException, InvalidIdException;
 
-    void update(@NotNull Hall hall, @NotNull Cinema cinema) throws DatabaseFailedException, InvalidIdException;
+    void update(@NotNull Hall hall, @NotNull Hall copy, @NotNull Cinema cinema) throws DatabaseFailedException, InvalidIdException;
 
     void delete(@NotNull Hall hall) throws DatabaseFailedException, InvalidIdException;
-
-    Hall get(int hallId) throws InvalidIdException;
 
     Hall get(@NotNull ShowTime showTime) throws InvalidIdException;
 }

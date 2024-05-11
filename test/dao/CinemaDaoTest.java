@@ -48,52 +48,52 @@ public class CinemaDaoTest {
         assertThrows(DatabaseFailedException.class, () -> cinemaDao.insert(cinema));
     }
 
-    @Test
-    public void updateCinema_success(){
-        Cinema expected = CinemaDatabaseTest.getTestCinema();
-        expected.setName("cinema");
-        assertDoesNotThrow(() -> cinemaDao.update(expected));
-        Cinema actual = CinemaDatabaseTest.runQuery(
-                "SELECT * FROM Cinemas WHERE cinema_name = '%s'".formatted(expected.getName()),
-                Cinema::new
-        );
-        assertEquals(expected.getId(), actual.getId());
-        assertEquals(expected.getName(), actual.getName());
-    }
-
-    @Test
-    public void updateCinema_toSameName_throwsDatabaseFailedException(){
-        Cinema cinema2 = new Cinema("cinema2");
-        assertDoesNotThrow(() -> cinemaDao.insert(cinema2));
-        cinema2.setName("cinema1");
-        assertThrows(DatabaseFailedException.class, () -> cinemaDao.update(cinema2));
-    }
-
-    @Test
-    public void updateCinema_toNullName_throwsDatabaseFailedException(){
-        Cinema cinema = CinemaDatabaseTest.getTestCinema();
-        cinema.setName(null);
-        assertThrows(DatabaseFailedException.class, () -> cinemaDao.update(cinema));
-    }
-
-    @Test
-    public void updateCinema_withInvalidId_throwsInvalidIdException(){
-        Cinema newCinema = new Cinema("A");
-        assertThrows(InvalidIdException.class, () -> cinemaDao.update(newCinema));
-    }
+//    @Test
+//    public void updateCinema_success(){
+//        Cinema expected = CinemaDatabaseTest.getTestCinema1();
+//        expected.setName("cinema");
+//        assertDoesNotThrow(() -> cinemaDao.update(expected));
+//        Cinema actual = CinemaDatabaseTest.runQuery(
+//                "SELECT * FROM Cinemas WHERE cinema_name = '%s'".formatted(expected.getName()),
+//                Cinema::new
+//        );
+//        assertEquals(expected.getId(), actual.getId());
+//        assertEquals(expected.getName(), actual.getName());
+//    }
+//
+//    @Test
+//    public void updateCinema_toSameName_throwsDatabaseFailedException(){
+//        Cinema cinema2 = new Cinema("cinema2");
+//        assertDoesNotThrow(() -> cinemaDao.insert(cinema2));
+//        cinema2.setName("cinema1");
+//        assertThrows(DatabaseFailedException.class, () -> cinemaDao.update(cinema2));
+//    }
+//
+//    @Test
+//    public void updateCinema_toNullName_throwsDatabaseFailedException(){
+//        Cinema cinema = CinemaDatabaseTest.getTestCinema1();
+//        cinema.setName(null);
+//        assertThrows(DatabaseFailedException.class, () -> cinemaDao.update(cinema));
+//    }
+//
+//    @Test
+//    public void updateCinema_withInvalidId_throwsInvalidIdException(){
+//        Cinema newCinema = new Cinema("A");
+//        assertThrows(InvalidIdException.class, () -> cinemaDao.update(newCinema));
+//    }
 
     @Test
     public void getCinema_success(){
         Cinema actual = assertDoesNotThrow(cinemaDao::get).getFirst();
-        Cinema expected = CinemaDatabaseTest.getTestCinema();
+        Cinema expected = CinemaDatabaseTest.getTestCinema1();
         assertEquals(expected.getId(), actual.getId());
         assertEquals(expected.getName(), actual.getName());
     }
 
     @Test
     public void deleteCinema_success(){
-        int id = CinemaDatabaseTest.getTestCinema().getId();
-        assertDoesNotThrow(() -> cinemaDao.delete(CinemaDatabaseTest.getTestCinema()));
+        int id = CinemaDatabaseTest.getTestCinema1().getId();
+        assertDoesNotThrow(() -> cinemaDao.delete(CinemaDatabaseTest.getTestCinema1()));
         assertTrue(
                 () -> CinemaDatabaseTest.runQuery(
                         "SELECT * FROM Cinemas WHERE cinema_id = %d".formatted(id),

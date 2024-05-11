@@ -8,6 +8,10 @@ import java.util.ArrayList;
 
 public class Booking implements DatabaseEntity {
 
+    private int bookingNumber = ENTITY_WITHOUT_ID;
+    private ArrayList<Seat> seats = new ArrayList<>();
+    private ShowTime showTime;
+
     public Booking(ResultSet res) throws SQLException {
         this.bookingNumber = res.getInt("booking_number");
     }
@@ -17,9 +21,10 @@ public class Booking implements DatabaseEntity {
         this.seats = seats;
     }
 
-    private int bookingNumber = ENTITY_WITHOUT_ID;
-    private ArrayList<Seat> seats;
-    private ShowTime showTime;
+    public Booking(@NotNull Booking booking){
+        this.showTime = getShowTime();
+        this.seats = getSeats();
+    }
 
 
     public int getBookingNumber() {
@@ -29,10 +34,6 @@ public class Booking implements DatabaseEntity {
     @Override
     public String getName() {
         return bookingNumber +  " - " + showTime.getMovie().getName() + " - " + showTime.getName() + " - " + showTime.getCinema().getName();
-    }
-
-    public void setBookingNumber(int bookingNumber) {
-        this.bookingNumber = bookingNumber;
     }
 
     public void setBookingNumber(@NotNull ResultSet resultSet) throws SQLException {
@@ -53,6 +54,21 @@ public class Booking implements DatabaseEntity {
 
     public void setShowTime(ShowTime showTime) {
         this.showTime = showTime;
+    }
+
+    @Override
+    public int getId() {
+        return getBookingNumber();
+    }
+
+    @Override
+    public void resetId(){
+        this.bookingNumber = ENTITY_WITHOUT_ID;
+    }
+
+    public void copy(@NotNull Booking booking){
+        this.showTime = getShowTime();
+        this.seats = getSeats();
     }
 
 }

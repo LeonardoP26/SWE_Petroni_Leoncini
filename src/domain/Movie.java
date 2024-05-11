@@ -9,6 +9,10 @@ import java.time.temporal.ChronoUnit;
 
 public class Movie implements DatabaseEntity {
 
+    private int id = ENTITY_WITHOUT_ID;
+    private String name;
+    private Duration duration;
+
     public Movie(String name, Duration duration){
         this.name = name;
         this.duration = duration;
@@ -20,9 +24,10 @@ public class Movie implements DatabaseEntity {
         duration = Duration.of(res.getLong("duration"), ChronoUnit.MINUTES);
     }
 
-    private int id = ENTITY_WITHOUT_ID;
-    private String name;
-    private Duration duration;
+    public Movie(@NotNull Movie movie){
+        this.name = movie.name;
+        this.duration = movie.duration;
+    }
 
     @Override
     public String getName() {
@@ -33,16 +38,30 @@ public class Movie implements DatabaseEntity {
         return duration;
     }
 
-    public int getId() {
-        return id;
+    public void setDuration(Duration duration) {
+        this.duration = duration;
     }
 
-    public void setId(int id) {
-        this.id = id;
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    @Override
+    public int getId() {
+        return id;
     }
 
     public void setId(@NotNull ResultSet resultSet) throws SQLException {
         this.id = resultSet.getInt("movie_id");
     }
 
+    public void copy(@NotNull Movie movie){
+        this.name = movie.name;
+        this.duration = movie.duration;
+    }
+
+    @Override
+    public void resetId() {
+        this.id = ENTITY_WITHOUT_ID;
+    }
 }

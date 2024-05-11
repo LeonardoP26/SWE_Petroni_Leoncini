@@ -12,6 +12,7 @@ import org.jetbrains.annotations.NotNull;
 import org.sqlite.SQLiteErrorCode;
 import org.sqlite.SQLiteException;
 
+import java.lang.ref.WeakReference;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -20,19 +21,20 @@ import java.util.HashMap;
 
 public class HallDaoImpl implements HallDao {
 
-    private static final HashMap<String, HallDao> instances = new HashMap<>();
+    private static final HashMap<String, WeakReference<HallDao>> instances = new HashMap<>();
     private final String dbUrl;
 
-    public static HallDao getInstance(){
+    public static @NotNull HallDao getInstance(){
         return getInstance(CinemaDatabase.DB_URL);
     }
 
-    public static HallDao getInstance(String dbUrl){
-        if(instances.containsKey(dbUrl))
-            return instances.get(dbUrl);
-        HallDao newInstance = new HallDaoImpl(dbUrl);
-        instances.put(dbUrl, newInstance);
-        return newInstance;
+    public static @NotNull HallDao getInstance(@NotNull String dbUrl){
+        HallDao inst = instances.get(dbUrl) != null ? instances.get(dbUrl).get() : null;
+        if(inst != null)
+            return inst;
+        inst = new HallDaoImpl(dbUrl);
+        instances.put(dbUrl, new WeakReference<>(inst));
+        return inst;
     }
 
     private HallDaoImpl(String dbUrl){
@@ -46,21 +48,16 @@ public class HallDaoImpl implements HallDao {
         try {
             Connection conn = CinemaDatabase.getConnection(dbUrl);
             try (PreparedStatement s = conn.prepareStatement(
-                    "INSERT OR IGNORE INTO Halls(hall_number, cinema_id, type) VALUES (?, ?, ?)"
+                    "INSERT OR IGNORE INTO Halls(hall_number, cinema_id, type) VALUES (?, ?, ?) RETURNING hall_id"
             )) {
                 s.setInt(1, hall.getHallNumber());
                 s.setInt(2, cinema.getId());
                 s.setString(3, hall.getHallType().toString());
-                if(s.executeUpdate() == 0)
-                    throw new DatabaseFailedException("Database insertion failed.");
-                try (PreparedStatement getId = conn.prepareStatement(
-                        "SELECT last_insert_rowid() as hall_id where (select last_insert_rowid()) > 0"
-                )) {
-                    try(ResultSet res = getId.executeQuery()) {
-                        if(!res.next())
-                            throw new DatabaseFailedException("Database insertion failed.");
-                        hall.setId(res);
-                    }
+                try (ResultSet res = s.executeQuery()) {
+                    if(!res.next())
+                        throw new DatabaseFailedException("Database insertion failed.");
+                    hall.setId(res);
+                    cinema.getHalls().add(hall);
                 }
             } finally {
                 if(conn.getAutoCommit())
@@ -80,7 +77,7 @@ public class HallDaoImpl implements HallDao {
     }
 
     @Override
-    public void update(@NotNull Hall hall, @NotNull Cinema cinema) throws DatabaseFailedException, InvalidIdException {
+    public void update(@NotNull Hall hall, @NotNull Hall copy, @NotNull Cinema cinema) throws DatabaseFailedException, InvalidIdException {
         if(hall.getId() == DatabaseEntity.ENTITY_WITHOUT_ID)
             throw new InvalidIdException("This hall is not in the database.");
         if(cinema.getId() == DatabaseEntity.ENTITY_WITHOUT_ID)
@@ -90,9 +87,9 @@ public class HallDaoImpl implements HallDao {
             try (PreparedStatement s = conn.prepareStatement(
                     "UPDATE Halls SET hall_number = ?, cinema_id = ?, type = ? WHERE hall_id = ?"
             )) {
-                s.setInt(1, hall.getHallNumber());
+                s.setInt(1, copy.getHallNumber());
                 s.setInt(2, cinema.getId());
-                s.setString(3, hall.getHallType().toString());
+                s.setString(3, copy.getHallType().toString());
                 s.setInt(4, hall.getId());
                 if(s.executeUpdate() == 0)
                     throw new DatabaseFailedException("Query result is empty.");
@@ -125,35 +122,6 @@ public class HallDaoImpl implements HallDao {
                 s.setInt(1, hall.getId());
                 if(s.executeUpdate() == 0)
                     throw new DatabaseFailedException("Deletion failed.");
-            }
-            try (PreparedStatement s = conn.prepareStatement(
-                    "SELECT -1 AS hall_id"
-            )) {
-                hall.setId(s.executeQuery());
-            } finally {
-                if(conn.getAutoCommit())
-                    conn.close();
-            }
-        } catch (SQLException e){
-            throw new RuntimeException(e);
-        }
-    }
-
-    @Override
-    public Hall get(int hallId) throws InvalidIdException {
-        if (hallId < 0)
-            throw new InvalidIdException("This id is not valid.");
-        try {
-            Connection conn = CinemaDatabase.getConnection(dbUrl);
-            try(PreparedStatement s = conn.prepareStatement(
-                    "SELECT * FROM Halls WHERE hall_id = ?"
-            )) {
-                s.setInt(1, hallId);
-                try(ResultSet res = s.executeQuery()){
-                    if(res.next())
-                        return HallFactory.createHall(res);
-                    return null;
-                }
             } finally {
                 if(conn.getAutoCommit())
                     conn.close();

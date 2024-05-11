@@ -7,4 +7,7 @@ public interface DatabaseEntity {
 
     String getName();
 
+    int getId();
+
+    void resetId();
 }

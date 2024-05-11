@@ -9,6 +9,7 @@ import org.jetbrains.annotations.NotNull;
 import org.sqlite.SQLiteErrorCode;
 import org.sqlite.SQLiteException;
 
+import java.lang.ref.WeakReference;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -18,19 +19,20 @@ import java.util.List;
 
 public class CinemaDaoImpl implements CinemaDao {
 
-    private static final HashMap<String, CinemaDao> instances = new HashMap<>();
+    private static final HashMap<String, WeakReference<CinemaDao>> instances = new HashMap<>();
     private final String dbUrl;
 
-    public static CinemaDao getInstance(){
+    public static @NotNull CinemaDao getInstance(){
         return getInstance(CinemaDatabase.DB_URL);
     }
 
-    public static CinemaDao getInstance(String dbUrl){
-        if(instances.containsKey(dbUrl))
-            return instances.get(dbUrl);
-        CinemaDao newInstance = new CinemaDaoImpl(dbUrl);
-        instances.put(dbUrl, newInstance);
-        return newInstance;
+    public static @NotNull CinemaDao getInstance(@NotNull String dbUrl){
+        CinemaDao inst = instances.get(dbUrl) != null ? instances.get(dbUrl).get() : null;
+        if(inst != null)
+            return inst;
+        inst = new CinemaDaoImpl(dbUrl);
+        instances.put(dbUrl, new WeakReference<>(inst));
+        return inst;
     }
 
     private CinemaDaoImpl(String dbUrl){
@@ -73,7 +75,7 @@ public class CinemaDaoImpl implements CinemaDao {
     }
 
     @Override
-    public void update(@NotNull Cinema cinema) throws DatabaseFailedException, InvalidIdException {
+    public void update(@NotNull Cinema cinema, @NotNull Cinema copy) throws DatabaseFailedException, InvalidIdException {
         if(cinema.getId() == DatabaseEntity.ENTITY_WITHOUT_ID)
             throw new InvalidIdException("This cinema is not in the database.");
         try {
@@ -81,7 +83,7 @@ public class CinemaDaoImpl implements CinemaDao {
             try (PreparedStatement s = conn.prepareStatement(
                     "UPDATE OR ROLLBACK Cinemas SET cinema_name = ? WHERE cinema_id = ?"
             )) {
-                s.setString(1, cinema.getName());
+                s.setString(1, copy.getName());
                 s.setInt(2, cinema.getId());
                 if(s.executeUpdate() == 0)
                     throw new DatabaseFailedException("Query result is empty.");
@@ -112,10 +114,6 @@ public class CinemaDaoImpl implements CinemaDao {
                 s.setInt(1, cinema.getId());
                 if (s.executeUpdate() == 0)
                     throw new DatabaseFailedException("Deletion failed.");
-            }try (PreparedStatement s = conn.prepareStatement(
-                    "SELECT -1 AS cinema_id"
-            )) {
-                cinema.setId(s.executeQuery());
             } finally {
                 if(conn.getAutoCommit())
                     conn.close();

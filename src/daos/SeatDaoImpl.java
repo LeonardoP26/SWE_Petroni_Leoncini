@@ -11,6 +11,7 @@ import org.jetbrains.annotations.NotNull;
 import org.sqlite.SQLiteErrorCode;
 import org.sqlite.SQLiteException;
 
+import java.lang.ref.WeakReference;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -18,24 +19,25 @@ import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.List;
 
-public class SeatsDaoImpl implements SeatsDao {
+public class SeatDaoImpl implements SeatDao {
 
-    private static final HashMap<String, SeatsDao> instances = new HashMap<>();
+    private static final HashMap<String, WeakReference<SeatDao>> instances = new HashMap<>();
     private final String dbUrl;
 
-    public static SeatsDao getInstance(){
+    public static @NotNull SeatDao getInstance(){
         return getInstance(CinemaDatabase.DB_URL);
     }
 
-    public static SeatsDao getInstance(String dbUrl){
-        if(instances.containsKey(dbUrl))
-            return instances.get(dbUrl);
-        SeatsDao newInstance = new SeatsDaoImpl(dbUrl);
-        instances.put(dbUrl, newInstance);
-        return newInstance;
+    public static @NotNull SeatDao getInstance(@NotNull String dbUrl){
+        SeatDao inst = instances.get(dbUrl) != null ? instances.get(dbUrl).get() : null;
+        if(inst != null)
+            return inst;
+        inst = new SeatDaoImpl(dbUrl);
+        instances.put(dbUrl, new WeakReference<>(inst));
+        return inst;
     }
 
-    private SeatsDaoImpl(String dbUrl) {
+    private SeatDaoImpl(String dbUrl) {
         this.dbUrl = dbUrl;
     }
 
@@ -125,9 +127,6 @@ public class SeatsDaoImpl implements SeatsDao {
                 s.setInt(1, seat.getId());
                 if(s.executeUpdate() == 0)
                     throw new DatabaseFailedException("Deletion failed.");
-            }
-            try(PreparedStatement s = conn.prepareStatement("SELECT -1 AS seat_id")){
-                seat.setId(s.executeQuery());
             } finally {
                 if(conn.getAutoCommit())
                     conn.close();

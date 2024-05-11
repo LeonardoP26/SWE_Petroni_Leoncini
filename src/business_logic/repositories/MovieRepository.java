@@ -1,4 +1,4 @@
-package daos;
+package business_logic.repositories;
 
 import business_logic.exceptions.DatabaseFailedException;
 import business_logic.exceptions.InvalidIdException;
@@ -7,12 +7,13 @@ import domain.Movie;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
+import java.util.function.Consumer;
 
-public interface MovieDao extends Dao {
+public interface MovieRepository {
 
     void insert(@NotNull Movie movie) throws DatabaseFailedException;
 
-    void update(@NotNull Movie movie, @NotNull Movie copy) throws DatabaseFailedException, InvalidIdException;
+    void update(@NotNull Movie movie, @NotNull Cinema cinema, @NotNull Consumer<Movie> edits) throws DatabaseFailedException, InvalidIdException;
 
     void delete(@NotNull Movie movie) throws DatabaseFailedException, InvalidIdException;
 

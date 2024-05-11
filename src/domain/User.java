@@ -20,12 +20,10 @@ public class User implements DatabaseEntity {
         this.password = password;
     }
 
-    private User(int id, String username, String password, long balance, ArrayList<Booking> bookings){
-        this.id = id;
-        this.username = username;
-        this.password = password;
-        this.balance = balance;
-        this.bookings = bookings;
+    public User(@NotNull User user){
+        this.username = user.getUsername();
+        this.balance = user.getBalance();
+        this.password = user.getPassword();
     }
 
 
@@ -56,6 +54,7 @@ public class User implements DatabaseEntity {
 
     public void setBookings(ArrayList<Booking> bookings) { this.bookings = bookings; }
 
+    @Override
     public int getId() { return id; }
 
     public long getBalance() { return balance; }
@@ -70,6 +69,17 @@ public class User implements DatabaseEntity {
 
     public void setId(@NotNull ResultSet resultSet) throws SQLException {
         this.id = resultSet.getInt("user_id");
+    }
+
+    public void copy(@NotNull User user){
+        this.username = user.getUsername();
+        this.balance = user.getBalance();
+        this.password = user.getPassword();
+    }
+
+    @Override
+    public void resetId() {
+        this.id = ENTITY_WITHOUT_ID;
     }
 
 }

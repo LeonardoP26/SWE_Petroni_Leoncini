@@ -40,10 +40,19 @@ public class Seat implements DatabaseEntity {
         return row;
     }
 
+    public void setRow(char row) {
+        this.row = row;
+    }
+
     public int getNumber() {
         return number;
     }
 
+    public void setNumber(int number) {
+        this.number = number;
+    }
+
+    @Override
     public int getId() {
         return id;
     }
@@ -52,8 +61,8 @@ public class Seat implements DatabaseEntity {
         this.id = resultSet.getInt("seat_id");
     }
 
-    public void setId(int id) {
-        this.id = id;
+    @Override
+    public void resetId() {
+        this.id = ENTITY_WITHOUT_ID;
     }
-
 }

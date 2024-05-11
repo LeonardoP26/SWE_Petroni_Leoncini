@@ -10,6 +10,8 @@ public class Cinema implements DatabaseEntity {
 
     private int id = ENTITY_WITHOUT_ID;
     private String name;
+    private ArrayList<Hall> halls = new ArrayList<>();
+    private ArrayList<Movie> movies = new ArrayList<>();
 
     public Cinema (@NotNull ResultSet res) throws SQLException {
         id = res.getInt("cinema_id");
@@ -20,9 +22,11 @@ public class Cinema implements DatabaseEntity {
         this.name = name;
     }
 
-    private ArrayList<Hall> halls = new ArrayList<>();
-    private ArrayList<Movie> movies = new ArrayList<>();
-
+    public Cinema(@NotNull Cinema cinema){
+        this.name = getName();
+        this.halls = getHalls();
+        this.movies = getMovies();
+    }
 
     public ArrayList<Hall> getHalls() {
         return halls;
@@ -40,6 +44,7 @@ public class Cinema implements DatabaseEntity {
         this.halls = halls;
     }
 
+    @Override
     public int getId() {
         return id;
     }
@@ -61,4 +66,14 @@ public class Cinema implements DatabaseEntity {
         this.id = resultSet.getInt("cinema_id");
     }
 
+    @Override
+    public void resetId() {
+        this.id = ENTITY_WITHOUT_ID;
+    }
+
+    public void copy(@NotNull Cinema cinema) {
+        this.name = cinema.getName();
+        this.halls = cinema.getHalls();
+        this.movies = cinema.getMovies();
+    }
 }

@@ -12,6 +12,7 @@ import org.jetbrains.annotations.NotNull;
 import org.sqlite.SQLiteErrorCode;
 import org.sqlite.SQLiteException;
 
+import java.lang.ref.WeakReference;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -23,19 +24,20 @@ import java.util.List;
 
 public class ShowTimeDaoImpl implements ShowTimeDao {
 
-    private static final HashMap<String, ShowTimeDao> instances = new HashMap<>();
+    private static final HashMap<String, WeakReference<ShowTimeDao>> instances = new HashMap<>();
     private final String dbUrl;
 
-    public static ShowTimeDao getInstance(){
+    public static @NotNull ShowTimeDao getInstance(){
         return getInstance(CinemaDatabase.DB_URL);
     }
 
-    public static ShowTimeDao getInstance(String dbUrl){
-        if(instances.containsKey(dbUrl))
-            return instances.get(dbUrl);
-        ShowTimeDao newInstance = new ShowTimeDaoImpl(dbUrl);
-        instances.put(dbUrl, newInstance);
-        return newInstance;
+    public static @NotNull ShowTimeDao getInstance(@NotNull String dbUrl){
+        ShowTimeDao inst = instances.get(dbUrl) != null ? instances.get(dbUrl).get() : null;
+        if(inst != null)
+            return inst;
+        inst = new ShowTimeDaoImpl(dbUrl);
+        instances.put(dbUrl, new WeakReference<>(inst));
+        return inst;
     }
 
     private ShowTimeDaoImpl(String dbUrl) {
@@ -87,7 +89,13 @@ public class ShowTimeDaoImpl implements ShowTimeDao {
     }
 
     @Override
-    public void update(@NotNull ShowTime showTime) throws DatabaseFailedException, InvalidIdException {
+    public void update(@NotNull ShowTime showTime, @NotNull ShowTime copy) throws DatabaseFailedException, InvalidIdException {
+        if(showTime.getCinema() == null)
+            throw new DatabaseFailedException("Cinema cannot be null");
+        if(showTime.getHall() == null)
+            throw new DatabaseFailedException("Hall cannot be null");
+        if(showTime.getMovie() == null)
+            throw new DatabaseFailedException("Movie cannot be null");
         if(showTime.getId() == DatabaseEntity.ENTITY_WITHOUT_ID)
             throw new InvalidIdException("This showtime is not in the database.");
         if(showTime.getCinema().getId() == DatabaseEntity.ENTITY_WITHOUT_ID)
@@ -99,11 +107,11 @@ public class ShowTimeDaoImpl implements ShowTimeDao {
         try {
             Connection conn = CinemaDatabase.getConnection(dbUrl);
             try (PreparedStatement s = conn.prepareStatement(
-                    "UPDATE ShowTimes SET movie_id = ?, hall_id = ?, date = ? WHERE showtime_id = ?"
+                    "UPDATE ShowTimes SET date = ? WHERE showtime_id = ?"
             )) {
-                s.setInt(1, showTime.getMovie().getId());
-                s.setInt(2, showTime.getHall().getId());
-                s.setString(3, showTime.getDate().toString());
+                s.setInt(1, copy.getMovie().getId());
+                s.setInt(2, copy.getHall().getId());
+                s.setString(3, copy.getDate().toString());
                 s.setInt(4, showTime.getId());
                 if(s.executeUpdate() == 0)
                     throw new DatabaseFailedException("Update failed.");
@@ -112,11 +120,9 @@ public class ShowTimeDaoImpl implements ShowTimeDao {
                     conn.close();
             }
         } catch (SQLiteException e){
-            if(e.getErrorCode() == SQLiteErrorCode.SQLITE_CONSTRAINT_UNIQUE.code)
+            if(e.getResultCode() == SQLiteErrorCode.SQLITE_CONSTRAINT_UNIQUE)
                 throw new DatabaseFailedException("Database update failed: this showtime already exists.");
-            else if (e.getErrorCode() == SQLiteErrorCode.SQLITE_CONSTRAINT_NOTNULL.code)
-                throw new DatabaseFailedException("Database update failed: movie, hall and date can not be null.");
-            else if (e.getErrorCode() == SQLiteErrorCode.SQLITE_CONSTRAINT_FOREIGNKEY.code)
+            else if (e.getResultCode() == SQLiteErrorCode.SQLITE_CONSTRAINT_FOREIGNKEY)
                 throw new DatabaseFailedException("Database update failed: be sure that both the movie and hall have a valid ids.");
             else throw new RuntimeException(e); // TODO throw it as DatabaseInsertionFailedException
         } catch (SQLException e){
@@ -136,33 +142,6 @@ public class ShowTimeDaoImpl implements ShowTimeDao {
                 s.setInt(1, showTime.getId());
                 if(s.executeUpdate() == 0){
                     throw new DatabaseFailedException("Deletion failed.");
-                }
-            }
-            try(PreparedStatement s = conn.prepareStatement("SELECT -1 AS showtime_id")) {
-                showTime.setId(s.executeQuery());
-            } finally {
-                if(conn.getAutoCommit())
-                    conn.close();
-            }
-        } catch (SQLException e){
-            throw new RuntimeException(e);
-        }
-    }
-
-    @Override
-    public ShowTime get(int showTimeId) throws InvalidIdException {
-        if(showTimeId < 1)
-            throw new InvalidIdException("Id not valid.");
-        try {
-            Connection conn = CinemaDatabase.getConnection(dbUrl);
-            try(PreparedStatement s = conn.prepareStatement(
-                    "SELECT * FROM ShowTimes WHERE showtime_id = ?"
-            )) {
-                s.setInt(1, showTimeId);
-                try(ResultSet res = s.executeQuery()){
-                    if(res.next())
-                        return new ShowTime(res);
-                    return null;
                 }
             } finally {
                 if(conn.getAutoCommit())

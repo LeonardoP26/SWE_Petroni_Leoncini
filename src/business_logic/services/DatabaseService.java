@@ -27,7 +27,7 @@ public interface DatabaseService {
 
     void addUser(@NotNull User user) throws DatabaseFailedException;
 
-    void addBooking(@NotNull Booking booking, User user) throws DatabaseFailedException, InvalidIdException;
+    void addBooking(@NotNull Booking booking, User user) throws DatabaseFailedException, InvalidIdException, NotEnoughFundsException;
 
     List<Cinema> retrieveCinemas();
 
@@ -41,15 +41,15 @@ public interface DatabaseService {
 
     User register(String username, String password) throws DatabaseFailedException;
 
-    void rechargeAccount(User user, long amount) throws NotEnoughFundsException, DatabaseFailedException;
+    void rechargeAccount(User user, long amount) throws NotEnoughFundsException, DatabaseFailedException, InvalidIdException;
 
-    void pay(@NotNull Booking booking, @Nullable Booking oldBooking, @NotNull User owner, long cost) throws NotEnoughFundsException, InvalidSeatException, DatabaseFailedException;
+    void pay(@NotNull Booking booking, @Nullable Booking oldBooking, @NotNull User owner, long cost) throws NotEnoughFundsException, InvalidSeatException, DatabaseFailedException, InvalidIdException;
 
     void deleteUser(User user) throws DatabaseFailedException, InvalidIdException;
 
     List<Booking> retrieveBookings(User user) throws InvalidIdException;
 
-    void deleteBooking(@NotNull Booking booking) throws DatabaseFailedException, InvalidIdException;
+    void deleteBooking(@NotNull Booking booking, @NotNull User user) throws DatabaseFailedException, InvalidIdException;
 
     Hall retrieveShowTimeHall(@NotNull ShowTime showTime) throws InvalidIdException;
 }

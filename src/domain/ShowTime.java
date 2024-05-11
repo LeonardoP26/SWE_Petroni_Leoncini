@@ -18,13 +18,20 @@ public class ShowTime implements DatabaseEntity {
         this.date = date;
     }
 
+    public ShowTime(@NotNull ShowTime showTime){
+        this.movie = showTime.getMovie();
+        this.hall = showTime.getHall();
+        this.date = showTime.getDate();
+    }
+
+
     private int id = ENTITY_WITHOUT_ID;
     private Movie movie = null;
     private Hall hall = null;
     private LocalDateTime date = null;
     private Cinema cinema = null;
 
-
+    @Override
     public int getId() {
         return id;
     }
@@ -52,10 +59,6 @@ public class ShowTime implements DatabaseEntity {
 
     public void setMovie(Movie movie) { this.movie = movie; }
 
-    public void setId(int id) {
-        this.id = id;
-    }
-
     public void setId(@NotNull ResultSet resultSet) throws SQLException {
         int id = resultSet.getInt("showtime_id");
     }
@@ -66,6 +69,17 @@ public class ShowTime implements DatabaseEntity {
 
     public Cinema getCinema() {
         return cinema;
+    }
+
+    public void copy(@NotNull ShowTime showTime) {
+        this.movie = showTime.getMovie();
+        this.date = showTime.getDate();
+        this.hall = showTime.getHall();
+    }
+
+    @Override
+    public void resetId() {
+        this.id = ENTITY_WITHOUT_ID;
     }
 
 }

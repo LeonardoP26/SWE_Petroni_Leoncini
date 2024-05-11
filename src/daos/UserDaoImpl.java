@@ -8,6 +8,8 @@ import domain.User;
 import org.jetbrains.annotations.NotNull;
 import org.sqlite.SQLiteErrorCode;
 import org.sqlite.SQLiteException;
+
+import java.lang.ref.WeakReference;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -16,7 +18,7 @@ import java.util.HashMap;
 
 public class UserDaoImpl implements UserDao {
 
-    private static final HashMap<String, UserDao> instances = new HashMap<>();
+    private static final HashMap<String, WeakReference<UserDao>> instances = new HashMap<>();
     private final String dbUrl;
 
     public static UserDao getInstance(){
@@ -24,11 +26,12 @@ public class UserDaoImpl implements UserDao {
     }
 
     public static UserDao getInstance(String dbUrl){
-        if(instances.containsKey(dbUrl))
-            return instances.get(dbUrl);
-        UserDao newInstance = new UserDaoImpl(dbUrl);
-        instances.put(dbUrl, newInstance);
-        return newInstance;
+        UserDao inst = instances.get(dbUrl) != null ? instances.get(dbUrl).get() : null;
+        if(inst != null)
+            return inst;
+        inst = new UserDaoImpl(dbUrl);
+        instances.put(dbUrl, new WeakReference<>(inst));
+        return inst;
     }
 
     private UserDaoImpl(String dbUrl){
@@ -72,7 +75,7 @@ public class UserDaoImpl implements UserDao {
     }
 
     @Override
-    public void update(@NotNull User user) throws DatabaseFailedException, InvalidIdException {
+    public void update(@NotNull User user, @NotNull User copy) throws DatabaseFailedException, InvalidIdException {
         if(user.getId() == DatabaseEntity.ENTITY_WITHOUT_ID)
             throw new InvalidIdException("This user is not in the database.");
         try {
@@ -80,9 +83,9 @@ public class UserDaoImpl implements UserDao {
             try (PreparedStatement s = conn.prepareStatement(
                     "UPDATE Users SET username = ?, password = ?, balance = ? WHERE user_id = ?"
             )) {
-                s.setString(1, user.getUsername());
-                s.setString(2, user.getPassword());
-                s.setLong(3, user.getBalance());
+                s.setString(1, copy.getUsername());
+                s.setString(2, copy.getPassword());
+                s.setLong(3, copy.getBalance());
                 s.setInt(4, user.getId());
                 if(s.executeUpdate() == 0)
                     throw new DatabaseFailedException("Update failed.");
@@ -113,11 +116,6 @@ public class UserDaoImpl implements UserDao {
                 s.setInt(1, user.getId());
                 if(s.executeUpdate() == 0)
                     throw new DatabaseFailedException("Deletion failed.");
-            }
-            try (PreparedStatement s = conn.prepareStatement(
-                    "SELECT -1 AS user_id"
-            )) {
-                user.setId(s.executeQuery());
             } finally {
                 if(conn.getAutoCommit())
                     conn.close();

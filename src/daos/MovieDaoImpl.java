@@ -10,6 +10,7 @@ import org.jetbrains.annotations.NotNull;
 import org.sqlite.SQLiteErrorCode;
 import org.sqlite.SQLiteException;
 
+import java.lang.ref.WeakReference;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -19,19 +20,20 @@ import java.util.List;
 
 public class MovieDaoImpl implements MovieDao {
 
-    private static final HashMap<String, MovieDao> instances = new HashMap<>();
+    private static final HashMap<String, WeakReference<MovieDao>> instances = new HashMap<>();
     private final String dbUrl;
 
-    public static MovieDao getInstance(){
+    public static @NotNull MovieDao getInstance(){
         return getInstance(CinemaDatabase.DB_URL);
     }
 
-    public static MovieDao getInstance(String dbUrl){
-        if(instances.containsKey(dbUrl))
-            return instances.get(dbUrl);
-        MovieDao newInstance = new MovieDaoImpl(dbUrl);
-        instances.put(dbUrl, newInstance);
-        return newInstance;
+    public static @NotNull MovieDao getInstance(@NotNull String dbUrl){
+        MovieDao inst = instances.get(dbUrl) != null ? instances.get(dbUrl).get() : null;
+        if(inst != null)
+            return inst;
+        inst = new MovieDaoImpl(dbUrl);
+        instances.put(dbUrl, new WeakReference<>(inst));
+        return inst;
     }
 
     private MovieDaoImpl(String dbUrl){
@@ -74,7 +76,7 @@ public class MovieDaoImpl implements MovieDao {
     }
 
     @Override
-    public void update(@NotNull Movie movie) throws DatabaseFailedException, InvalidIdException {
+    public void update(@NotNull Movie movie, @NotNull Movie copy) throws DatabaseFailedException, InvalidIdException {
         if(movie.getId() == DatabaseEntity.ENTITY_WITHOUT_ID)
             throw new InvalidIdException("This movie is not in the database.");
         try {
@@ -82,8 +84,8 @@ public class MovieDaoImpl implements MovieDao {
             try (PreparedStatement s = conn.prepareStatement(
                     "UPDATE Movies SET movie_name = ?, duration = ? WHERE movie_id = ?"
             )) {
-                s.setString(1, movie.getName());
-                s.setLong(2, movie.getDuration().toMinutes());
+                s.setString(1, copy.getName());
+                s.setLong(2, copy.getDuration().toMinutes());
                 s.setInt(3, movie.getId());
                 if(s.executeUpdate() == 0)
                     throw new DatabaseFailedException("Query result is empty.");
@@ -114,35 +116,9 @@ public class MovieDaoImpl implements MovieDao {
                 s.setInt(1, movie.getId());
                 if (s.executeUpdate() == 0)
                     throw new DatabaseFailedException("Deletion failed.");
-            }
-            try(PreparedStatement s = conn.prepareStatement(
-                    "SELECT -1 AS movie_id"
-            )){
-                movie.setId(s.executeQuery());
             } finally {
                 if(conn.getAutoCommit())
                     conn.close();
-            }
-        } catch (SQLException e){
-            throw new RuntimeException(e);
-        }
-    }
-
-    @Override
-    public Movie get(int movieId) throws InvalidIdException {
-        if(movieId < 1)
-            throw new InvalidIdException("Id not valid");
-        try {
-            Connection conn = CinemaDatabase.getConnection(dbUrl);
-            try(PreparedStatement s = conn.prepareStatement(
-                    "SELECT * FROM Movies WHERE movie_id = ?"
-            )) {
-                s.setInt(1, movieId);
-                try(ResultSet res = s.executeQuery()){
-                    if(res.next())
-                        return new Movie(res);
-                    return null;
-                }
             }
         } catch (SQLException e){
             throw new RuntimeException(e);

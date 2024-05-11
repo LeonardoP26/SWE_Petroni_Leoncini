@@ -314,21 +314,23 @@ public class InputOutputHandler {
         }
         try{
             databaseService.rechargeAccount(user, input);
-        } catch (DatabaseFailedException e){
+        } catch (DatabaseFailedException e) {
             System.out.println("Recharge failed. Do you want to try again?\n1. Yes\n2. No");
             int input1;
             int maxChoices = 2;
-            while(true){
-                try{
+            while (true) {
+                try {
                     input1 = readInput(maxChoices);
                     break;
-                } catch (NoSuchElementException | IllegalStateException ex){
+                } catch (NoSuchElementException | IllegalStateException ex) {
                     System.out.println("Choose a number between 1 and " + maxChoices);
                 }
             }
-            if(input1 == 1)
+            if (input1 == 1)
                 rechargeAccount(user);
             else return false;
+        } catch (InvalidIdException e){
+            // TODO
         } catch (NotEnoughFundsException e) {
             // It won't throw, input will be always > 0
             throw new RuntimeException(e);
@@ -459,7 +461,7 @@ public class InputOutputHandler {
                 long refund = (long) booking.getShowTime().getHall().getCost() * booking.getSeats().size();
                 try {
                     databaseService.rechargeAccount(user, user.getBalance() + refund);
-                    databaseService.deleteBooking(booking);
+                    databaseService.deleteBooking(booking, user);
                 } catch (DatabaseFailedException e){
                     System.out.println(e.getMessage());
                 }

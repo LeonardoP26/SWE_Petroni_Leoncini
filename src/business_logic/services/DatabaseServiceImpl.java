@@ -1,13 +1,12 @@
 package business_logic.services;
 
-import business_logic.CinemaDatabase;
 import business_logic.ReceiptPrinter;
 import business_logic.Subject;
 import business_logic.exceptions.DatabaseFailedException;
 import business_logic.exceptions.InvalidIdException;
 import business_logic.exceptions.InvalidSeatException;
 import business_logic.exceptions.NotEnoughFundsException;
-import daos.*;
+import business_logic.repositories.*;
 import domain.*;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -16,25 +15,31 @@ import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.Base64;
 import java.util.List;
 
 public class DatabaseServiceImpl extends Subject<Booking> implements DatabaseService {
 
-    private final ReceiptPrinter receiptPrinter = ReceiptPrinter.getInstance();
-    private final CinemaDao cinemaDao;
-    private final HallDao hallDao;
-    private final MovieDao movieDao;
-    private final ShowTimeDao showTimeDao;
-    private final SeatsDao seatsDao;
-    private final UserDao userDao;
-    private final BookingDao bookingDao;
     private static DatabaseService instance = null;
+    private final BookingRepository bookingRepo;
+    private final UserRepository userRepo;
+    private final SeatRepository seatRepo;
+    private final ShowTimeRepository showTimeRepo;
+    private final MovieRepository movieRepo;
+    private final HallRepository hallRepo;
+    private final CinemaRepository cinemaRepo;
 
-    public static DatabaseService getInstance(CinemaDao cinemaRepo, HallDao hallRepo, MovieDao movieRepo, ShowTimeDao showTimeRepo, SeatsDao seatsRepo, UserDao userRepo, BookingDao bookingRepo){
+    public static DatabaseService getInstance(
+            CinemaRepository cinemaRepo,
+            HallRepository hallRepo,
+            MovieRepository movieRepo,
+            ShowTimeRepository showTimeRepo,
+            SeatRepository seatRepo,
+            UserRepository userRepo,
+            BookingRepository bookingRepo
+    ){
         if(instance == null)
-            instance = new DatabaseServiceImpl(cinemaRepo, hallRepo, movieRepo, showTimeRepo, seatsRepo, userRepo, bookingRepo);
+            instance = new DatabaseServiceImpl(cinemaRepo, hallRepo, movieRepo, showTimeRepo, seatRepo, userRepo, bookingRepo);
         return instance;
     }
 
@@ -54,42 +59,44 @@ public class DatabaseServiceImpl extends Subject<Booking> implements DatabaseSer
     }
 
 
-    private DatabaseServiceImpl(CinemaDao cinemaDao, HallDao hallDao, MovieDao movieDao, ShowTimeDao showTimeDao, SeatsDao seatsDao, UserDao userDao, BookingDao bookingDao){
-        this.cinemaDao = cinemaDao;
-        this.hallDao = hallDao;
-        this.movieDao = movieDao;
-        this.showTimeDao = showTimeDao;
-        this.seatsDao = seatsDao;
-        this.userDao = userDao;
-        this.bookingDao = bookingDao;
-        addObserver(receiptPrinter);
+    private DatabaseServiceImpl(
+            CinemaRepository cinemaRepo,
+            HallRepository hallRepo,
+            MovieRepository movieRepo,
+            ShowTimeRepository showTimeRepo,
+            SeatRepository seatRepo,
+            UserRepository userRepo,
+            BookingRepository bookingRepo
+    ){
+        this.cinemaRepo = cinemaRepo;
+        this.hallRepo = hallRepo;
+        this.movieRepo = movieRepo;
+        this.showTimeRepo = showTimeRepo;
+        this.seatRepo = seatRepo;
+        this.userRepo = userRepo;
+        this.bookingRepo = bookingRepo;
+        addObserver(ReceiptPrinter.getInstance());
     }
 
     private DatabaseServiceImpl() {
-        this(CinemaDaoImpl.getInstance(),
-                HallDaoImpl.getInstance(),
-                MovieDaoImpl.getInstance(),
-                ShowTimeDaoImpl.getInstance(),
-                SeatsDaoImpl.getInstance(),
-                UserDaoImpl.getInstance(),
-                BookingDaoImpl.getInstance()
+        this(CinemaRepositoryImpl.getInstance(),
+                HallRepositoryImpl.getInstance(),
+                MovieRepositoryImpl.getInstance(),
+                ShowTimeRepositoryImpl.getInstance(),
+                SeatRepositoryImpl.getInstance(),
+                UserRepositoryImpl.getInstance(),
+                BookingRepositoryImpl.getInstance()
         );
     }
 
     @Override
     public void addHall(@NotNull Hall hall, @NotNull Cinema cinema) throws DatabaseFailedException, InvalidIdException {
-        hallDao.insert(hall, cinema);
-        if(cinema.getHalls() == null)
-            cinema.setHalls(new ArrayList<>());
-        cinema.getHalls().add(hall);
+        hallRepo.insert(hall, cinema);
     }
 
     @Override
     public void addSeat(@NotNull Seat seat, @NotNull Hall hall) throws DatabaseFailedException, InvalidIdException {
-        seatsDao.insert(seat, hall);
-        if(hall.getSeats() == null)
-            hall.setSeats(new ArrayList<>());
-        hall.getSeats().add(seat);
+        seatRepo.insert(seat, hall);
     }
 
     /**
@@ -101,12 +108,12 @@ public class DatabaseServiceImpl extends Subject<Booking> implements DatabaseSer
 
     @Override
     public void addMovie(@NotNull Movie movie) throws DatabaseFailedException {
-        movieDao.insert(movie);
+        movieRepo.insert(movie);
     }
 
     @Override
     public void addShowTime(@NotNull ShowTime showTime) throws DatabaseFailedException, InvalidIdException {
-        showTimeDao.insert(showTime);
+        showTimeRepo.insert(showTime);
     }
 
     /**
@@ -124,48 +131,46 @@ public class DatabaseServiceImpl extends Subject<Booking> implements DatabaseSer
     public void addMovie(@NotNull Movie movie, @NotNull Cinema cinema, @NotNull Hall hall, LocalDateTime date) throws DatabaseFailedException, InvalidIdException {
         ShowTime sht = new ShowTime(movie, hall, date);
         addShowTime(sht);
-        cinema.getMovies().add(movie);
     }
 
     @Override
     public void addCinema(@NotNull Cinema cinema) throws DatabaseFailedException {
-        cinemaDao.insert(cinema);
+        cinemaRepo.insert(cinema);
     }
 
     @Override
     public void addUser(@NotNull User user) throws DatabaseFailedException {
-        userDao.insert(user);
+        userRepo.insert(user);
     }
 
     @Override
-    public void addBooking(@NotNull Booking booking, User user) throws DatabaseFailedException, InvalidIdException {
-        bookingDao.insert(booking, user);
-        user.getBookings().add(booking);
+    public void addBooking(@NotNull Booking booking, User user) throws DatabaseFailedException, InvalidIdException, NotEnoughFundsException {
+        bookingRepo.insert(booking, user);
     }
 
     @Override
     public List<Cinema> retrieveCinemas() {
-        return cinemaDao.get();
+        return cinemaRepo.get();
     }
 
     @Override
     public List<Movie> retrieveCinemaMovies(@NotNull Cinema cinema) throws InvalidIdException {
-        return movieDao.get(cinema);
+        return movieRepo.get(cinema);
     }
 
     @Override
     public List<ShowTime> retrieveMovieShowTimes(@NotNull Movie movie) throws InvalidIdException {
-        return showTimeDao.get(movie);
+        return showTimeRepo.get(movie);
     }
 
     @Override
     public List<Seat> retrieveShowTimeHallSeats(@NotNull ShowTime showTime) throws InvalidIdException {
-        return seatsDao.get(showTime);
+        return seatRepo.get(showTime);
     }
 
     @Override
     public User login(String username, String password) {
-        return userDao.get(username, encryptPassword(password));
+        return userRepo.get(username, encryptPassword(password));
     }
 
     @Override
@@ -180,54 +185,39 @@ public class DatabaseServiceImpl extends Subject<Booking> implements DatabaseSer
     }
 
     @Override
-    public void rechargeAccount(@NotNull User user, long amount) throws NotEnoughFundsException, DatabaseFailedException {
-        user.setBalance(user.getBalance() + amount);
+    public void rechargeAccount(@NotNull User user, long amount) throws NotEnoughFundsException, DatabaseFailedException, InvalidIdException {
+        userRepo.update(user, (usr) -> usr.setBalance(usr.getBalance() + amount));
     }
 
     @Override
-    public void pay(@NotNull Booking booking, @Nullable Booking oldBooking, @NotNull User user, long cost) throws NotEnoughFundsException, InvalidSeatException, DatabaseFailedException {
+    public void pay(@NotNull Booking booking, @Nullable Booking oldBooking, @NotNull User user, long cost) throws NotEnoughFundsException, InvalidSeatException, DatabaseFailedException, InvalidIdException {
         if(booking.getSeats().stream().anyMatch(Seat::isBooked))
             throw new InvalidSeatException("Some of these seats are already taken.");
+        if(oldBooking != null)
+            bookingRepo.update(oldBooking, booking, user);
+        else
+            bookingRepo.insert(booking, user);
         user.setBalance(user.getBalance() - cost);
-        try{
-            CinemaDatabase.withTransaction(() -> {
-                if(oldBooking != null)
-                    deleteBooking(oldBooking);
-                addBooking(booking, user);
-                userDao.update(user);
-            });
-            booking.getSeats().forEach(s -> s.setBooked(true));
-            notifyObservers(booking);
-        } catch (Exception e){
-            user.getBookings().remove(booking);
-            if(e instanceof NotEnoughFundsException)
-                throw (NotEnoughFundsException) e;
-            else if(e instanceof DatabaseFailedException) {
-                user.setBalance(user.getBalance() + cost);
-                throw (DatabaseFailedException) e;
-            }
-            else throw new RuntimeException(e);
-        }
     }
 
     @Override
     public void deleteUser(User user) throws DatabaseFailedException, InvalidIdException {
-        userDao.delete(user);
+        userRepo.delete(user);
     }
 
     @Override
     public List<Booking> retrieveBookings(User user) throws InvalidIdException {
-        return bookingDao.get(user);
+        return bookingRepo.get(user);
     }
 
     @Override
-    public void deleteBooking(@NotNull Booking booking) throws DatabaseFailedException, InvalidIdException {
-        bookingDao.delete(booking);
+    public void deleteBooking(@NotNull Booking booking, @NotNull User user) throws DatabaseFailedException, InvalidIdException {
+        bookingRepo.delete(booking, user);
     }
 
     @Override
     public Hall retrieveShowTimeHall(@NotNull ShowTime showTime) throws InvalidIdException {
-        return hallDao.get(showTime);
+        return hallRepo.get(showTime);
     }
 
 
