@@ -53,6 +53,8 @@ public class MovieRepositoryImpl extends Subject<DatabaseEntity> implements Movi
 
     @Override
     public void update(@NotNull Movie movie, @NotNull Cinema cinema, @NotNull Consumer<Movie> edits) throws DatabaseFailedException, InvalidIdException {
+        if(movie.getId() == DatabaseEntity.ENTITY_WITHOUT_ID)
+            throw new InvalidIdException("This movie is not in the database.");
         Movie copy = new Movie(movie);
         edits.accept(copy);
         movieDao.update(movie, copy);
@@ -62,6 +64,8 @@ public class MovieRepositoryImpl extends Subject<DatabaseEntity> implements Movi
 
     @Override
     public void delete(@NotNull Movie movie) throws DatabaseFailedException, InvalidIdException {
+        if(movie.getId() == DatabaseEntity.ENTITY_WITHOUT_ID)
+            throw new InvalidIdException("This movie is not in the database.");
         movieDao.delete(movie);
         notifyObservers(movie);
         entities.remove(movie.getId());
@@ -70,6 +74,8 @@ public class MovieRepositoryImpl extends Subject<DatabaseEntity> implements Movi
 
     @Override
     public List<Movie> get(@NotNull Cinema cinema) throws InvalidIdException {
+        if(cinema.getId() == DatabaseEntity.ENTITY_WITHOUT_ID)
+            throw new InvalidIdException("This cinema is not in the database.");
         List<Movie> movies = movieDao.get(cinema);
         return movies.stream().map(m -> {
             Movie cached = entities.get(m.getId()) != null ? entities.get(m.getId()).get() : null;

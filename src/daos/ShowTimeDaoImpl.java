@@ -45,13 +45,7 @@ public class ShowTimeDaoImpl implements ShowTimeDao {
     }
 
     @Override
-    public void insert(@NotNull ShowTime showTime) throws DatabaseFailedException, InvalidIdException {
-        if(showTime.getCinema().getId() == DatabaseEntity.ENTITY_WITHOUT_ID)
-            throw new InvalidIdException("This cinema is not in the database.");
-        if(showTime.getHall().getId() == DatabaseEntity.ENTITY_WITHOUT_ID)
-            throw new InvalidIdException("This hall is not in the database.");
-        if(showTime.getMovie().getId() == DatabaseEntity.ENTITY_WITHOUT_ID)
-            throw new InvalidIdException("This movie is not in the database.");
+    public void insert(@NotNull ShowTime showTime) throws DatabaseFailedException {
         try {
             Connection conn = CinemaDatabase.getConnection(dbUrl);
             try(PreparedStatement s = conn.prepareStatement(
@@ -89,21 +83,7 @@ public class ShowTimeDaoImpl implements ShowTimeDao {
     }
 
     @Override
-    public void update(@NotNull ShowTime showTime, @NotNull ShowTime copy) throws DatabaseFailedException, InvalidIdException {
-        if(showTime.getCinema() == null)
-            throw new DatabaseFailedException("Cinema cannot be null");
-        if(showTime.getHall() == null)
-            throw new DatabaseFailedException("Hall cannot be null");
-        if(showTime.getMovie() == null)
-            throw new DatabaseFailedException("Movie cannot be null");
-        if(showTime.getId() == DatabaseEntity.ENTITY_WITHOUT_ID)
-            throw new InvalidIdException("This showtime is not in the database.");
-        if(showTime.getCinema().getId() == DatabaseEntity.ENTITY_WITHOUT_ID)
-            throw new InvalidIdException("This cinema is not in the database.");
-        if(showTime.getHall().getId() == DatabaseEntity.ENTITY_WITHOUT_ID)
-            throw new InvalidIdException("This hall is not in the database.");
-        if(showTime.getMovie().getId() == DatabaseEntity.ENTITY_WITHOUT_ID)
-            throw new InvalidIdException("This movie is not in the database.");
+    public void update(@NotNull ShowTime showTime, @NotNull ShowTime copy) throws DatabaseFailedException {
         try {
             Connection conn = CinemaDatabase.getConnection(dbUrl);
             try (PreparedStatement s = conn.prepareStatement(
@@ -131,9 +111,7 @@ public class ShowTimeDaoImpl implements ShowTimeDao {
     }
 
     @Override
-    public void delete(@NotNull ShowTime showTime) throws DatabaseFailedException, InvalidIdException {
-        if(showTime.getId() == DatabaseEntity.ENTITY_WITHOUT_ID)
-            throw new InvalidIdException("This showtime is not in the database.");
+    public void delete(@NotNull ShowTime showTime) throws DatabaseFailedException {
         try {
             Connection conn = CinemaDatabase.getConnection(dbUrl);
             try (PreparedStatement s = conn.prepareStatement(
@@ -153,9 +131,7 @@ public class ShowTimeDaoImpl implements ShowTimeDao {
     }
 
     @Override
-    public List<ShowTime> get(@NotNull Movie movie) throws InvalidIdException {
-        if(movie.getId() == DatabaseEntity.ENTITY_WITHOUT_ID)
-            throw new InvalidIdException("This movie is not in the database.");
+    public List<ShowTime> get(@NotNull Movie movie) {
         try {
             Connection conn = CinemaDatabase.getConnection(dbUrl);
             try(PreparedStatement s = conn.prepareStatement(

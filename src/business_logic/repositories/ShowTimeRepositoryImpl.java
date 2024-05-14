@@ -45,6 +45,12 @@ public class ShowTimeRepositoryImpl extends Subject<DatabaseEntity> implements S
 
     @Override
     public void insert(@NotNull ShowTime showTime) throws DatabaseFailedException, InvalidIdException {
+        if(showTime.getCinema().getId() == DatabaseEntity.ENTITY_WITHOUT_ID)
+            throw new InvalidIdException("This cinema is not in the database.");
+        if(showTime.getHall().getId() == DatabaseEntity.ENTITY_WITHOUT_ID)
+            throw new InvalidIdException("This hall is not in the database.");
+        if(showTime.getMovie().getId() == DatabaseEntity.ENTITY_WITHOUT_ID)
+            throw new InvalidIdException("This movie is not in the database.");
         showTimeDao.insert(showTime);
         entities.put(showTime.getId(), new WeakReference<>(showTime));
         if(!showTime.getCinema().getMovies().contains(showTime.getMovie()))
@@ -53,6 +59,20 @@ public class ShowTimeRepositoryImpl extends Subject<DatabaseEntity> implements S
 
     @Override
     public void update(@NotNull ShowTime showTime, @NotNull Consumer<ShowTime> edits) throws DatabaseFailedException, InvalidIdException {
+        if(showTime.getCinema() == null)
+            throw new DatabaseFailedException("Cinema cannot be null");
+        if(showTime.getHall() == null)
+            throw new DatabaseFailedException("Hall cannot be null");
+        if(showTime.getMovie() == null)
+            throw new DatabaseFailedException("Movie cannot be null");
+        if(showTime.getId() == DatabaseEntity.ENTITY_WITHOUT_ID)
+            throw new InvalidIdException("This showtime is not in the database.");
+        if(showTime.getCinema().getId() == DatabaseEntity.ENTITY_WITHOUT_ID)
+            throw new InvalidIdException("This cinema is not in the database.");
+        if(showTime.getHall().getId() == DatabaseEntity.ENTITY_WITHOUT_ID)
+            throw new InvalidIdException("This hall is not in the database.");
+        if(showTime.getMovie().getId() == DatabaseEntity.ENTITY_WITHOUT_ID)
+            throw new InvalidIdException("This movie is not in the database.");
         ShowTime copy = new ShowTime(showTime);
         edits.accept(copy);
         showTimeDao.update(showTime, copy);
@@ -61,6 +81,8 @@ public class ShowTimeRepositoryImpl extends Subject<DatabaseEntity> implements S
 
     @Override
     public void delete(@NotNull ShowTime showTime) throws DatabaseFailedException, InvalidIdException {
+        if(showTime.getId() == DatabaseEntity.ENTITY_WITHOUT_ID)
+            throw new InvalidIdException("This showtime is not in the database.");
         showTimeDao.delete(showTime);
         notifyObservers(showTime);
         entities.remove(showTime.getId());
@@ -76,6 +98,8 @@ public class ShowTimeRepositoryImpl extends Subject<DatabaseEntity> implements S
 
     @Override
     public List<ShowTime> get(@NotNull Movie movie) throws InvalidIdException {
+        if(movie.getId() == DatabaseEntity.ENTITY_WITHOUT_ID)
+            throw new InvalidIdException("This movie is not in the database.");
         List<ShowTime> showTimes = showTimeDao.get(movie);
         return showTimes.stream().map(st -> {
             ShowTime cached = entities.get(st.getId()) != null ? entities.get(st.getId()).get() : null;

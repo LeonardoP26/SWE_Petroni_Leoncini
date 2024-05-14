@@ -9,9 +9,9 @@ public interface UserDao extends Dao {
 
     void insert(@NotNull User user) throws DatabaseFailedException;
 
-    void update(@NotNull User user, @NotNull User copy) throws DatabaseFailedException, InvalidIdException;
+    void update(@NotNull User user, @NotNull User copy) throws DatabaseFailedException;
 
-    void delete(@NotNull User user) throws DatabaseFailedException, InvalidIdException;
+    void delete(@NotNull User user) throws DatabaseFailedException;
 
     User get(String username, String password);
 

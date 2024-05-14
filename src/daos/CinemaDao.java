@@ -11,9 +11,9 @@ public interface CinemaDao extends Dao{
 
     void insert(@NotNull Cinema cinema) throws DatabaseFailedException;
 
-    void update(@NotNull Cinema cinema, @NotNull Cinema copy) throws DatabaseFailedException, InvalidIdException;
+    void update(@NotNull Cinema cinema, @NotNull Cinema copy) throws DatabaseFailedException;
 
-    void delete(@NotNull Cinema cinema) throws DatabaseFailedException, InvalidIdException;
+    void delete(@NotNull Cinema cinema) throws DatabaseFailedException;
 
     List<Cinema> get();
 

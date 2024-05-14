@@ -11,13 +11,11 @@ import java.util.List;
 
 public interface SeatDao extends Dao {
 
-    void insert(@NotNull Seat seat, @NotNull Hall hall) throws DatabaseFailedException, InvalidIdException;
+    void insert(@NotNull Seat seat, @NotNull Hall hall) throws DatabaseFailedException;
 
-    void update(@NotNull Seat seat, @NotNull Hall hall) throws DatabaseFailedException, InvalidIdException;
+    void update(@NotNull Seat seat, @NotNull Seat copy, @NotNull Hall hall) throws DatabaseFailedException;
 
-    void delete(@NotNull Seat seat) throws DatabaseFailedException, InvalidIdException;
+    void delete(@NotNull Seat seat) throws DatabaseFailedException;
 
-    Seat get(int seatId) throws InvalidIdException;
-
-    List<Seat> get(@NotNull ShowTime showTime) throws InvalidIdException;
+    List<Seat> get(@NotNull ShowTime showTime);
 }

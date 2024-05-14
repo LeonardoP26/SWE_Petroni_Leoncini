@@ -42,9 +42,7 @@ public class SeatDaoImpl implements SeatDao {
     }
 
     @Override
-    public void insert(@NotNull Seat seat, @NotNull Hall hall) throws DatabaseFailedException, InvalidIdException {
-        if(hall.getId() == DatabaseEntity.ENTITY_WITHOUT_ID)
-            throw new InvalidIdException("This hall is not in the database.");
+    public void insert(@NotNull Seat seat, @NotNull Hall hall) throws DatabaseFailedException {
         try {
             Connection conn = CinemaDatabase.getConnection(dbUrl);
             try(PreparedStatement s = conn.prepareStatement(
@@ -82,18 +80,14 @@ public class SeatDaoImpl implements SeatDao {
     }
 
     @Override
-    public void update(@NotNull Seat seat, @NotNull Hall hall) throws DatabaseFailedException, InvalidIdException {
-        if(hall.getId() == DatabaseEntity.ENTITY_WITHOUT_ID)
-            throw new InvalidIdException("This hall is not in the database.");
-        if(seat.getId() == DatabaseEntity.ENTITY_WITHOUT_ID)
-            throw new InvalidIdException("This seat is not in the database.");
+    public void update(@NotNull Seat seat, @NotNull Seat copy, @NotNull Hall hall) throws DatabaseFailedException {
         try {
             Connection conn = CinemaDatabase.getConnection(dbUrl);
             try (PreparedStatement s = conn.prepareStatement(
                     "UPDATE Seats SET row = ?, number = ?, hall_id = ? WHERE seat_id = ?"
             )) {
-                s.setString(1, String.valueOf(seat.getRow()));
-                s.setInt(2, seat.getNumber());
+                s.setString(1, String.valueOf(copy.getRow()));
+                s.setInt(2, copy.getNumber());
                 s.setInt(3, hall.getId());
                 s.setInt(4, seat.getId());
                 if(s.executeUpdate() == 0)
@@ -116,9 +110,7 @@ public class SeatDaoImpl implements SeatDao {
     }
 
     @Override
-    public void delete(@NotNull Seat seat) throws DatabaseFailedException, InvalidIdException {
-        if(seat.getId() == DatabaseEntity.ENTITY_WITHOUT_ID)
-            throw new InvalidIdException("This seat is not in the database.");
+    public void delete(@NotNull Seat seat) throws DatabaseFailedException {
         try {
             Connection conn = CinemaDatabase.getConnection(dbUrl);
             try (PreparedStatement s = conn.prepareStatement(
@@ -137,33 +129,7 @@ public class SeatDaoImpl implements SeatDao {
     }
 
     @Override
-    public Seat get(int seatId) throws InvalidIdException {
-        if(seatId < 1)
-            throw new InvalidIdException("Id not valid.");
-        try {
-            Connection conn = CinemaDatabase.getConnection(dbUrl);
-            try(PreparedStatement s = conn.prepareStatement(
-                    "SELECT * FROM Seats WHERE seat_id = ?"
-            )) {
-                s.setInt(1, seatId);
-                try(ResultSet res = s.executeQuery()){
-                    if(res.next())
-                        return new Seat(res);
-                    return null;
-                }
-            } finally {
-                if(conn.getAutoCommit())
-                    conn.close();
-            }
-        } catch (SQLException e){
-            throw new RuntimeException(e);
-        }
-    }
-
-    @Override
-    public List<Seat> get(@NotNull ShowTime showTime) throws InvalidIdException {
-        if(showTime.getId() == DatabaseEntity.ENTITY_WITHOUT_ID)
-            throw new InvalidIdException("This showtime is not in the database.");
+    public List<Seat> get(@NotNull ShowTime showTime) {
         try {
             Connection conn = CinemaDatabase.getConnection(dbUrl);
             try(PreparedStatement s = conn.prepareStatement(

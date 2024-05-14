@@ -51,6 +51,8 @@ public class CinemaRepositoryImpl extends Subject<DatabaseEntity> implements Cin
 
     @Override
     public void update(@NotNull Cinema cinema, @NotNull Consumer<Cinema> edits) throws DatabaseFailedException, InvalidIdException {
+        if(cinema.getId() == DatabaseEntity.ENTITY_WITHOUT_ID)
+            throw new InvalidIdException("This cinema is not in the database.");
         Cinema copy = new Cinema(cinema);
         edits.accept(cinema);
         cinemaDao.update(cinema, copy);
@@ -59,6 +61,8 @@ public class CinemaRepositoryImpl extends Subject<DatabaseEntity> implements Cin
 
     @Override
     public void delete(@NotNull Cinema cinema) throws DatabaseFailedException, InvalidIdException {
+        if(cinema.getId() == DatabaseEntity.ENTITY_WITHOUT_ID)
+            throw new InvalidIdException("This cinema is not in the database.");
         cinemaDao.delete(cinema);
         notifyObservers(cinema);
         entities.remove(cinema.getId());

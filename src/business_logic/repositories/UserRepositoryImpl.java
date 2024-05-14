@@ -51,6 +51,8 @@ public class UserRepositoryImpl extends Subject<DatabaseEntity> implements UserR
 
     @Override
     public void update(@NotNull User user, ThrowingConsumer<User> edits) throws NotEnoughFundsException, DatabaseFailedException, InvalidIdException {
+        if(user.getId() == DatabaseEntity.ENTITY_WITHOUT_ID)
+            throw new InvalidIdException("This user is not in the database.");
         User copy = new User(user);
         try {
             edits.accept(copy);
@@ -65,6 +67,8 @@ public class UserRepositoryImpl extends Subject<DatabaseEntity> implements UserR
 
     @Override
     public void delete(@NotNull User user) throws DatabaseFailedException, InvalidIdException {
+        if(user.getId() == DatabaseEntity.ENTITY_WITHOUT_ID)
+            throw new InvalidIdException("This user is not in the database.");
         userDao.delete(user);
         notifyObservers(user);
         entities.remove(user.getId());

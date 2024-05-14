@@ -10,12 +10,12 @@ import java.util.List;
 
 public interface ShowTimeDao extends Dao {
 
-    void insert(@NotNull ShowTime showTime) throws DatabaseFailedException, InvalidIdException;
+    void insert(@NotNull ShowTime showTime) throws DatabaseFailedException;
 
-    void update(@NotNull ShowTime showTime, @NotNull ShowTime copy) throws DatabaseFailedException, InvalidIdException;
+    void update(@NotNull ShowTime showTime, @NotNull ShowTime copy) throws DatabaseFailedException;
 
-    void delete(@NotNull ShowTime showTime) throws DatabaseFailedException, InvalidIdException;
+    void delete(@NotNull ShowTime showTime) throws DatabaseFailedException;
 
-    List<ShowTime> get(@NotNull Movie movie) throws InvalidIdException;
+    List<ShowTime> get(@NotNull Movie movie);
 
 }

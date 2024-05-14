@@ -12,9 +12,9 @@ public interface MovieDao extends Dao {
 
     void insert(@NotNull Movie movie) throws DatabaseFailedException;
 
-    void update(@NotNull Movie movie, @NotNull Movie copy) throws DatabaseFailedException, InvalidIdException;
+    void update(@NotNull Movie movie, @NotNull Movie copy) throws DatabaseFailedException;
 
-    void delete(@NotNull Movie movie) throws DatabaseFailedException, InvalidIdException;
+    void delete(@NotNull Movie movie) throws DatabaseFailedException;
 
-    List<Movie> get(@NotNull Cinema cinema) throws InvalidIdException;
+    List<Movie> get(@NotNull Cinema cinema);
 }

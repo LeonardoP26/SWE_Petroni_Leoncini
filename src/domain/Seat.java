@@ -23,6 +23,12 @@ public class Seat implements DatabaseEntity {
         this.row = row;
     }
 
+    public Seat(@NotNull Seat seat){
+        this.row = seat.getRow();
+        this.number = seat.getNumber();
+        this.isBooked = seat.isBooked();
+    }
+
     public boolean isBooked() {
         return isBooked;
     }
@@ -65,4 +71,11 @@ public class Seat implements DatabaseEntity {
     public void resetId() {
         this.id = ENTITY_WITHOUT_ID;
     }
+
+    public void copy(@NotNull Seat seat){
+        this.row = seat.getRow();
+        this.number = seat.getNumber();
+        this.isBooked = seat.isBooked();
+    }
+
 }

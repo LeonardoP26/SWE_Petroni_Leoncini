@@ -42,9 +42,7 @@ public class HallDaoImpl implements HallDao {
     }
 
     @Override
-    public void insert(@NotNull Hall hall, @NotNull Cinema cinema) throws DatabaseFailedException, InvalidIdException {
-        if(cinema.getId() == DatabaseEntity.ENTITY_WITHOUT_ID)
-            throw new InvalidIdException("This cinema is not in the database.");
+    public void insert(@NotNull Hall hall, @NotNull Cinema cinema) throws DatabaseFailedException {
         try {
             Connection conn = CinemaDatabase.getConnection(dbUrl);
             try (PreparedStatement s = conn.prepareStatement(
@@ -77,11 +75,7 @@ public class HallDaoImpl implements HallDao {
     }
 
     @Override
-    public void update(@NotNull Hall hall, @NotNull Hall copy, @NotNull Cinema cinema) throws DatabaseFailedException, InvalidIdException {
-        if(hall.getId() == DatabaseEntity.ENTITY_WITHOUT_ID)
-            throw new InvalidIdException("This hall is not in the database.");
-        if(cinema.getId() == DatabaseEntity.ENTITY_WITHOUT_ID)
-            throw new InvalidIdException("This cinema is not in the database.");
+    public void update(@NotNull Hall hall, @NotNull Hall copy, @NotNull Cinema cinema) throws DatabaseFailedException {
         try {
             Connection conn = CinemaDatabase.getConnection(dbUrl);
             try (PreparedStatement s = conn.prepareStatement(
@@ -111,9 +105,7 @@ public class HallDaoImpl implements HallDao {
     }
 
     @Override
-    public void delete(@NotNull Hall hall) throws DatabaseFailedException, InvalidIdException {
-        if(hall.getId() == DatabaseEntity.ENTITY_WITHOUT_ID)
-            throw new InvalidIdException("This hall is not in the database.");
+    public void delete(@NotNull Hall hall) throws DatabaseFailedException {
         try {
             Connection conn = CinemaDatabase.getConnection(dbUrl);
             try (PreparedStatement s = conn.prepareStatement(
@@ -132,9 +124,7 @@ public class HallDaoImpl implements HallDao {
     }
 
     @Override
-    public Hall get(@NotNull ShowTime showTime) throws InvalidIdException {
-        if(showTime.getId() == DatabaseEntity.ENTITY_WITHOUT_ID)
-            throw new InvalidIdException("This showtime is not in the database.");
+    public Hall get(@NotNull ShowTime showTime) {
         try {
             Connection conn = CinemaDatabase.getConnection(dbUrl);
             try(PreparedStatement s = conn.prepareStatement(

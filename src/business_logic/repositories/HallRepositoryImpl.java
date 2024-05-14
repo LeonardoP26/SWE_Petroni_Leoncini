@@ -47,6 +47,8 @@ public class HallRepositoryImpl extends Subject<DatabaseEntity> implements HallR
 
     @Override
     public void insert(Hall hall, Cinema cinema) throws DatabaseFailedException, InvalidIdException {
+        if(cinema.getId() == DatabaseEntity.ENTITY_WITHOUT_ID)
+            throw new InvalidIdException("This cinema is not in the database.");
         hallDao.insert(hall ,cinema);
         entities.put(hall.getId(), new WeakReference<>(hall));
         cinema.getHalls().add(hall);
@@ -54,6 +56,10 @@ public class HallRepositoryImpl extends Subject<DatabaseEntity> implements HallR
 
     @Override
     public void update(@NotNull Hall hall, @NotNull Cinema cinema, @NotNull Consumer<Hall> apply) throws DatabaseFailedException, InvalidIdException {
+        if(hall.getId() == DatabaseEntity.ENTITY_WITHOUT_ID)
+            throw new InvalidIdException("This hall is not in the database.");
+        if(cinema.getId() == DatabaseEntity.ENTITY_WITHOUT_ID)
+            throw new InvalidIdException("This cinema is not in the database.");
         Hall copy = new Hall(hall);
         apply.accept(copy);
         hallDao.update(hall, copy, cinema);
@@ -62,6 +68,8 @@ public class HallRepositoryImpl extends Subject<DatabaseEntity> implements HallR
 
     @Override
     public void delete(@NotNull Hall hall, @NotNull Cinema cinema) throws DatabaseFailedException, InvalidIdException {
+        if(hall.getId() == DatabaseEntity.ENTITY_WITHOUT_ID)
+            throw new InvalidIdException("This hall is not in the database.");
         hallDao.delete(hall);
         notifyObservers(hall);
         hall.resetId();
@@ -69,6 +77,8 @@ public class HallRepositoryImpl extends Subject<DatabaseEntity> implements HallR
 
     @Override
     public Hall get(@NotNull ShowTime showTime) throws InvalidIdException {
+        if(showTime.getId() == DatabaseEntity.ENTITY_WITHOUT_ID)
+            throw new InvalidIdException("This showtime is not in the database.");
         Hall hall = hallDao.get(showTime);
         Hall cached = entities.get(hall.getId()) != null ? entities.get(hall.getId()).get() : null;
         if(cached == null) {

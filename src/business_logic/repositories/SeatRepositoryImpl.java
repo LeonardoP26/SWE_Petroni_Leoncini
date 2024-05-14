@@ -16,6 +16,7 @@ import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.function.Consumer;
 
 public class SeatRepositoryImpl extends Subject<DatabaseEntity> implements SeatRepository {
 
@@ -46,9 +47,22 @@ public class SeatRepositoryImpl extends Subject<DatabaseEntity> implements SeatR
 
     @Override
     public void insert(@NotNull Seat seat, @NotNull Hall hall) throws DatabaseFailedException, InvalidIdException {
+        if(hall.getId() == DatabaseEntity.ENTITY_WITHOUT_ID)
+            throw new InvalidIdException("This hall is not in the database.");
         seatDao.insert(seat, hall);
         entities.put(seat.getId(), new WeakReference<>(seat));
         hall.getSeats().add(seat);
+    }
+
+    @Override
+    public void update(@NotNull Seat seat, @NotNull Hall hall, Consumer<Seat> edits) throws InvalidIdException {
+        if(hall.getId() == DatabaseEntity.ENTITY_WITHOUT_ID)
+            throw new InvalidIdException("This hall is not in the database.");
+        if(seat.getId() == DatabaseEntity.ENTITY_WITHOUT_ID)
+            throw new InvalidIdException("This seat is not in the database.");
+        Seat copy = new Seat(seat);
+        edits.accept(copy);
+        seat.copy(copy);
     }
 
     @Override
@@ -64,6 +78,8 @@ public class SeatRepositoryImpl extends Subject<DatabaseEntity> implements SeatR
 
     @Override
     public void delete(@NotNull Seat seat, @NotNull Hall hall) throws DatabaseFailedException, InvalidIdException {
+        if(seat.getId() == DatabaseEntity.ENTITY_WITHOUT_ID)
+            throw new InvalidIdException("This seat is not in the database.");
         seatDao.delete(seat);
         notifyObservers(seat);
         hall.getSeats().remove(seat);
@@ -71,6 +87,8 @@ public class SeatRepositoryImpl extends Subject<DatabaseEntity> implements SeatR
 
     @Override
     public List<Seat> get(@NotNull ShowTime showTime) throws InvalidIdException {
+        if(showTime.getId() == DatabaseEntity.ENTITY_WITHOUT_ID)
+            throw new InvalidIdException("This showtime is not in the database.");
         List<Seat> seats = seatDao.get(showTime);
         seats = seats.stream().map(s -> {
             Seat cached = entities.get(s.getId()) != null ? entities.get(s.getId()).get() : null;

@@ -75,9 +75,7 @@ public class UserDaoImpl implements UserDao {
     }
 
     @Override
-    public void update(@NotNull User user, @NotNull User copy) throws DatabaseFailedException, InvalidIdException {
-        if(user.getId() == DatabaseEntity.ENTITY_WITHOUT_ID)
-            throw new InvalidIdException("This user is not in the database.");
+    public void update(@NotNull User user, @NotNull User copy) throws DatabaseFailedException {
         try {
             Connection conn = CinemaDatabase.getConnection(dbUrl);
             try (PreparedStatement s = conn.prepareStatement(
@@ -105,9 +103,7 @@ public class UserDaoImpl implements UserDao {
     }
 
     @Override
-    public void delete(@NotNull User user) throws DatabaseFailedException, InvalidIdException {
-        if(user.getId() == DatabaseEntity.ENTITY_WITHOUT_ID)
-            throw new InvalidIdException("This user is not in the database.");
+    public void delete(@NotNull User user) throws DatabaseFailedException {
         try {
             Connection conn = CinemaDatabase.getConnection(dbUrl);
             try (PreparedStatement s = conn.prepareStatement(

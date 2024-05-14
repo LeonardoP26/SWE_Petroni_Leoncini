@@ -25,17 +25,17 @@ public class BookingRepositoryTest {
     private final BookingRepository bookingRepo = BookingRepositoryImpl.getInstance(new BookingDao() {
 
         @Override
-        public void insert(@NotNull Booking booking, @NotNull User user, @NotNull User copy) throws DatabaseFailedException, InvalidIdException {
+        public void insert(@NotNull Booking booking, @NotNull User user, @NotNull User copy) throws DatabaseFailedException {
 
         }
 
         @Override
-        public void update(@NotNull Booking oldBooking, @NotNull Booking newBooking, @NotNull User user, @NotNull User copy) throws DatabaseFailedException, InvalidIdException {
+        public void update(@NotNull Booking oldBooking, @NotNull Booking newBooking, @NotNull User user, @NotNull User copy) throws DatabaseFailedException {
 
         }
 
         @Override
-        public void delete(@NotNull Booking booking, @NotNull User user, boolean commit) throws DatabaseFailedException, InvalidIdException {
+        public void delete(@NotNull Booking booking, @NotNull User user) throws DatabaseFailedException {
 
         }
 

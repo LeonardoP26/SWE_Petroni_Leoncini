@@ -76,9 +76,7 @@ public class MovieDaoImpl implements MovieDao {
     }
 
     @Override
-    public void update(@NotNull Movie movie, @NotNull Movie copy) throws DatabaseFailedException, InvalidIdException {
-        if(movie.getId() == DatabaseEntity.ENTITY_WITHOUT_ID)
-            throw new InvalidIdException("This movie is not in the database.");
+    public void update(@NotNull Movie movie, @NotNull Movie copy) throws DatabaseFailedException {
         try {
             Connection conn = CinemaDatabase.getConnection(dbUrl);
             try (PreparedStatement s = conn.prepareStatement(
@@ -105,9 +103,7 @@ public class MovieDaoImpl implements MovieDao {
     }
 
     @Override
-    public void delete(@NotNull Movie movie) throws DatabaseFailedException, InvalidIdException {
-        if(movie.getId() == DatabaseEntity.ENTITY_WITHOUT_ID)
-            throw new InvalidIdException("This movie is not in the database.");
+    public void delete(@NotNull Movie movie) throws DatabaseFailedException {
         try {
             Connection conn = CinemaDatabase.getConnection(dbUrl);
             try (PreparedStatement s = conn.prepareStatement(
@@ -126,9 +122,7 @@ public class MovieDaoImpl implements MovieDao {
     }
 
     @Override
-    public List<Movie> get(@NotNull Cinema cinema) throws InvalidIdException {
-        if(cinema.getId() == DatabaseEntity.ENTITY_WITHOUT_ID)
-            throw new InvalidIdException("This cinema is not in the database.");
+    public List<Movie> get(@NotNull Cinema cinema) {
         try {
             Connection conn = CinemaDatabase.getConnection(dbUrl);
             try(PreparedStatement s = conn.prepareStatement(

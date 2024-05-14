@@ -43,19 +43,9 @@ public class BookingDaoImpl implements BookingDao {
     }
 
     @Override
-    public void insert(@NotNull Booking booking, @NotNull User user, @NotNull User copy) throws DatabaseFailedException, InvalidIdException {
+    public void insert(@NotNull Booking booking, @NotNull User user, @NotNull User copy) throws DatabaseFailedException {
         List<Seat> seats = booking.getSeats();
         ShowTime showTime = booking.getShowTime();
-        if(seats == null)
-            throw new DatabaseFailedException("Seats list is null.");
-        if(showTime == null)
-            throw new DatabaseFailedException("Showtime list is null.");
-        if (seats.stream().anyMatch(s -> s.getId() == DatabaseEntity.ENTITY_WITHOUT_ID))
-            throw new InvalidIdException("These seats are not in the database");
-        if (showTime.getId() == DatabaseEntity.ENTITY_WITHOUT_ID)
-            throw new InvalidIdException("This showtime is not in the database");
-        if (user.getId() == DatabaseEntity.ENTITY_WITHOUT_ID)
-            throw new InvalidIdException("This user is not in the database");
         try {
             Connection conn = CinemaDatabase.getConnection(dbUrl);
             boolean oldAutoCommit = conn.getAutoCommit();
@@ -104,19 +94,53 @@ public class BookingDaoImpl implements BookingDao {
 
 
     @Override
-    public void update(@NotNull Booking oldBooking, @NotNull Booking newBooking, @NotNull User user, @NotNull User copy) throws DatabaseFailedException, InvalidIdException {
-        delete(oldBooking, user, false);
-        insert(newBooking, user, copy);
+    public void update(@NotNull Booking oldBooking, @NotNull Booking newBooking, @NotNull User user, @NotNull User copy) throws DatabaseFailedException {
+        boolean oldAutoCommit;
+        try{
+            Connection conn = CinemaDatabase.getConnection(dbUrl);
+            oldAutoCommit = conn.getAutoCommit();
+            conn.setAutoCommit(false);
+            try(PreparedStatement s1 = conn.prepareStatement(
+                    "DELETE FROM Bookings WHERE booking_number = ?"
+            )){
+                s1.setInt(1, oldBooking.getBookingNumber());
+                s1.executeUpdate();
+                for(Seat seat : newBooking.getSeats()) {
+                    try (PreparedStatement s2 = conn.prepareStatement(
+                            "INSERT OR ROLLBACK INTO Bookings(showtime_id, seat_id, user_id, booking_number) VALUES (?, ?, ?, ?)"
+                    )){
+                        s2.setInt(1, newBooking.getShowTime().getId());
+                        s2.setInt(2, seat.getId());
+                        s2.setInt(3, user.getId());
+                        s2.setInt(4, oldBooking.getBookingNumber());
+                        s2.executeUpdate();
+                        try(PreparedStatement s3 = conn.prepareStatement(
+                                "UPDATE Users SET balance = ? WHERE user_id = ?"
+                        )){
+                            s3.setLong(1, copy.getBalance());
+                            s3.setInt(2, user.getId());
+                            s3.executeUpdate();
+                        }
+                    }
+                }
+                conn.commit();
+            } catch (SQLException e){
+                conn.rollback();
+                throw new DatabaseFailedException("Update failed.");
+            } finally {
+                conn.setAutoCommit(oldAutoCommit);
+                if(conn.getAutoCommit())
+                    conn.close();
+            }
+        } catch(SQLException e){
+            throw new RuntimeException(e);
+        }
     }
 
     @Override
-    public void delete(@NotNull Booking booking, @NotNull User user, boolean commit) throws DatabaseFailedException, InvalidIdException {
+    public void delete(@NotNull Booking booking, @NotNull User user) throws DatabaseFailedException {
         boolean oldAutoCommit;
         try {
-            if (booking.getBookingNumber() == DatabaseEntity.ENTITY_WITHOUT_ID)
-                throw new InvalidIdException("This booking is already not in the database");
-            if(user.getBookings() == null || user.getBookings().isEmpty() || !user.getBookings().contains(booking))
-                throw new DatabaseFailedException("This booking does not belong to this user.");
             Connection conn = CinemaDatabase.getConnection(dbUrl);
             oldAutoCommit = conn.getAutoCommit();
             conn.setAutoCommit(false);
@@ -131,18 +155,13 @@ public class BookingDaoImpl implements BookingDao {
                     s1.setInt(1, booking.getBookingNumber());
                     if (s1.executeUpdate() == 0)
                         throw new DatabaseFailedException("Query result is empty.");
-                    if(commit)
-                        conn.commit();
+                    conn.commit();
                 }
-            } catch (SQLException | DatabaseFailedException | NullPointerException e){
-                if(e instanceof NullPointerException){
-                    throw new DatabaseFailedException("Showtime, hall and seats can not be null");
-                }
+            } catch (SQLException | DatabaseFailedException e){
                 conn.rollback();
                 throw e;
             } finally {
-                if(commit)
-                    conn.setAutoCommit(oldAutoCommit);
+                conn.setAutoCommit(oldAutoCommit);
                 if (conn.getAutoCommit())
                     conn.close();
             }
@@ -152,9 +171,7 @@ public class BookingDaoImpl implements BookingDao {
     }
 
     @Override
-    public List<Booking> get(@NotNull User user) throws InvalidIdException {
-        if(user.getId() == DatabaseEntity.ENTITY_WITHOUT_ID)
-            throw new InvalidIdException("This user is not in the database.");
+    public List<Booking> get(@NotNull User user) {
         try {
             Connection conn = CinemaDatabase.getConnection(dbUrl);
             try (PreparedStatement s = conn.prepareStatement(

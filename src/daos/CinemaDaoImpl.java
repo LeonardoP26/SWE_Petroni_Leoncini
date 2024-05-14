@@ -75,9 +75,7 @@ public class CinemaDaoImpl implements CinemaDao {
     }
 
     @Override
-    public void update(@NotNull Cinema cinema, @NotNull Cinema copy) throws DatabaseFailedException, InvalidIdException {
-        if(cinema.getId() == DatabaseEntity.ENTITY_WITHOUT_ID)
-            throw new InvalidIdException("This cinema is not in the database.");
+    public void update(@NotNull Cinema cinema, @NotNull Cinema copy) throws DatabaseFailedException {
         try {
             Connection conn = CinemaDatabase.getConnection(dbUrl);
             try (PreparedStatement s = conn.prepareStatement(
@@ -103,9 +101,7 @@ public class CinemaDaoImpl implements CinemaDao {
     }
 
     @Override
-    public void delete(@NotNull Cinema cinema) throws DatabaseFailedException, InvalidIdException {
-        if(cinema.getId() == DatabaseEntity.ENTITY_WITHOUT_ID)
-            throw new InvalidIdException("This cinema is not in the database.");
+    public void delete(@NotNull Cinema cinema) throws DatabaseFailedException {
         try {
             Connection conn = CinemaDatabase.getConnection(dbUrl);
             try (PreparedStatement s = conn.prepareStatement(

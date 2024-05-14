@@ -12,6 +12,7 @@ import org.jetbrains.annotations.NotNull;
 import java.lang.ref.WeakReference;
 import java.util.HashMap;
 import java.util.List;
+import java.util.stream.Stream;
 
 public class BookingRepositoryImpl implements BookingRepository {
 
@@ -38,6 +39,18 @@ public class BookingRepositoryImpl implements BookingRepository {
 
     @Override
     public void insert(@NotNull Booking booking, @NotNull User user) throws DatabaseFailedException, InvalidIdException, NotEnoughFundsException {
+        List<Seat> seats = booking.getSeats();
+        ShowTime showTime = booking.getShowTime();
+        if(seats == null)
+            throw new DatabaseFailedException("Seats list is null.");
+        if(showTime == null)
+            throw new DatabaseFailedException("Showtime list is null.");
+        if (seats.stream().anyMatch(s -> s.getId() == DatabaseEntity.ENTITY_WITHOUT_ID))
+            throw new InvalidIdException("These seats are not in the database");
+        if (showTime.getId() == DatabaseEntity.ENTITY_WITHOUT_ID)
+            throw new InvalidIdException("This showtime is not in the database");
+        if (user.getId() == DatabaseEntity.ENTITY_WITHOUT_ID)
+            throw new InvalidIdException("This user is not in the database");
         User copy = new User(user);
         copy.setBalance(copy.getBalance() - (long) booking.getSeats().size() * booking.getShowTime().getHall().getCost());
         bookingDao.insert(booking, user, copy);
@@ -48,6 +61,20 @@ public class BookingRepositoryImpl implements BookingRepository {
 
     @Override
     public void update(@NotNull Booking oldBooking, @NotNull Booking newBooking, @NotNull User user) throws NotEnoughFundsException, DatabaseFailedException, InvalidIdException {
+        List<Seat> oldSeats = oldBooking.getSeats();
+        List<Seat> newSeats = newBooking.getSeats();
+        ShowTime oldShowTime = oldBooking.getShowTime();
+        ShowTime newShowTime = newBooking.getShowTime();
+        if(oldSeats == null || newSeats == null)
+            throw new DatabaseFailedException("Seats list is null.");
+        if(oldShowTime == null || newShowTime == null)
+            throw new DatabaseFailedException("Showtime list is null.");
+        if (Stream.concat(oldSeats.stream(), newSeats.stream()).anyMatch(s -> s.getId() == DatabaseEntity.ENTITY_WITHOUT_ID))
+            throw new InvalidIdException("These seats are not in the database");
+        if (oldShowTime.getId() == DatabaseEntity.ENTITY_WITHOUT_ID || newShowTime.getId() == DatabaseEntity.ENTITY_WITHOUT_ID)
+            throw new InvalidIdException("This showtime is not in the database");
+        if (user.getId() == DatabaseEntity.ENTITY_WITHOUT_ID)
+            throw new InvalidIdException("This user is not in the database");
         User copy = new User(user);
         long newCost = ((long) newBooking.getShowTime().getHall().getCost() * newBooking.getSeats().size() -
                 (long) oldBooking.getShowTime().getHall().getCost() * oldBooking.getSeats().size());
@@ -56,18 +83,31 @@ public class BookingRepositoryImpl implements BookingRepository {
         user.getBookings().remove(oldBooking);
         user.getBookings().add(newBooking);
         user.setBalance(copy.getBalance());
+        oldBooking.resetId();
     }
 
 
     @Override
     public void delete(@NotNull Booking booking, @NotNull User user) throws DatabaseFailedException, InvalidIdException {
-        bookingDao.delete(booking, user, true);
+        if (booking.getBookingNumber() == DatabaseEntity.ENTITY_WITHOUT_ID)
+            throw new InvalidIdException("This booking is already not in the database");
+        if(user.getBookings() == null || user.getBookings().isEmpty() || !user.getBookings().contains(booking))
+            throw new DatabaseFailedException("This booking does not belong to this user.");
+        if(booking.getShowTime() == null)
+            throw new DatabaseFailedException("Show time is null");
+        if(booking.getShowTime().getHall() == null)
+            throw new DatabaseFailedException("Show time's hall is null");
+        if(booking.getSeats() == null)
+            throw new DatabaseFailedException("Seats are null");
+        bookingDao.delete(booking, user);
         user.getBookings().remove(booking);
         booking.resetId();
     }
 
     @Override
     public List<Booking> get(@NotNull User user) throws InvalidIdException {
+        if(user.getId() == DatabaseEntity.ENTITY_WITHOUT_ID)
+            throw new InvalidIdException("This user is not in the database.");
         List<Booking> bookings = bookingDao.get(user);
         return bookings.stream().map(b -> {
             Booking cached = entities.get(b.getId()) != null ? entities.get(b.getId()).get() : null;
