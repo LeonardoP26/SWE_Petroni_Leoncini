@@ -77,4 +77,66 @@ public class UserDaoTest {
         );
     }
 
+    @Test
+    public void updateUser_success(){
+        User copy = new User(CinemaDatabaseTest.getTestUser1());
+        copy.setUsername("abc");
+        copy.setPassword("abc");
+        assertDoesNotThrow(() -> copy.setBalance(10));
+        assertDoesNotThrow(() -> userDao.update(CinemaDatabaseTest.getTestUser1(), copy));
+        User dbUser = CinemaDatabaseTest.runQuery(
+            "SELECT * FROM Users WHERE username = '%s' AND password = '%s' AND balance = %d"
+                    .formatted(copy.getUsername(), copy.getPassword(), copy.getBalance()),
+            (res) -> {
+                if (!res.next())
+                    return null;
+                return new User(res);
+            }
+        );
+        assertNotNull(dbUser);
+        assertEquals(dbUser.getUsername(), copy.getUsername());
+        assertEquals(dbUser.getPassword(), copy.getPassword());
+        assertEquals(dbUser.getBalance(), copy.getBalance());
+    }
+
+    @Test
+    public void updateUser_toSameValues_throwsDatabaseFailedException(){
+        User copy = new User(CinemaDatabaseTest.getTestUser1());
+        copy.setUsername(CinemaDatabaseTest.getTestUser2().getUsername());
+        assertThrows(DatabaseFailedException.class, () -> userDao.update(CinemaDatabaseTest.getTestUser1(), copy));
+    }
+
+    @Test
+    public void updateUser_toNullValues_throwsDatabaseFailedException(){
+        User copy = new User(CinemaDatabaseTest.getTestUser1());
+        copy.setUsername(null);
+        copy.setPassword(null);
+        assertThrows(DatabaseFailedException.class, () -> userDao.update(CinemaDatabaseTest.getTestUser1(), copy));
+    }
+
+    @Test
+    public void deleteUser_success(){
+        assertDoesNotThrow(() -> userDao.delete(CinemaDatabaseTest.getTestUser1()));
+        assertTrue(() ->
+                CinemaDatabaseTest.runQuery(
+                        "SELECT * FROM Users WHERE user_id = %d".formatted(CinemaDatabaseTest.getTestUser1().getId()),
+                        (res) -> !res.next()
+                ));
+    }
+
+    @Test
+    public void deleteUser_notInDatabase_throwsDatabaseFailedException(){
+        assertThrows(DatabaseFailedException.class, () -> userDao.delete(new User("abc", "abc")));
+    }
+
+    @Test
+    public void getUser_success(){
+        User testUser1 = CinemaDatabaseTest.getTestUser1();
+        User dbUser = assertDoesNotThrow(() -> userDao.get(testUser1.getUsername(), testUser1.getPassword()));
+        assertEquals(dbUser.getId(), testUser1.getId());
+        assertEquals(dbUser.getUsername(), testUser1.getUsername());
+        assertEquals(dbUser.getPassword(), testUser1.getPassword());
+        assertEquals(dbUser.getBalance(), testUser1.getBalance());
+    }
+
 }

@@ -26,4 +26,13 @@ public class HallFactory {
         };
     }
 
+    public static @NotNull Hall createHall(@NotNull Hall hall){
+        return switch (hall) {
+            case ImaxHall imaxHall -> new ImaxHall(imaxHall);
+            case ThreeDHall threeDHall -> new ThreeDHall(threeDHall);
+            case Imax3DHall imax3DHall -> new Imax3DHall(imax3DHall);
+            default -> new Hall(hall);
+        };
+    }
+
 }

@@ -55,6 +55,8 @@ public class BookingDaoImpl implements BookingDao {
             )) {
                 s.setLong(1, copy.getBalance());
                 s.setInt(2, user.getId());
+                if (s.executeUpdate() == 0)
+                    throw new DatabaseFailedException("Database insertion failed.");
                 try (PreparedStatement ps = conn.prepareStatement(
                         "SELECT MIN(t) AS booking_number FROM (SELECT DISTINCT 1 AS t FROM Bookings WHERE (SELECT MIN(booking_number) FROM Bookings) > 1 UNION SELECT Bookings.booking_number + 1 FROM Bookings WHERE booking_number + 1 NOT IN (SELECT booking_number FROM Bookings))"
                 )) {

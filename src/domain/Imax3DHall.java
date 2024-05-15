@@ -1,5 +1,7 @@
 package domain;
 
+import org.jetbrains.annotations.NotNull;
+
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
@@ -19,6 +21,12 @@ public class Imax3DHall extends Hall {
         super(hallNumber);
         hall3d = new ThreeDHall(hallNumber);
         imaxHall = new ImaxHall(hallNumber);
+    }
+
+    public Imax3DHall(@NotNull Imax3DHall hall){
+        super(hall);
+        hall3d = new ThreeDHall(hall.getHallNumber());
+        imaxHall = new ImaxHall(hall.getHallNumber());
     }
 
     @Override

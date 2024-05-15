@@ -1,5 +1,7 @@
 package domain;
 
+import org.jetbrains.annotations.NotNull;
+
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
@@ -10,6 +12,10 @@ public class ImaxHall extends Hall {
 
     public ImaxHall(ResultSet res) throws SQLException {
         super(res);
+    }
+
+    public ImaxHall(@NotNull ImaxHall hall){
+        super(hall);
     }
 
     public ImaxHall(int hallNumber){

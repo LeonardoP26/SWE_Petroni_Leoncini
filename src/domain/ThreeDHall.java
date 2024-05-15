@@ -1,5 +1,7 @@
 package domain;
 
+import org.jetbrains.annotations.NotNull;
+
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
@@ -11,6 +13,10 @@ public class ThreeDHall extends Hall {
 
     public ThreeDHall(ResultSet res) throws SQLException {
         super(res);
+    }
+
+    public ThreeDHall(@NotNull ThreeDHall hall){
+        super(hall);
     }
 
     public ThreeDHall(int hallNumber){
