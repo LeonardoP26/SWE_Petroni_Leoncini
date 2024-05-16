@@ -9,6 +9,7 @@ import domain.Hall;
 import domain.Movie;
 import domain.ShowTime;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.sqlite.SQLiteErrorCode;
 import org.sqlite.SQLiteException;
 
@@ -69,12 +70,14 @@ public class ShowTimeDaoImpl implements ShowTimeDao {
                 if(conn.getAutoCommit())
                     conn.close();
             }
-        } catch (SQLiteException e){
-            if(e.getErrorCode() == SQLiteErrorCode.SQLITE_CONSTRAINT_UNIQUE.code)
+        } catch (SQLiteException | NullPointerException e){
+            if(e instanceof NullPointerException)
+                throw new DatabaseFailedException("Null values are not allowed.");
+            else if(((SQLiteException) e).getErrorCode() == SQLiteErrorCode.SQLITE_CONSTRAINT_UNIQUE.code)
                 throw new DatabaseFailedException("Database insertion failed: this showtime already exists.");
-            else if (e.getErrorCode() == SQLiteErrorCode.SQLITE_CONSTRAINT_NOTNULL.code)
+            else if (((SQLiteException) e).getErrorCode() == SQLiteErrorCode.SQLITE_CONSTRAINT_NOTNULL.code)
                 throw new DatabaseFailedException("Database insertion failed: movie, hall and date can not be null.");
-            else if (e.getErrorCode() == SQLiteErrorCode.SQLITE_CONSTRAINT_FOREIGNKEY.code)
+            else if (((SQLiteException) e).getErrorCode() == SQLiteErrorCode.SQLITE_CONSTRAINT_FOREIGNKEY.code)
                 throw new DatabaseFailedException("Database insertion failed: be sure that both the movie and hall have a valid ids.");
             else throw new RuntimeException(e); // TODO throw it as DatabaseInsertionFailedException
         } catch (SQLException e){
@@ -87,7 +90,7 @@ public class ShowTimeDaoImpl implements ShowTimeDao {
         try {
             Connection conn = CinemaDatabase.getConnection(dbUrl);
             try (PreparedStatement s = conn.prepareStatement(
-                    "UPDATE ShowTimes SET date = ? WHERE showtime_id = ?"
+                    "UPDATE ShowTimes SET movie_id = ?, hall_id = ?, date = ? WHERE showtime_id = ?"
             )) {
                 s.setInt(1, copy.getMovie().getId());
                 s.setInt(2, copy.getHall().getId());
@@ -99,10 +102,12 @@ public class ShowTimeDaoImpl implements ShowTimeDao {
                 if(conn.getAutoCommit())
                     conn.close();
             }
-        } catch (SQLiteException e){
-            if(e.getResultCode() == SQLiteErrorCode.SQLITE_CONSTRAINT_UNIQUE)
+        } catch (SQLiteException | NullPointerException e){
+            if(e instanceof NullPointerException)
+                throw new DatabaseFailedException("Null values are not allowed.");
+            if(((SQLiteException) e).getResultCode() == SQLiteErrorCode.SQLITE_CONSTRAINT_UNIQUE)
                 throw new DatabaseFailedException("Database update failed: this showtime already exists.");
-            else if (e.getResultCode() == SQLiteErrorCode.SQLITE_CONSTRAINT_FOREIGNKEY)
+            else if (((SQLiteException) e).getResultCode() == SQLiteErrorCode.SQLITE_CONSTRAINT_FOREIGNKEY)
                 throw new DatabaseFailedException("Database update failed: be sure that both the movie and hall have a valid ids.");
             else throw new RuntimeException(e); // TODO throw it as DatabaseInsertionFailedException
         } catch (SQLException e){

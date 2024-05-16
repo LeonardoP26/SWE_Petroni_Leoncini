@@ -6,6 +6,7 @@ import business_logic.exceptions.DatabaseFailedException;
 import business_logic.exceptions.InvalidIdException;
 import domain.*;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.sqlite.SQLiteErrorCode;
 import org.sqlite.SQLiteException;
 
@@ -77,9 +78,12 @@ public class BookingDaoImpl implements BookingDao {
                     }
                 }
                 conn.commit();
-            } catch (SQLiteException e) {
+            } catch (SQLiteException | NullPointerException e) {
                 conn.rollback();
-                if(e.getResultCode() == SQLiteErrorCode.SQLITE_CONSTRAINT_PRIMARYKEY)
+                if (e instanceof NullPointerException){
+                    throw new DatabaseFailedException("Null values are not allowed");
+                }
+                else if(((SQLiteException) e).getResultCode() == SQLiteErrorCode.SQLITE_CONSTRAINT_PRIMARYKEY)
                     throw new DatabaseFailedException("This booking already exists.");
                 else throw new RuntimeException(e); // TODO throw it as DatabaseInsertionFailedException
             } finally {
@@ -126,9 +130,14 @@ public class BookingDaoImpl implements BookingDao {
                     }
                 }
                 conn.commit();
-            } catch (SQLException e){
+            } catch (SQLiteException | NullPointerException e){
                 conn.rollback();
-                throw new DatabaseFailedException("Update failed.");
+                if (e instanceof NullPointerException){
+                    throw new DatabaseFailedException("Null values are not allowed");
+                }
+                else if(((SQLiteException) e).getResultCode() == SQLiteErrorCode.SQLITE_CONSTRAINT_PRIMARYKEY)
+                    throw new DatabaseFailedException("This booking already exists.");
+                else throw new RuntimeException(e); // TODO throw it as DatabaseInsertionFailedException
             } finally {
                 conn.setAutoCommit(oldAutoCommit);
                 if(conn.getAutoCommit())
@@ -150,7 +159,9 @@ public class BookingDaoImpl implements BookingDao {
                     "UPDATE Users SET balance = ? WHERE user_id = ?"
             )) {
                 s.setLong(1, user.getBalance() + (long) booking.getSeats().size() * booking.getShowTime().getHall().getCost());
-                s.executeUpdate();
+                s.setInt(2, user.getId());
+                if(s.executeUpdate() == 0)
+                    throw new DatabaseFailedException("Delete failed");
                 try (PreparedStatement s1 = conn.prepareStatement(
                         "DELETE FROM Bookings WHERE booking_number = ?"
                 )) {

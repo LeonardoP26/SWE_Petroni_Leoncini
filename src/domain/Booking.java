@@ -22,8 +22,8 @@ public class Booking implements DatabaseEntity {
     }
 
     public Booking(@NotNull Booking booking){
-        this.showTime = getShowTime();
-        this.seats = getSeats();
+        this.showTime = booking.getShowTime();
+        this.seats = booking.getSeats();
     }
 
 

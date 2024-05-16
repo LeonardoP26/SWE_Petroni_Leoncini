@@ -60,7 +60,7 @@ public class ShowTime implements DatabaseEntity {
     public void setMovie(Movie movie) { this.movie = movie; }
 
     public void setId(@NotNull ResultSet resultSet) throws SQLException {
-        int id = resultSet.getInt("showtime_id");
+        this.id = resultSet.getInt("showtime_id");
     }
 
     public void setCinema(Cinema cinema){

@@ -173,7 +173,7 @@ public class CinemaDatabaseTest extends CinemaDatabase{
                 }
             }
             int numSeats = 2;
-            testBooking1 = new Booking(testShowTime1, new ArrayList<>(testSeats.stream().filter(s -> s.getId() <= numSeats).toList()));
+            testBooking1 = new Booking(testShowTime1, new ArrayList<>(testSeats.subList(0, 2)));
             testBooking1.getSeats().forEach(s -> s.setBooked(true));
             for(int i = 1; i <= numSeats; i++) {
                 try (PreparedStatement s = connection.prepareStatement("INSERT OR IGNORE INTO Bookings(showtime_id, seat_id, user_id, booking_number) VALUES (?, ?, ?, ?) RETURNING booking_number")) {
@@ -188,7 +188,7 @@ public class CinemaDatabaseTest extends CinemaDatabase{
             }
             testUser1.setBookings(new ArrayList<>(List.of(testBooking1)));
 
-            testBooking2 = new Booking(testShowTime2, new ArrayList<>(testSeats.stream().filter(s -> s.getId() >= testSeats.size() - numSeats).toList()));
+            testBooking2 = new Booking(testShowTime2, new ArrayList<>(testSeats.subList(2, 4)));
             testBooking2.getSeats().forEach(s -> s.setBooked(true));
             for(int i = testSeats.size() - numSeats; i < testSeats.size(); i++) {
                 try (PreparedStatement s = connection.prepareStatement("INSERT OR IGNORE INTO Bookings(showtime_id, seat_id, user_id, booking_number) VALUES (?, ?, ?, ?) RETURNING booking_number")) {
