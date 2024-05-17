@@ -1,13 +1,13 @@
 package repositories;
 
+import business_logic.exceptions.InvalidIdException;
 import business_logic.repositories.*;
 import dao.fake_daos.FakeBookingDao;
 import dao.fake_daos.FakeSeatDao;
 import dao.fake_daos.FakeShowTimeDao;
 import dao.fake_daos.FakeUserDao;
 import db.CinemaDatabaseTest;
-import domain.Cinema;
-import domain.ShowTime;
+import domain.*;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -15,6 +15,7 @@ import org.junit.jupiter.api.Test;
 import java.lang.ref.WeakReference;
 import java.time.Duration;
 import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -51,7 +52,7 @@ public class ShowTimeRepositoryTest {
 
 
     @Test
-    public void insert_success(){
+    public void insertShowTime_success(){
         ShowTime newShowTime = new ShowTime(
                 CinemaDatabaseTest.getTestMovie1(),
                 CinemaDatabaseTest.getTestHall1(),
@@ -64,6 +65,19 @@ public class ShowTimeRepositoryTest {
         assertTrue(CinemaDatabaseTest.getTestCinema1().getShowTimes().contains(newShowTime));
     }
 
+    @Test
+    public void insertShowTime_withInvalidIds_throwsInvalidIdException(){
+        Cinema testCinema1 = CinemaDatabaseTest.getTestCinema1();
+        ShowTime newShowTime = new ShowTime(
+                new Movie("ABC", Duration.of(90, ChronoUnit.MINUTES)),
+                new Hall(3),
+                LocalDateTime.now().plusDays(1)
+        );
+        assertThrows(InvalidIdException.class, () -> showTimeRepo.insert(newShowTime, testCinema1));
+        assertFalse(testCinema1.getShowTimes().contains(newShowTime));
+        assertEquals(DatabaseEntity.ENTITY_WITHOUT_ID, newShowTime.getId());
+        assertFalse(showTimeRepo.getEntities().containsKey(newShowTime.getId()));
+    }
 
 
 }
