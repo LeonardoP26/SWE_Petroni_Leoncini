@@ -6,6 +6,7 @@ import business_logic.exceptions.DatabaseFailedException;
 import business_logic.exceptions.InvalidIdException;
 import daos.ShowTimeDao;
 import daos.ShowTimeDaoImpl;
+import domain.Cinema;
 import domain.DatabaseEntity;
 import domain.Movie;
 import domain.ShowTime;
@@ -44,35 +45,42 @@ public class ShowTimeRepositoryImpl extends Subject<DatabaseEntity> implements S
     }
 
     @Override
-    public void insert(@NotNull ShowTime showTime) throws DatabaseFailedException, InvalidIdException {
-        if(showTime.getCinema().getId() == DatabaseEntity.ENTITY_WITHOUT_ID)
+    public void insert(@NotNull ShowTime showTime, @NotNull Cinema cinema) throws DatabaseFailedException, InvalidIdException {
+        if(cinema.getId() == DatabaseEntity.ENTITY_WITHOUT_ID)
             throw new InvalidIdException("This cinema is not in the database.");
         if(showTime.getHall().getId() == DatabaseEntity.ENTITY_WITHOUT_ID)
             throw new InvalidIdException("This hall is not in the database.");
         if(showTime.getMovie().getId() == DatabaseEntity.ENTITY_WITHOUT_ID)
             throw new InvalidIdException("This movie is not in the database.");
+        if(!cinema.getHalls().contains(showTime.getHall()))
+            throw new DatabaseFailedException("This showtime does not belong to this cinema");
+
         showTimeDao.insert(showTime);
         entities.put(showTime.getId(), new WeakReference<>(showTime));
-        if(!showTime.getCinema().getMovies().contains(showTime.getMovie()))
-            showTime.getCinema().getMovies().add(showTime.getMovie());
+        cinema.getShowTimes().add(showTime);
+        if(!cinema.getMovies().contains(showTime.getMovie()))
+            cinema.getMovies().add(showTime.getMovie());
     }
 
     @Override
-    public void update(@NotNull ShowTime showTime, @NotNull Consumer<ShowTime> edits) throws DatabaseFailedException, InvalidIdException {
-        if(showTime.getCinema() == null)
-            throw new DatabaseFailedException("Cinema cannot be null");
+    public void update(@NotNull ShowTime showTime, @NotNull Cinema cinema, @NotNull Consumer<ShowTime> edits) throws DatabaseFailedException, InvalidIdException {
         if(showTime.getHall() == null)
             throw new DatabaseFailedException("Hall cannot be null");
         if(showTime.getMovie() == null)
             throw new DatabaseFailedException("Movie cannot be null");
         if(showTime.getId() == DatabaseEntity.ENTITY_WITHOUT_ID)
             throw new InvalidIdException("This showtime is not in the database.");
-        if(showTime.getCinema().getId() == DatabaseEntity.ENTITY_WITHOUT_ID)
+        if(cinema.getId() == DatabaseEntity.ENTITY_WITHOUT_ID)
             throw new InvalidIdException("This cinema is not in the database.");
         if(showTime.getHall().getId() == DatabaseEntity.ENTITY_WITHOUT_ID)
             throw new InvalidIdException("This hall is not in the database.");
         if(showTime.getMovie().getId() == DatabaseEntity.ENTITY_WITHOUT_ID)
             throw new InvalidIdException("This movie is not in the database.");
+        if(!cinema.getShowTimes().contains(showTime))
+            throw new DatabaseFailedException("This showtime does not belong to this cinema");
+        if(!cinema.getHalls().contains(showTime.getHall()))
+            throw new DatabaseFailedException("This showtime hall does not belong to this cinema");
+
         ShowTime copy = new ShowTime(showTime);
         edits.accept(copy);
         showTimeDao.update(showTime, copy);
@@ -80,11 +88,17 @@ public class ShowTimeRepositoryImpl extends Subject<DatabaseEntity> implements S
     }
 
     @Override
-    public void delete(@NotNull ShowTime showTime) throws DatabaseFailedException, InvalidIdException {
+    public void delete(@NotNull ShowTime showTime, @NotNull Cinema cinema) throws DatabaseFailedException, InvalidIdException {
         if(showTime.getId() == DatabaseEntity.ENTITY_WITHOUT_ID)
             throw new InvalidIdException("This showtime is not in the database.");
+        if(!cinema.getHalls().contains(showTime.getHall()))
+            throw new DatabaseFailedException("This showtime hall does not belong to this cinema");
+        if(!cinema.getShowTimes().contains(showTime))
+            throw new DatabaseFailedException("This showtime does not belong to this cinema");
+
         showTimeDao.delete(showTime);
         notifyObservers(showTime);
+        cinema.getShowTimes().remove(showTime);
         entities.remove(showTime.getId());
         if(entities.values().stream().noneMatch((st) -> {
             ShowTime sht = st != null ? st.get() : null;
@@ -92,15 +106,18 @@ public class ShowTimeRepositoryImpl extends Subject<DatabaseEntity> implements S
                 return false;
             return sht.getMovie() == showTime.getMovie();
         }))
-            showTime.getCinema().getMovies().remove(showTime.getMovie());
+            cinema.getMovies().remove(showTime.getMovie());
         showTime.resetId();
     }
 
     @Override
-    public List<ShowTime> get(@NotNull Movie movie) throws InvalidIdException {
+    public List<ShowTime> get(@NotNull Movie movie, @NotNull Cinema cinema) throws InvalidIdException, DatabaseFailedException {
         if(movie.getId() == DatabaseEntity.ENTITY_WITHOUT_ID)
             throw new InvalidIdException("This movie is not in the database.");
-        List<ShowTime> showTimes = showTimeDao.get(movie);
+        if(!cinema.getMovies().contains(movie))
+            throw new DatabaseFailedException("This movie does not belong to this cinema");
+
+        List<ShowTime> showTimes = showTimeDao.get(movie, cinema);
         return showTimes.stream().map(st -> {
             ShowTime cached = entities.get(st.getId()) != null ? entities.get(st.getId()).get() : null;
             if(cached == null) {
@@ -108,6 +125,8 @@ public class ShowTimeRepositoryImpl extends Subject<DatabaseEntity> implements S
                 return st;
             }
             cached.copy(st);
+            if(!cinema.getShowTimes().contains(cached))
+                cinema.getShowTimes().add(cached);
             return cached;
         }).toList();
     }

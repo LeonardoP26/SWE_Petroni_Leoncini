@@ -75,6 +75,8 @@ public class BookingRepositoryImpl implements BookingRepository {
             throw new InvalidIdException("This showtime is not in the database");
         if (user.getId() == DatabaseEntity.ENTITY_WITHOUT_ID)
             throw new InvalidIdException("This user is not in the database");
+        if(!user.getBookings().contains(oldBooking))
+            throw new DatabaseFailedException("This booking doesnt belong to this user.");
         User copy = new User(user);
         long newCost = ((long) newBooking.getShowTime().getHall().getCost() * newBooking.getSeats().size() -
                 (long) oldBooking.getShowTime().getHall().getCost() * oldBooking.getSeats().size());
@@ -99,6 +101,8 @@ public class BookingRepositoryImpl implements BookingRepository {
             throw new DatabaseFailedException("Show time's hall is null");
         if(booking.getSeats() == null)
             throw new DatabaseFailedException("Seats are null");
+        if(!user.getBookings().contains(booking))
+            throw new DatabaseFailedException("This booking doesnt belong to this user.");
         bookingDao.delete(booking, user);
         user.getBookings().remove(booking);
         booking.resetId();

@@ -18,7 +18,7 @@ public interface SeatRepository extends Observer<DatabaseEntity> {
 
     void insert(@NotNull Seat seat, @NotNull Hall hall) throws DatabaseFailedException, InvalidIdException;
 
-    void update(@NotNull Seat seat, @NotNull Hall hall, Consumer<Seat> edits) throws InvalidIdException;
+    void update(@NotNull Seat seat, @NotNull Hall hall, Consumer<Seat> edits) throws InvalidIdException, DatabaseFailedException;
 
     void delete(@NotNull Seat seat, @NotNull Hall hall) throws DatabaseFailedException, InvalidIdException;
 

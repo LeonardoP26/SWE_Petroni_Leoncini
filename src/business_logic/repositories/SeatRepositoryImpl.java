@@ -49,17 +49,21 @@ public class SeatRepositoryImpl extends Subject<DatabaseEntity> implements SeatR
     public void insert(@NotNull Seat seat, @NotNull Hall hall) throws DatabaseFailedException, InvalidIdException {
         if(hall.getId() == DatabaseEntity.ENTITY_WITHOUT_ID)
             throw new InvalidIdException("This hall is not in the database.");
+        if(!hall.getSeats().contains(seat))
+            throw new DatabaseFailedException("This seat does not belong to this Hall.");
         seatDao.insert(seat, hall);
         entities.put(seat.getId(), new WeakReference<>(seat));
         hall.getSeats().add(seat);
     }
 
     @Override
-    public void update(@NotNull Seat seat, @NotNull Hall hall, Consumer<Seat> edits) throws InvalidIdException {
+    public void update(@NotNull Seat seat, @NotNull Hall hall, Consumer<Seat> edits) throws InvalidIdException, DatabaseFailedException {
         if(hall.getId() == DatabaseEntity.ENTITY_WITHOUT_ID)
             throw new InvalidIdException("This hall is not in the database.");
         if(seat.getId() == DatabaseEntity.ENTITY_WITHOUT_ID)
             throw new InvalidIdException("This seat is not in the database.");
+        if(!hall.getSeats().contains(seat))
+            throw new DatabaseFailedException("This seat does not belong to this Hall.");
         Seat copy = new Seat(seat);
         edits.accept(copy);
         seat.copy(copy);
@@ -80,6 +84,8 @@ public class SeatRepositoryImpl extends Subject<DatabaseEntity> implements SeatR
     public void delete(@NotNull Seat seat, @NotNull Hall hall) throws DatabaseFailedException, InvalidIdException {
         if(seat.getId() == DatabaseEntity.ENTITY_WITHOUT_ID)
             throw new InvalidIdException("This seat is not in the database.");
+        if(!hall.getSeats().contains(seat))
+            throw new DatabaseFailedException("This seat does not belong to this Hall.");
         seatDao.delete(seat);
         notifyObservers(seat);
         hall.getSeats().remove(seat);

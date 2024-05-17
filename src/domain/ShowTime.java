@@ -29,7 +29,6 @@ public class ShowTime implements DatabaseEntity {
     private Movie movie = null;
     private Hall hall = null;
     private LocalDateTime date = null;
-    private Cinema cinema = null;
 
     @Override
     public int getId() {
@@ -61,14 +60,6 @@ public class ShowTime implements DatabaseEntity {
 
     public void setId(@NotNull ResultSet resultSet) throws SQLException {
         this.id = resultSet.getInt("showtime_id");
-    }
-
-    public void setCinema(Cinema cinema){
-        this.cinema = cinema;
-    }
-
-    public Cinema getCinema() {
-        return cinema;
     }
 
     public void copy(@NotNull ShowTime showTime) {

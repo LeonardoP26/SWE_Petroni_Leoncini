@@ -9,6 +9,12 @@ import java.util.ArrayList;
 
 public class Hall implements DatabaseEntity {
 
+    protected int id = ENTITY_WITHOUT_ID;
+    protected final int cost = 10;
+    private final HallTypes type = HallTypes.STANDARD;
+    protected ArrayList<Seat> seats = null;
+    protected int hallNumber;
+
     public enum HallTypes {
         STANDARD, IMAX, THREE_D, IMAX_3D
     }
@@ -25,12 +31,6 @@ public class Hall implements DatabaseEntity {
     public Hall(int hallNumber) {
         this.hallNumber = hallNumber;
     }
-
-    protected int id = ENTITY_WITHOUT_ID;
-    protected final int cost = 10;
-    private final HallTypes type = HallTypes.STANDARD;
-    protected ArrayList<Seat> seats = null;
-    protected int hallNumber;
 
     @Override
     public String getName(){

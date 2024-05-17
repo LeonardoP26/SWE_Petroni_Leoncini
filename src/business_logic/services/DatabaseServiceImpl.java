@@ -112,8 +112,8 @@ public class DatabaseServiceImpl extends Subject<Booking> implements DatabaseSer
     }
 
     @Override
-    public void addShowTime(@NotNull ShowTime showTime) throws DatabaseFailedException, InvalidIdException {
-        showTimeRepo.insert(showTime);
+    public void addShowTime(@NotNull ShowTime showTime, @NotNull Cinema cinema) throws DatabaseFailedException, InvalidIdException {
+        showTimeRepo.insert(showTime, cinema);
     }
 
     /**
@@ -130,7 +130,7 @@ public class DatabaseServiceImpl extends Subject<Booking> implements DatabaseSer
     @Override
     public void addMovie(@NotNull Movie movie, @NotNull Cinema cinema, @NotNull Hall hall, LocalDateTime date) throws DatabaseFailedException, InvalidIdException {
         ShowTime sht = new ShowTime(movie, hall, date);
-        addShowTime(sht);
+        addShowTime(sht, cinema);
     }
 
     @Override
@@ -159,8 +159,8 @@ public class DatabaseServiceImpl extends Subject<Booking> implements DatabaseSer
     }
 
     @Override
-    public List<ShowTime> retrieveMovieShowTimes(@NotNull Movie movie) throws InvalidIdException {
-        return showTimeRepo.get(movie);
+    public List<ShowTime> retrieveMovieShowTimes(@NotNull Movie movie, @NotNull Cinema cinema) throws InvalidIdException, DatabaseFailedException {
+        return showTimeRepo.get(movie, cinema);
     }
 
     @Override
@@ -216,8 +216,8 @@ public class DatabaseServiceImpl extends Subject<Booking> implements DatabaseSer
     }
 
     @Override
-    public Hall retrieveShowTimeHall(@NotNull ShowTime showTime) throws InvalidIdException {
-        return hallRepo.get(showTime);
+    public Hall retrieveShowTimeHall(@NotNull ShowTime showTime, @NotNull Cinema cinema) throws InvalidIdException, DatabaseFailedException {
+        return hallRepo.get(showTime, cinema);
     }
 
 

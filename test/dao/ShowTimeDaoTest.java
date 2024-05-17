@@ -37,7 +37,10 @@ public class ShowTimeDaoTest {
 
     @Test
     public void insertShowTime_success() {
-        ShowTime newShowTime = new ShowTime(CinemaDatabaseTest.getTestMovie1(), CinemaDatabaseTest.getTestHall2(), LocalDateTime.now());
+        ShowTime newShowTime = new ShowTime(
+                CinemaDatabaseTest.getTestMovie1(),
+                CinemaDatabaseTest.getTestHall2(),
+                LocalDateTime.now());
         assertDoesNotThrow(() -> showTimeDao.insert(newShowTime));
         ShowTime dbShowTime = CinemaDatabaseTest.runQuery(
                 "SELECT * FROM ShowTimes WHERE showtime_id = %d".formatted(newShowTime.getId()),

@@ -152,7 +152,6 @@ public class CinemaDatabaseTest extends CinemaDatabase{
                 try(ResultSet res = s.executeQuery()){
                     if(res.next()) {
                         testShowTime1 = new ShowTime(res);
-                        testShowTime1.setCinema(testCinema1);
                         testShowTime1.setHall(testHall1);
                         testShowTime1.setMovie(testMovie1);
                         testShowTime1.setDate(now);
@@ -165,7 +164,6 @@ public class CinemaDatabaseTest extends CinemaDatabase{
                 try(ResultSet res = s.executeQuery()){
                     if(res.next()) {
                         testShowTime2 = new ShowTime(res);
-                        testShowTime2.setCinema(testCinema2);
                         testShowTime2.setHall(testHall2);
                         testShowTime2.setMovie(testMovie2);
                         testShowTime2.setDate(now);
@@ -173,7 +171,7 @@ public class CinemaDatabaseTest extends CinemaDatabase{
                 }
             }
             int numSeats = 2;
-            testBooking1 = new Booking(testShowTime1, new ArrayList<>(testSeats.subList(0, 2)));
+            testBooking1 = new Booking(testCinema1, testShowTime1, new ArrayList<>(testSeats.subList(0, 2)));
             testBooking1.getSeats().forEach(s -> s.setBooked(true));
             for(int i = 1; i <= numSeats; i++) {
                 try (PreparedStatement s = connection.prepareStatement("INSERT OR IGNORE INTO Bookings(showtime_id, seat_id, user_id, booking_number) VALUES (?, ?, ?, ?) RETURNING booking_number")) {
@@ -188,7 +186,7 @@ public class CinemaDatabaseTest extends CinemaDatabase{
             }
             testUser1.setBookings(new ArrayList<>(List.of(testBooking1)));
 
-            testBooking2 = new Booking(testShowTime2, new ArrayList<>(testSeats.subList(2, 4)));
+            testBooking2 = new Booking(testCinema2, testShowTime2, new ArrayList<>(testSeats.subList(2, 4)));
             testBooking2.getSeats().forEach(s -> s.setBooked(true));
             for(int i = testSeats.size() - numSeats; i < testSeats.size(); i++) {
                 try (PreparedStatement s = connection.prepareStatement("INSERT OR IGNORE INTO Bookings(showtime_id, seat_id, user_id, booking_number) VALUES (?, ?, ?, ?) RETURNING booking_number")) {

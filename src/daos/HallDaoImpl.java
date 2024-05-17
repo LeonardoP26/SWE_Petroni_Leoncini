@@ -55,7 +55,6 @@ public class HallDaoImpl implements HallDao {
                     if(!res.next())
                         throw new DatabaseFailedException("Database insertion failed.");
                     hall.setId(res);
-                    cinema.getHalls().add(hall);
                 }
             } finally {
                 if(conn.getAutoCommit())
@@ -124,13 +123,14 @@ public class HallDaoImpl implements HallDao {
     }
 
     @Override
-    public Hall get(@NotNull ShowTime showTime) {
+    public Hall get(@NotNull ShowTime showTime, @NotNull Cinema cinema) {
         try {
             Connection conn = CinemaDatabase.getConnection(dbUrl);
             try(PreparedStatement s = conn.prepareStatement(
-                    "SELECT Halls.hall_id, hall_number, type FROM ShowTimes JOIN Halls ON ShowTimes.hall_id = Halls.hall_id WHERE ShowTimes.showtime_id = ?"
+                    "SELECT Halls.hall_id, hall_number, type FROM ShowTimes JOIN Halls ON ShowTimes.hall_id = Halls.hall_id WHERE ShowTimes.showtime_id = ? AND cinema_id = ?"
             )) {
                 s.setInt(1, showTime.getId());
+                s.setInt(2, cinema.getId());
                 try (ResultSet res = s.executeQuery()) {
                     if(res.next())
                         return HallFactory.createHall(res);

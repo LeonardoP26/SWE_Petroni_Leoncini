@@ -4,6 +4,7 @@ import business_logic.exceptions.DatabaseFailedException;
 import business_logic.exceptions.InvalidIdException;
 import business_logic.repositories.BookingRepository;
 import business_logic.repositories.BookingRepositoryImpl;
+import dao.fake_daos.FakeBookingDao;
 import daos.BookingDao;
 import db.CinemaDatabaseTest;
 import domain.Booking;
@@ -22,32 +23,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 public class BookingRepositoryTest {
 
-    private final BookingRepository bookingRepo = BookingRepositoryImpl.getInstance(new BookingDao() {
-
-        @Override
-        public void insert(@NotNull Booking booking, @NotNull User user, @NotNull User copy) throws DatabaseFailedException {
-
-        }
-
-        @Override
-        public void update(@NotNull Booking oldBooking, @NotNull Booking newBooking, @NotNull User user, @NotNull User copy) throws DatabaseFailedException {
-
-        }
-
-        @Override
-        public void delete(@NotNull Booking booking, @NotNull User user) throws DatabaseFailedException {
-
-        }
-
-        @Override
-        public List<Booking> get(@NotNull User user) {
-            if(user == CinemaDatabaseTest.getTestUser1())
-                return List.of(CinemaDatabaseTest.getTestBooking1());
-            if(user == CinemaDatabaseTest.getTestUser2())
-                return List.of(CinemaDatabaseTest.getTestBooking2());
-            return List.of();
-        }
-    });
+    private final BookingRepository bookingRepo = BookingRepositoryImpl.getInstance(new FakeBookingDao());
 
     @BeforeEach
     public void setUpEach(){
@@ -63,7 +39,11 @@ public class BookingRepositoryTest {
 
     @Test
     public void insert_success() {
-        Booking b = new Booking(CinemaDatabaseTest.getTestShowTime1(), new ArrayList<>(CinemaDatabaseTest.getTestSeats().subList(0, 2)));
+        Booking b = new Booking(
+                CinemaDatabaseTest.getTestCinema1(),
+                CinemaDatabaseTest.getTestShowTime1(),
+                new ArrayList<>(CinemaDatabaseTest.getTestSeats().subList(0, 2))
+        );
         assertDoesNotThrow(() -> bookingRepo.insert(b, CinemaDatabaseTest.getTestUser1()));
         assertTrue(bookingRepo.getEntities().containsKey(b.getId()));
         Booking cachedBooking = bookingRepo.getEntities().get(b.getId()) != null ? bookingRepo.getEntities().get(b.getId()).get() : null;

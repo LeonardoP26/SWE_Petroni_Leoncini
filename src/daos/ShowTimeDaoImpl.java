@@ -4,10 +4,7 @@ import business_logic.CinemaDatabase;
 import business_logic.HallFactory;
 import business_logic.exceptions.DatabaseFailedException;
 import business_logic.exceptions.InvalidIdException;
-import domain.DatabaseEntity;
-import domain.Hall;
-import domain.Movie;
-import domain.ShowTime;
+import domain.*;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.sqlite.SQLiteErrorCode;
@@ -136,13 +133,14 @@ public class ShowTimeDaoImpl implements ShowTimeDao {
     }
 
     @Override
-    public List<ShowTime> get(@NotNull Movie movie) {
+    public List<ShowTime> get(@NotNull Movie movie, @NotNull Cinema cinema) {
         try {
             Connection conn = CinemaDatabase.getConnection(dbUrl);
             try(PreparedStatement s = conn.prepareStatement(
-                    "SELECT * FROM ShowTimes JOIN Halls on ShowTimes.hall_id = Halls.hall_id WHERE movie_id = ?"
+                    "SELECT * FROM ShowTimes JOIN Halls on ShowTimes.hall_id = Halls.hall_id WHERE movie_id = ? AND cinema_id = ?"
             )) {
                 s.setInt(1, movie.getId());
+                s.setInt(2, cinema.getId());
                 try(ResultSet res = s.executeQuery()){
                     return getList(res, (showTimeList) -> {
                         Hall hall = HallFactory.createHall(res);

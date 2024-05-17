@@ -10,8 +10,9 @@ public class Cinema implements DatabaseEntity {
 
     private int id = ENTITY_WITHOUT_ID;
     private String name;
-    private ArrayList<Hall> halls = new ArrayList<>();
     private ArrayList<Movie> movies = new ArrayList<>();
+    private ArrayList<Hall> halls = new ArrayList<>();
+    private ArrayList<ShowTime> showTimes = new ArrayList<>();
 
     public Cinema (@NotNull ResultSet res) throws SQLException {
         id = res.getInt("cinema_id");
@@ -22,26 +23,16 @@ public class Cinema implements DatabaseEntity {
         this.name = name;
     }
 
-    public Cinema(@NotNull Cinema cinema){
-        this.name = getName();
-        this.halls = getHalls();
-        this.movies = getMovies();
+    public Cinema(@NotNull Cinema cinema) {
+        this.name = cinema.getName();
+        this.movies = cinema.getMovies();
     }
-
-    public ArrayList<Hall> getHalls() {
-        return halls;
-    }
-
     public ArrayList<Movie> getMovies() {
         return movies;
     }
 
     public void setMovies(@NotNull ArrayList<Movie> movies){
         this.movies = movies;
-    }
-
-    public void setHalls(@NotNull ArrayList<Hall> halls) {
-        this.halls = halls;
     }
 
     @Override
@@ -58,8 +49,20 @@ public class Cinema implements DatabaseEntity {
         this.name = name;
     }
 
-    public void setId(int id) {
-        this.id = id;
+    public ArrayList<Hall> getHalls() {
+        return halls;
+    }
+
+    public void setHalls(ArrayList<Hall> halls) {
+        this.halls = halls;
+    }
+
+    public ArrayList<ShowTime> getShowTimes() {
+        return showTimes;
+    }
+
+    public void setShowTimes(ArrayList<ShowTime> showTimes) {
+        this.showTimes = showTimes;
     }
 
     public void setId(@NotNull ResultSet resultSet) throws SQLException {
@@ -73,7 +76,6 @@ public class Cinema implements DatabaseEntity {
 
     public void copy(@NotNull Cinema cinema) {
         this.name = cinema.getName();
-        this.halls = cinema.getHalls();
         this.movies = cinema.getMovies();
     }
 }

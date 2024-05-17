@@ -63,9 +63,9 @@ public class Main {
                 }
                 case Page.EDIT_BOOKINGS -> {
                     assert userBooking != null;
-                    currentPage = ui.editBooking(userBooking, user);
-                    if(currentPage == Page.SEAT_SELECTION){
-                        selectedCinema = userBooking.getShowTime().getCinema();
+                    currentPage = ui.editBooking(userBooking, user, userBooking.getCinema());
+                    if(currentPage == Page.SEAT_SELECTION) {
+                        selectedCinema = userBooking.getCinema();
                         selectedMovie = userBooking.getShowTime().getMovie();
                         selectedShowTime = userBooking.getShowTime();
                         selectedSeats = userBooking.getSeats();
@@ -86,7 +86,7 @@ public class Main {
                 }
                 case SHOWTIME_SELECTION -> {
                     assert selectedMovie != null;
-                    selectedShowTime = ui.showTimeSelectionPage(selectedMovie);
+                    selectedShowTime = ui.showTimeSelectionPage(selectedMovie, selectedCinema);
                     currentPage = selectedShowTime == null ? Page.MOVIE_SELECTION : Page.SEAT_SELECTION;
                 }
                 case SEAT_SELECTION -> {
@@ -108,7 +108,7 @@ public class Main {
                     }
                     else {
                         assert selectedSeats != null;
-                        Booking booking = new Booking(selectedShowTime, new ArrayList<>(selectedSeats));
+                        Booking booking = new Booking(selectedCinema, selectedShowTime, new ArrayList<>(selectedSeats));
                         boolean success = ui.confirmPaymentPage(booking, user, userBooking);
                         if(success)
                             System.out.println("Booking confirmed!");

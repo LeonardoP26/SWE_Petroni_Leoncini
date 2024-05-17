@@ -198,13 +198,13 @@ public class BookingDaoImpl implements BookingDao {
                         if(!bookingList.isEmpty())
                             prevBooking = bookingList.getLast();
                         else
-                            prevBooking = new Booking(null, null);
+                            prevBooking = new Booking(null,null, null);
                         if(prevBooking.getBookingNumber() != booking.getBookingNumber()){
                             prevBooking = booking;
                             ShowTime showTime = new ShowTime(res);
                             Cinema cinema = new Cinema(res);
                             showTime.setDate(LocalDateTime.parse(res.getString(8), DateTimeFormatter.ISO_LOCAL_DATE_TIME));
-                            showTime.setCinema(cinema);
+                            prevBooking.setCinema(cinema);
                             showTime.setMovie(new Movie(res));
                             showTime.setHall(HallFactory.createHall(res));
                             prevBooking.setShowTime(showTime);

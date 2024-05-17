@@ -19,7 +19,7 @@ public interface DatabaseService {
 
     void addMovie(@NotNull Movie movie) throws DatabaseFailedException;
 
-    void addShowTime(@NotNull ShowTime showTime) throws DatabaseFailedException, InvalidIdException;
+    void addShowTime(@NotNull ShowTime showTime, @NotNull Cinema cinema) throws DatabaseFailedException, InvalidIdException;
 
     void addMovie(@NotNull Movie movie, @NotNull Cinema cinema, @NotNull Hall hall, LocalDateTime date) throws DatabaseFailedException, InvalidIdException;
 
@@ -33,7 +33,7 @@ public interface DatabaseService {
 
     List<Movie> retrieveCinemaMovies(@NotNull Cinema cinema) throws InvalidIdException;
 
-    List<ShowTime> retrieveMovieShowTimes(@NotNull Movie movie) throws InvalidIdException;
+    List<ShowTime> retrieveMovieShowTimes(@NotNull Movie movie, @NotNull Cinema cinema) throws InvalidIdException, DatabaseFailedException;
 
     List<Seat> retrieveShowTimeHallSeats(@NotNull ShowTime showTime) throws InvalidIdException;
 
@@ -51,5 +51,5 @@ public interface DatabaseService {
 
     void deleteBooking(@NotNull Booking booking, @NotNull User user) throws DatabaseFailedException, InvalidIdException;
 
-    Hall retrieveShowTimeHall(@NotNull ShowTime showTime) throws InvalidIdException;
+    Hall retrieveShowTimeHall(@NotNull ShowTime showTime, @NotNull Cinema cinema) throws InvalidIdException, DatabaseFailedException;
 }

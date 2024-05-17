@@ -125,7 +125,7 @@ public class HallDaoTest {
     @Test
     public void getHall_success(){
         ShowTime testShowTime1 = CinemaDatabaseTest.getTestShowTime1();
-        Hall hall = hallDao.get(testShowTime1);
+        Hall hall = hallDao.get(testShowTime1, CinemaDatabaseTest.getTestCinema1());
         Hall dbHall = CinemaDatabaseTest.runQuery(
                 "SELECT * FROM Halls JOIN ShowTimes ON Halls.hall_id = ShowTimes.hall_id WHERE showtime_id = %d"
                         .formatted(testShowTime1.getId()),

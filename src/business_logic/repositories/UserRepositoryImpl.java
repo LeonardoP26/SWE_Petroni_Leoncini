@@ -105,4 +105,9 @@ public class UserRepositoryImpl extends Subject<DatabaseEntity> implements UserR
                 }
             });
     }
+
+    @Override
+    public HashMap<Integer, WeakReference<User>> getEntities() {
+        return entities;
+    }
 }

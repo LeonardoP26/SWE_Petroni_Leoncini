@@ -15,5 +15,5 @@ public interface HallDao extends Dao {
 
     void delete(@NotNull Hall hall) throws DatabaseFailedException;
 
-    Hall get(@NotNull ShowTime showTime);
+    Hall get(@NotNull ShowTime showTime, @NotNull Cinema cinema);
 }

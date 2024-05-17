@@ -10,6 +10,7 @@ import business_logic.services.DatabaseServiceImpl;
 import domain.*;
 import org.jetbrains.annotations.NotNull;
 
+import javax.xml.crypto.Data;
 import java.util.*;
 
 import static ui.InputOutputHandler.Page.*;
@@ -160,14 +161,14 @@ public class InputOutputHandler {
         }
     }
 
-    public ShowTime showTimeSelectionPage(@NotNull Movie movie) {
+    public ShowTime showTimeSelectionPage(@NotNull Movie movie, @NotNull Cinema cinema) {
         try {
-            List<ShowTime> showTimes = databaseService.retrieveMovieShowTimes(movie);
+            List<ShowTime> showTimes = databaseService.retrieveMovieShowTimes(movie, cinema);
             int input = chooseOption(showTimes.stream().map(ShowTime::getName).toList(), "Choose a show time");
             if (input == showTimes.size())
                 return null;
             return showTimes.get(input);
-        } catch (InvalidIdException e){
+        } catch (InvalidIdException | DatabaseFailedException e){
             System.out.println(e.getMessage());
             return null;
         }
@@ -394,7 +395,7 @@ public class InputOutputHandler {
         };
     }
 
-    public Page editBooking(@NotNull Booking booking, User user) {
+    public Page editBooking(@NotNull Booking booking, User user, @NotNull Cinema cinema) {
         System.out.println("What would you like to do?\n1. Change seats\n2. Delete this booking\n3. Back");
         int maxChoices = 3;
         int input;
@@ -410,8 +411,8 @@ public class InputOutputHandler {
             case 1 -> {
                 Hall hall;
                 try{
-                    hall = databaseService.retrieveShowTimeHall(booking.getShowTime());
-                } catch (InvalidIdException e) {
+                    hall = databaseService.retrieveShowTimeHall(booking.getShowTime(), cinema);
+                } catch (InvalidIdException | DatabaseFailedException e) {
                     System.out.println(e.getMessage());
                     hall = null;
                 }
@@ -432,8 +433,8 @@ public class InputOutputHandler {
             case 2 -> {
                 Hall hall;
                 try{
-                    hall = databaseService.retrieveShowTimeHall(booking.getShowTime());
-                } catch (InvalidIdException e) {
+                    hall = databaseService.retrieveShowTimeHall(booking.getShowTime(), cinema);
+                } catch (InvalidIdException | DatabaseFailedException e) {
                     System.out.println(e.getMessage());
                     hall = null;
                 }
