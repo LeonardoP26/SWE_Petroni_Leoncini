@@ -12,6 +12,7 @@ import domain.Hall;
 import domain.ShowTime;
 import org.jetbrains.annotations.NotNull;
 
+import javax.xml.crypto.Data;
 import java.lang.ref.WeakReference;
 import java.util.HashMap;
 import java.util.function.Consumer;
@@ -71,12 +72,22 @@ public class HallRepositoryImpl extends Subject<DatabaseEntity> implements HallR
 
     @Override
     public void delete(@NotNull Hall hall, @NotNull Cinema cinema) throws DatabaseFailedException, InvalidIdException {
-        if(hall.getId() == DatabaseEntity.ENTITY_WITHOUT_ID)
+        if (hall.getId() == DatabaseEntity.ENTITY_WITHOUT_ID)
             throw new InvalidIdException("This hall is not in the database.");
-        if(!cinema.getHalls().contains(hall))
+        if (!cinema.getHalls().contains(hall))
             throw new DatabaseFailedException("This hall doesn't belong to this cinema");
-        hallDao.delete(hall);
-        notifyObservers(hall);
+        try {
+            CinemaDatabase.withTransaction(() -> {
+                hallDao.delete(hall);
+                notifyObservers(hall);
+            });
+        } catch (Exception e) {
+            if (e instanceof DatabaseFailedException)
+                throw (DatabaseFailedException) e;
+            if (e instanceof InvalidIdException)
+                throw (InvalidIdException) e;
+            throw new RuntimeException(e);
+        }
         hall.resetId();
         cinema.getHalls().remove(hall);
     }
@@ -100,12 +111,12 @@ public class HallRepositoryImpl extends Subject<DatabaseEntity> implements HallR
 
 
     @Override
-    public void update(@NotNull DatabaseEntity entity) {
+    public void update(@NotNull DatabaseEntity entity) throws DatabaseFailedException, InvalidIdException {
         if (entity instanceof Cinema) {
-            ((Cinema) entity).getHalls().forEach(h -> {
+            for(Hall h : ((Cinema) entity).getHalls()) {
                 notifyObservers(h);
                 entities.remove(h.getId());
-            });
+            }
         }
     }
 

@@ -12,9 +12,11 @@ import domain.Movie;
 import domain.ShowTime;
 import org.jetbrains.annotations.NotNull;
 
+import javax.xml.crypto.Data;
 import java.lang.ref.WeakReference;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.function.Consumer;
 
 public class ShowTimeRepositoryImpl extends Subject<DatabaseEntity> implements ShowTimeRepository {
@@ -64,18 +66,10 @@ public class ShowTimeRepositoryImpl extends Subject<DatabaseEntity> implements S
 
     @Override
     public void update(@NotNull ShowTime showTime, @NotNull Cinema cinema, @NotNull Consumer<ShowTime> edits) throws DatabaseFailedException, InvalidIdException {
-        if(showTime.getHall() == null)
-            throw new DatabaseFailedException("Hall cannot be null");
-        if(showTime.getMovie() == null)
-            throw new DatabaseFailedException("Movie cannot be null");
         if(showTime.getId() == DatabaseEntity.ENTITY_WITHOUT_ID)
             throw new InvalidIdException("This showtime is not in the database.");
         if(cinema.getId() == DatabaseEntity.ENTITY_WITHOUT_ID)
             throw new InvalidIdException("This cinema is not in the database.");
-        if(showTime.getHall().getId() == DatabaseEntity.ENTITY_WITHOUT_ID)
-            throw new InvalidIdException("This hall is not in the database.");
-        if(showTime.getMovie().getId() == DatabaseEntity.ENTITY_WITHOUT_ID)
-            throw new InvalidIdException("This movie is not in the database.");
         if(!cinema.getShowTimes().contains(showTime))
             throw new DatabaseFailedException("This showtime does not belong to this cinema");
         if(!cinema.getHalls().contains(showTime.getHall()))
@@ -83,29 +77,43 @@ public class ShowTimeRepositoryImpl extends Subject<DatabaseEntity> implements S
 
         ShowTime copy = new ShowTime(showTime);
         edits.accept(copy);
+        if(showTime.getHall() == null)
+            throw new DatabaseFailedException("Hall cannot be null");
+        if(showTime.getMovie() == null)
+            throw new DatabaseFailedException("Movie cannot be null");
+        if(copy.getHall().getId() == DatabaseEntity.ENTITY_WITHOUT_ID)
+            throw new InvalidIdException("This hall is not in the database.");
+        if(copy.getMovie().getId() == DatabaseEntity.ENTITY_WITHOUT_ID)
+            throw new InvalidIdException("This movie is not in the database.");
+        if(!cinema.getHalls().contains(copy.getHall()))
+            throw new DatabaseFailedException("This showtime hall does not belong to this cinema");
         showTimeDao.update(showTime, copy);
         showTime.copy(copy);
     }
 
     @Override
     public void delete(@NotNull ShowTime showTime, @NotNull Cinema cinema) throws DatabaseFailedException, InvalidIdException {
-        if(showTime.getId() == DatabaseEntity.ENTITY_WITHOUT_ID)
+        if (showTime.getId() == DatabaseEntity.ENTITY_WITHOUT_ID)
             throw new InvalidIdException("This showtime is not in the database.");
-        if(!cinema.getHalls().contains(showTime.getHall()))
+        if (!cinema.getHalls().contains(showTime.getHall()))
             throw new DatabaseFailedException("This showtime hall does not belong to this cinema");
-        if(!cinema.getShowTimes().contains(showTime))
+        if (!cinema.getShowTimes().contains(showTime))
             throw new DatabaseFailedException("This showtime does not belong to this cinema");
-
-        showTimeDao.delete(showTime);
-        notifyObservers(showTime);
+        try {
+            CinemaDatabase.withTransaction(() -> {
+                showTimeDao.delete(showTime);
+                notifyObservers(showTime);
+            });
+        } catch (Exception e) {
+            if (e instanceof DatabaseFailedException)
+                throw (DatabaseFailedException) e;
+            if (e instanceof InvalidIdException)
+                throw (InvalidIdException) e;
+            throw new RuntimeException(e);
+        }
         cinema.getShowTimes().remove(showTime);
         entities.remove(showTime.getId());
-        if(entities.values().stream().noneMatch((st) -> {
-            ShowTime sht = st != null ? st.get() : null;
-            if(sht == null)
-                return false;
-            return sht.getMovie() == showTime.getMovie();
-        }))
+        if (cinema.getShowTimes().stream().noneMatch(sht -> sht.getMovie() == showTime.getMovie()))
             cinema.getMovies().remove(showTime.getMovie());
         showTime.resetId();
     }
@@ -137,8 +145,10 @@ public class ShowTimeRepositoryImpl extends Subject<DatabaseEntity> implements S
     }
 
     @Override
-    public void update(@NotNull DatabaseEntity entity) {
-        entities.forEach((key, value) -> {
+    public void update(@NotNull DatabaseEntity entity) throws DatabaseFailedException, InvalidIdException {
+        for(Map.Entry<Integer, WeakReference<ShowTime>> entrySet: entities.entrySet()){
+            Integer key = entrySet.getKey();
+            WeakReference<ShowTime> value = entrySet.getValue();
             ShowTime st = value != null ? value.get() : null;
             if (st == null) {
                 entities.remove(key);
@@ -146,6 +156,7 @@ public class ShowTimeRepositoryImpl extends Subject<DatabaseEntity> implements S
                 notifyObservers(st);
                 entities.remove(key);
             }
-        });
+        }
     }
+
 }

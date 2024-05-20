@@ -7,14 +7,18 @@ import business_logic.exceptions.InvalidIdException;
 import business_logic.exceptions.NotEnoughFundsException;
 import daos.UserDao;
 import daos.UserDaoImpl;
+import domain.Booking;
 import domain.DatabaseEntity;
 import domain.Seat;
 import domain.User;
 import org.jetbrains.annotations.NotNull;
 import utils.ThrowingConsumer;
 
+import javax.xml.crypto.Data;
 import java.lang.ref.WeakReference;
 import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
 
 public class UserRepositoryImpl extends Subject<DatabaseEntity> implements UserRepository {
 
@@ -69,8 +73,18 @@ public class UserRepositoryImpl extends Subject<DatabaseEntity> implements UserR
     public void delete(@NotNull User user) throws DatabaseFailedException, InvalidIdException {
         if(user.getId() == DatabaseEntity.ENTITY_WITHOUT_ID)
             throw new InvalidIdException("This user is not in the database.");
-        userDao.delete(user);
-        notifyObservers(user);
+        try {
+            CinemaDatabase.withTransaction(() -> {
+                userDao.delete(user);
+                notifyObservers(user);
+            });
+        } catch (Exception e){
+            if(e instanceof DatabaseFailedException)
+                throw (DatabaseFailedException) e;
+            if(e instanceof InvalidIdException)
+                throw (InvalidIdException) e;
+            throw new RuntimeException(e);
+        }
         entities.remove(user.getId());
         user.resetId();
     }
@@ -91,19 +105,30 @@ public class UserRepositoryImpl extends Subject<DatabaseEntity> implements UserR
 
 
     @Override
-    public void update(@NotNull DatabaseEntity entity) {
+    public void update(@NotNull DatabaseEntity entity) throws DatabaseFailedException, InvalidIdException {
         notifyObservers(entity);
-        if(!(entity instanceof User))
-            entities.forEach((key, value) -> {
+        if(!(entity instanceof User)) {
+            for (Map.Entry<Integer, WeakReference<User>> entrySet : entities.entrySet()) {
+                WeakReference<User> value = entrySet.getValue();
+                Integer key = entrySet.getKey();
                 User usr = value != null ? value.get() : null;
-                if(usr == null){
+                if (usr == null) {
                     entities.remove(key);
                 } else {
-                    usr.getBookings().removeIf(b ->
-                        entity == b.getShowTime() || (entity instanceof Seat && b.getSeats().contains(entity))
-                    );
+                    for (Iterator<Booking> it = usr.getBookings().iterator(); it.hasNext();) {
+                        Booking b = it.next();
+                        if (entity == b.getShowTime() || (entity instanceof Seat && b.getSeats().contains(entity))) {
+                            try {
+                                update(usr, (u) -> u.setBalance(u.getBalance() + b.getCost()));
+                            } catch (NotEnoughFundsException e) {
+                                throw new RuntimeException(e);
+                            }
+                            it.remove();
+                        }
+                    }
                 }
-            });
+            }
+        }
     }
 
     @Override

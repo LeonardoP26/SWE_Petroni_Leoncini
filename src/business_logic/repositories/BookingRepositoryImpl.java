@@ -12,6 +12,8 @@ import org.jetbrains.annotations.NotNull;
 import java.lang.ref.WeakReference;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.stream.Stream;
 
 public class BookingRepositoryImpl implements BookingRepository {
@@ -93,7 +95,7 @@ public class BookingRepositoryImpl implements BookingRepository {
     public void delete(@NotNull Booking booking, @NotNull User user) throws DatabaseFailedException, InvalidIdException {
         if (booking.getBookingNumber() == DatabaseEntity.ENTITY_WITHOUT_ID)
             throw new InvalidIdException("This booking is already not in the database");
-        if(user.getBookings() == null || user.getBookings().isEmpty() || !user.getBookings().contains(booking))
+        if(user.getBookings() == null || !user.getBookings().contains(booking))
             throw new DatabaseFailedException("This booking does not belong to this user.");
         if(booking.getShowTime() == null)
             throw new DatabaseFailedException("Show time is null");
@@ -101,10 +103,18 @@ public class BookingRepositoryImpl implements BookingRepository {
             throw new DatabaseFailedException("Show time's hall is null");
         if(booking.getSeats() == null)
             throw new DatabaseFailedException("Seats are null");
-        if(!user.getBookings().contains(booking))
-            throw new DatabaseFailedException("This booking doesnt belong to this user.");
-        bookingDao.delete(booking, user);
-        user.getBookings().remove(booking);
+        try{
+            CinemaDatabase.withTransaction(() -> {
+                bookingDao.delete(booking, user);
+                user.getBookings().remove(booking);
+            });
+        } catch (Exception e) {
+            if (e instanceof DatabaseFailedException)
+                throw (DatabaseFailedException) e;
+            if (e instanceof InvalidIdException)
+                throw (InvalidIdException) e;
+            throw new RuntimeException(e);
+        }
         booking.resetId();
     }
 
@@ -132,7 +142,9 @@ public class BookingRepositoryImpl implements BookingRepository {
     @Override
     public void update(@NotNull DatabaseEntity entity) {
         if(entity instanceof User || entity instanceof ShowTime || entity instanceof Seat){
-            entities.forEach((key, value) -> {
+            for(Map.Entry<Integer, WeakReference<Booking>> entrySet : entities.entrySet()) {
+                WeakReference<Booking> value = entrySet.getValue();
+                Integer key = entrySet.getKey();
                 Booking b = value != null ? value.get() : null;
                 if (b == null) {
                     entities.remove(key);
@@ -143,7 +155,7 @@ public class BookingRepositoryImpl implements BookingRepository {
                     entities.remove(b.getId());
                     b.resetId();
                 }
-            });
+            }
         }
     }
 

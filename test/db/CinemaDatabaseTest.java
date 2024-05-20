@@ -155,6 +155,7 @@ public class CinemaDatabaseTest extends CinemaDatabase{
                         testShowTime1.setHall(testHall1);
                         testShowTime1.setMovie(testMovie1);
                         testShowTime1.setDate(now);
+                        testCinema1.getShowTimes().add(testShowTime1);
                     }
                 }
             }
@@ -167,6 +168,7 @@ public class CinemaDatabaseTest extends CinemaDatabase{
                         testShowTime2.setHall(testHall2);
                         testShowTime2.setMovie(testMovie2);
                         testShowTime2.setDate(now);
+                        testCinema2.getShowTimes().add(testShowTime2);
                     }
                 }
             }

@@ -83,4 +83,8 @@ public class Booking implements DatabaseEntity {
         this.cinema = booking.getCinema();
     }
 
+    public long getCost(){
+        return (long) getShowTime().getHall().getCost() * getSeats().size();
+    }
+
 }

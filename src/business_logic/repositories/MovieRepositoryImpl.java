@@ -64,10 +64,20 @@ public class MovieRepositoryImpl extends Subject<DatabaseEntity> implements Movi
 
     @Override
     public void delete(@NotNull Movie movie) throws DatabaseFailedException, InvalidIdException {
-        if(movie.getId() == DatabaseEntity.ENTITY_WITHOUT_ID)
+        if (movie.getId() == DatabaseEntity.ENTITY_WITHOUT_ID)
             throw new InvalidIdException("This movie is not in the database.");
-        movieDao.delete(movie);
-        notifyObservers(movie);
+        try {
+            CinemaDatabase.withTransaction(() -> {
+                movieDao.delete(movie);
+                notifyObservers(movie);
+            });
+        } catch (Exception e) {
+            if (e instanceof DatabaseFailedException)
+                throw (DatabaseFailedException) e;
+            if (e instanceof InvalidIdException)
+                throw (InvalidIdException) e;
+            throw new RuntimeException(e);
+        }
         entities.remove(movie.getId());
         movie.resetId();
     }

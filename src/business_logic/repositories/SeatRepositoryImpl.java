@@ -70,24 +70,34 @@ public class SeatRepositoryImpl extends Subject<DatabaseEntity> implements SeatR
     }
 
     @Override
-    public void update(@NotNull DatabaseEntity entity) {
+    public void update(@NotNull DatabaseEntity entity) throws DatabaseFailedException, InvalidIdException {
         if(entity instanceof Hall) {
-            ((Hall) entity).getSeats().forEach(s -> {
+            for(Seat s : ((Hall) entity).getSeats()) {
                 notifyObservers(s);
                 entities.remove(s.getId());
                 s.resetId();
-            });
+            }
         }
     }
 
     @Override
     public void delete(@NotNull Seat seat, @NotNull Hall hall) throws DatabaseFailedException, InvalidIdException {
-        if(seat.getId() == DatabaseEntity.ENTITY_WITHOUT_ID)
+        if (seat.getId() == DatabaseEntity.ENTITY_WITHOUT_ID)
             throw new InvalidIdException("This seat is not in the database.");
-        if(!hall.getSeats().contains(seat))
+        if (!hall.getSeats().contains(seat))
             throw new DatabaseFailedException("This seat does not belong to this Hall.");
-        seatDao.delete(seat);
-        notifyObservers(seat);
+        try {
+            CinemaDatabase.withTransaction(() -> {
+                seatDao.delete(seat);
+                notifyObservers(seat);
+            });
+        } catch (Exception e) {
+            if (e instanceof DatabaseFailedException)
+                throw (DatabaseFailedException) e;
+            if (e instanceof InvalidIdException)
+                throw (InvalidIdException) e;
+            throw new RuntimeException(e);
+        }
         hall.getSeats().remove(seat);
     }
 

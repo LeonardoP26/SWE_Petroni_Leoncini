@@ -63,8 +63,18 @@ public class CinemaRepositoryImpl extends Subject<DatabaseEntity> implements Cin
     public void delete(@NotNull Cinema cinema) throws DatabaseFailedException, InvalidIdException {
         if(cinema.getId() == DatabaseEntity.ENTITY_WITHOUT_ID)
             throw new InvalidIdException("This cinema is not in the database.");
-        cinemaDao.delete(cinema);
-        notifyObservers(cinema);
+        try{
+            CinemaDatabase.withTransaction(() -> {
+                cinemaDao.delete(cinema);
+                notifyObservers(cinema);
+            });
+        } catch (Exception e) {
+            if (e instanceof DatabaseFailedException)
+                throw (DatabaseFailedException) e;
+            if (e instanceof InvalidIdException)
+                throw (InvalidIdException) e;
+            throw new RuntimeException(e);
+        }
         entities.remove(cinema.getId());
         cinema.resetId();
     }
