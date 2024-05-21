@@ -12,7 +12,8 @@ public class Hall implements DatabaseEntity {
     protected int id = ENTITY_WITHOUT_ID;
     protected final int cost = 10;
     private final HallTypes type = HallTypes.STANDARD;
-    protected ArrayList<Seat> seats = null;
+    private Cinema cinema;
+    protected ArrayList<Seat> seats = new ArrayList<>();
     protected int hallNumber;
 
     public enum HallTypes {
@@ -21,15 +22,17 @@ public class Hall implements DatabaseEntity {
 
     public Hall(@NotNull ResultSet res) throws SQLException {
         this.id = res.getInt("hall_id");
-        this.hallNumber = res.getInt("hall_number");
+//        this.hallNumber = res.getInt("hall_number");
     }
 
     public Hall(@NotNull Hall hall) {
         this.hallNumber = hall.getHallNumber();
+        this.cinema = hall.getCinema();
     }
 
-    public Hall(int hallNumber) {
+    public Hall(int hallNumber, Cinema cinema) {
         this.hallNumber = hallNumber;
+        this.cinema = cinema;
     }
 
     @Override
@@ -63,6 +66,14 @@ public class Hall implements DatabaseEntity {
 
     public void setId(@NotNull ResultSet resultSet) throws SQLException {
         this.id = resultSet.getInt("hall_id");
+    }
+
+    public Cinema getCinema() {
+        return cinema;
+    }
+
+    public void setCinema(Cinema cinema) {
+        this.cinema = cinema;
     }
 
     @Override

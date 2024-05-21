@@ -15,6 +15,7 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import java.lang.ref.Reference;
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.List;
@@ -40,7 +41,6 @@ public class BookingRepositoryTest {
     @Test
     public void insert_success() {
         Booking b = new Booking(
-                CinemaDatabaseTest.getTestCinema1(),
                 CinemaDatabaseTest.getTestShowTime1(),
                 new ArrayList<>(CinemaDatabaseTest.getTestSeats().subList(0, 2))
         );
@@ -66,7 +66,7 @@ public class BookingRepositoryTest {
         Booking b = CinemaDatabaseTest.getTestBooking1();
         user.getBookings().remove(b);
         List<Booking> bookings = assertDoesNotThrow(() -> bookingRepo.get(user));
-        assertTrue(user.getBookings().containsAll(bookings));
+        assertTrue(bookingRepo.getEntities().values().stream().map(Reference::get).toList().containsAll(bookings));
     }
 
 }

@@ -18,4 +18,6 @@ public interface SeatDao extends Dao {
     void delete(@NotNull Seat seat) throws DatabaseFailedException;
 
     List<Seat> get(@NotNull ShowTime showTime);
+
+    Seat get(Seat seat);
 }

@@ -13,7 +13,6 @@ import domain.ShowTime;
 import org.jetbrains.annotations.NotNull;
 
 import java.lang.ref.WeakReference;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.function.Consumer;
@@ -49,8 +48,6 @@ public class SeatRepositoryImpl extends Subject<DatabaseEntity> implements SeatR
     public void insert(@NotNull Seat seat, @NotNull Hall hall) throws DatabaseFailedException, InvalidIdException {
         if(hall.getId() == DatabaseEntity.ENTITY_WITHOUT_ID)
             throw new InvalidIdException("This hall is not in the database.");
-        if(!hall.getSeats().contains(seat))
-            throw new DatabaseFailedException("This seat does not belong to this Hall.");
         seatDao.insert(seat, hall);
         entities.put(seat.getId(), new WeakReference<>(seat));
         hall.getSeats().add(seat);
@@ -106,25 +103,37 @@ public class SeatRepositoryImpl extends Subject<DatabaseEntity> implements SeatR
         if(showTime.getId() == DatabaseEntity.ENTITY_WITHOUT_ID)
             throw new InvalidIdException("This showtime is not in the database.");
         List<Seat> seats = seatDao.get(showTime);
-        seats = seats.stream().map(s -> {
-            Seat cached = entities.get(s.getId()) != null ? entities.get(s.getId()).get() : null;
-            if(cached == null) {
-                entities.put(s.getId(), new WeakReference<>(s));
-                cached = s;
-            } else {
-                cached.setRow(s.getRow());
-                cached.setNumber(s.getNumber());
-                cached.setBooked(s.isBooked());
-            }
-            return cached;
-        }).toList();
-        showTime.getHall().setSeats(new ArrayList<>(seats));
+        seats = seats.stream().map(this::findForCaching).toList();
         return seats;
     }
+
+    @Override
+    public Seat get(Seat seat) throws InvalidIdException {
+        if(seat.getId() == DatabaseEntity.ENTITY_WITHOUT_ID)
+            throw new InvalidIdException("This seat is not in the database.");
+        return findForCaching(seatDao.get(seat));
+    }
+
 
 
     @Override
     public HashMap<Integer, WeakReference<Seat>> getEntities() {
         return entities;
     }
+
+    private Seat findForCaching(Seat seat){
+        if(seat == null)
+            return null;
+        Seat cached = entities.get(seat.getId()) != null ? entities.get(seat.getId()).get() : null;
+        if(cached == null) {
+            entities.put(seat.getId(), new WeakReference<>(seat));
+            cached = seat;
+        } else {
+            cached.setRow(seat.getRow());
+            cached.setNumber(seat.getNumber());
+            cached.setBooked(seat.isBooked());
+        }
+        return cached;
+    }
+
 }

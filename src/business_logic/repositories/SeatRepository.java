@@ -24,5 +24,7 @@ public interface SeatRepository extends Observer<DatabaseEntity> {
 
     List<Seat> get(@NotNull ShowTime showTime) throws InvalidIdException;
 
+    Seat get(Seat seat) throws InvalidIdException;
+
     HashMap<Integer, WeakReference<Seat>> getEntities();
 }

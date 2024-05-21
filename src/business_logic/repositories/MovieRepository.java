@@ -18,4 +18,6 @@ public interface MovieRepository {
     void delete(@NotNull Movie movie) throws DatabaseFailedException, InvalidIdException;
 
     List<Movie> get(@NotNull Cinema cinema) throws InvalidIdException;
+
+    Movie get(Movie movie) throws InvalidIdException;
 }

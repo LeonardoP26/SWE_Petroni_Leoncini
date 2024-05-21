@@ -30,4 +30,9 @@ public class FakeSeatDao implements SeatDao {
     public List<Seat> get(@NotNull ShowTime showTime) {
         return showTime.getHall().getSeats();
     }
+
+    @Override
+    public Seat get(Seat seat) {
+        return seat;
+    }
 }

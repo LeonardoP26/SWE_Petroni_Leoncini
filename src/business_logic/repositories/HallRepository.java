@@ -15,13 +15,15 @@ import java.util.function.Consumer;
 
 public interface HallRepository extends Observer<DatabaseEntity> {
 
-    void insert(Hall hall, @NotNull Cinema cinema) throws DatabaseFailedException, InvalidIdException;
+    void insert(Hall hall) throws DatabaseFailedException, InvalidIdException;
 
-    void update(@NotNull Hall hall, @NotNull Cinema cinema, @NotNull Consumer<Hall> apply) throws DatabaseFailedException, InvalidIdException;
+    void update(@NotNull Hall hall, @NotNull Consumer<Hall> apply) throws DatabaseFailedException, InvalidIdException;
 
-    void delete(@NotNull Hall hall, @NotNull Cinema cinema) throws DatabaseFailedException, InvalidIdException;
+    void delete(@NotNull Hall hall) throws DatabaseFailedException, InvalidIdException;
 
-    Hall get(@NotNull ShowTime showTime, @NotNull Cinema cinema) throws InvalidIdException, DatabaseFailedException;
+    Hall get(@NotNull ShowTime showTime) throws InvalidIdException, DatabaseFailedException;
+
+    Hall get(Hall hall) throws InvalidIdException;
 
     HashMap<Integer, WeakReference<Hall>> getEntities();
 

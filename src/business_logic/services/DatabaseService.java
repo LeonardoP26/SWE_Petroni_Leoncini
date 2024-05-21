@@ -13,15 +13,15 @@ import java.util.List;
 
 public interface DatabaseService {
 
-    void addHall(@NotNull Hall hall, @NotNull Cinema cinema) throws DatabaseFailedException, InvalidIdException;
+    void addHall(@NotNull Hall hall) throws DatabaseFailedException, InvalidIdException;
 
     void addSeat(@NotNull Seat seat, @NotNull Hall hall) throws DatabaseFailedException, InvalidIdException;
 
     void addMovie(@NotNull Movie movie) throws DatabaseFailedException;
 
-    void addShowTime(@NotNull ShowTime showTime, @NotNull Cinema cinema) throws DatabaseFailedException, InvalidIdException;
+    void addShowTime(@NotNull ShowTime showTime) throws DatabaseFailedException, InvalidIdException;
 
-    void addMovie(@NotNull Movie movie, @NotNull Cinema cinema, @NotNull Hall hall, LocalDateTime date) throws DatabaseFailedException, InvalidIdException;
+    void addMovie(@NotNull Movie movie, @NotNull Hall hall, LocalDateTime date) throws DatabaseFailedException, InvalidIdException;
 
     void addCinema(@NotNull Cinema cinema) throws DatabaseFailedException;
 
@@ -51,5 +51,5 @@ public interface DatabaseService {
 
     void deleteBooking(@NotNull Booking booking, @NotNull User user) throws DatabaseFailedException, InvalidIdException;
 
-    Hall retrieveShowTimeHall(@NotNull ShowTime showTime, @NotNull Cinema cinema) throws InvalidIdException, DatabaseFailedException;
+    Hall retrieveShowTimeHall(@NotNull Booking booking) throws InvalidIdException, DatabaseFailedException;
 }

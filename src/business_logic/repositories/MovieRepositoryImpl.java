@@ -87,19 +87,26 @@ public class MovieRepositoryImpl extends Subject<DatabaseEntity> implements Movi
         if(cinema.getId() == DatabaseEntity.ENTITY_WITHOUT_ID)
             throw new InvalidIdException("This cinema is not in the database.");
         List<Movie> movies = movieDao.get(cinema);
-        return movies.stream().map(m -> {
-            Movie cached = entities.get(m.getId()) != null ? entities.get(m.getId()).get() : null;
-            if(cached == null) {
-                entities.put(m.getId(), new WeakReference<>(m));
-                cached = m;
-            } else {
-                cached.setName(m.getName());
-                cached.setDuration(m.getDuration());
-            }
-            if(!cinema.getMovies().contains(cached))
-                cinema.getMovies().add(cached);
-            return cached;
-        }).toList();
+        return movies.stream().map(this::findForCaching).toList();
+    }
+
+    @Override
+    public Movie get(Movie movie) throws InvalidIdException {
+        if(movie.getId() == DatabaseEntity.ENTITY_WITHOUT_ID)
+            throw new InvalidIdException("This movie is not in the database.");
+        return findForCaching(movieDao.get(movie));
+    }
+
+    private Movie findForCaching(Movie movie){
+        Movie cached = entities.get(movie.getId()) != null ? entities.get(movie.getId()).get() : null;
+        if(cached == null) {
+            entities.put(movie.getId(), new WeakReference<>(movie));
+            cached = movie;
+        } else {
+            cached.setName(movie.getName());
+            cached.setDuration(movie.getDuration());
+        }
+        return cached;
     }
 
 }

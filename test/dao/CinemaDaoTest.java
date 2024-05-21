@@ -39,7 +39,9 @@ public class CinemaDaoTest {
                 (res) -> {
                     if(!res.next())
                         return null;
-                    return new Cinema(res);
+                    Cinema cinema = new Cinema(res);
+                    cinema.setName(res.getString("cinema_name"));
+                    return cinema;
                 }
         );
         assertNotNull(dbCinema);
@@ -87,7 +89,9 @@ public class CinemaDaoTest {
                 (res) -> {
                     if(!res.next())
                         return null;
-                    return new Cinema(res);
+                    Cinema cinema = new Cinema(res);
+                    cinema.setName(res.getString("cinema_name"));
+                    return cinema;
                 }
         );
         assertNotNull(dbCinema);
@@ -145,7 +149,7 @@ public class CinemaDaoTest {
 
     @Test
     public void getCinema_success() {
-        List<Cinema> cinemas = assertDoesNotThrow(cinemaDao::get);
+        List<Cinema> cinemas = assertDoesNotThrow(() -> cinemaDao.get());
         int count = CinemaDatabaseTest.runQuery(
                 "SELECT COUNT(*) FROM Cinemas",
                 (res) -> {

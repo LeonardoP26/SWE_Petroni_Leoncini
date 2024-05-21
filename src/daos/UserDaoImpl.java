@@ -130,12 +130,17 @@ public class UserDaoImpl implements UserDao {
                 s.setString(1, username);
                 s.setString(2, password);
                 try(ResultSet res = s.executeQuery()){
-                    if(res.next())
-                        return new User(res);
+                    if(res.next()) {
+                        User user = new User(res);
+                        user.setUsername(res.getString("username"));
+                        user.setPassword(res.getString("password"));
+                        user.setBalance(res.getLong("balance"));
+                        return user;
+                    }
                     return null;
                 }
             }
-        } catch (SQLException ex) {
+        } catch (Exception ex) {
             throw new RuntimeException(ex);
         }
     }

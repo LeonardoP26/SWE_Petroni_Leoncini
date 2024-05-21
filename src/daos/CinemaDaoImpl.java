@@ -2,9 +2,7 @@ package daos;
 
 import business_logic.CinemaDatabase;
 import business_logic.exceptions.DatabaseFailedException;
-import business_logic.exceptions.InvalidIdException;
 import domain.Cinema;
-import domain.DatabaseEntity;
 import org.jetbrains.annotations.NotNull;
 import org.sqlite.SQLiteErrorCode;
 import org.sqlite.SQLiteException;
@@ -125,7 +123,33 @@ public class CinemaDaoImpl implements CinemaDao {
             Connection conn = CinemaDatabase.getConnection(dbUrl);
             try(PreparedStatement s = conn.prepareStatement("SELECT * FROM Cinemas")) {
                 try(ResultSet res = s.executeQuery()){
-                    return getList(res, (cinemaList) -> new Cinema(res));
+                    return getList(res, (cinemaList) -> {
+                        Cinema c = new Cinema(res);
+                        c.setName(res.getString("cinema_name"));
+                        return c;
+                    });
+                }
+            } finally {
+                if(conn.getAutoCommit())
+                    conn.close();
+            }
+        } catch (Exception e){
+            throw new RuntimeException(e);
+        }
+    }
+
+    @Override
+    public Cinema get(Cinema cinema){
+        try {
+            Connection conn = CinemaDatabase.getConnection(dbUrl);
+            try(PreparedStatement s = conn.prepareStatement("SELECT * FROM Cinemas WHERE cinema_id = ?")) {
+                s.setInt(1, cinema.getId());
+                try(ResultSet res = s.executeQuery()){
+                    if(res.next()){
+                        cinema.setName(res.getString("cinema_name"));
+                        return cinema;
+                    }
+                    return null;
                 }
             } finally {
                 if(conn.getAutoCommit())

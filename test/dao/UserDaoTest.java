@@ -90,7 +90,11 @@ public class UserDaoTest {
             (res) -> {
                 if (!res.next())
                     return null;
-                return new User(res);
+                User user = new User(res);
+                user.setUsername(res.getString("username"));
+                user.setPassword(res.getString("password"));
+                user.setBalance(res.getLong("balance"));
+                return user;
             }
         );
         assertNotNull(dbUser);

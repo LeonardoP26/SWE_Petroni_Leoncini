@@ -40,7 +40,10 @@ public class MovieDaoTest {
                 (res) -> {
                     if(!res.next())
                         return null;
-                    return new Movie(res);
+                    Movie m = new Movie(res);
+                    m.setName(res.getString("movie_name"));
+                    m.setDuration(Duration.of(res.getLong("duration"), ChronoUnit.MINUTES));
+                    return m;
                 }
         );
         assertEquals(newMovie.getName(), dbMovie.getName());
@@ -78,7 +81,10 @@ public class MovieDaoTest {
                 (res) -> {
                     if(!res.next())
                         return null;
-                    return new Movie(res);
+                    Movie m = new Movie(res);
+                    m.setName(res.getString("movie_name"));
+                    m.setDuration(Duration.of(res.getLong("duration"), ChronoUnit.MINUTES));
+                    return m;
                 }
         );
         assertNotNull(dbMovie);

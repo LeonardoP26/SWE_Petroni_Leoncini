@@ -19,8 +19,8 @@ public class ThreeDHall extends Hall {
         super(hall);
     }
 
-    public ThreeDHall(int hallNumber){
-        super(hallNumber);
+    public ThreeDHall(int hallNumber, Cinema cinema){
+        super(hallNumber, cinema);
     }
 
     @Override

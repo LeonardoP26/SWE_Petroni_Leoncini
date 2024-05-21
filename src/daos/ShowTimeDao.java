@@ -19,4 +19,6 @@ public interface ShowTimeDao extends Dao {
 
     List<ShowTime> get(@NotNull Movie movie, @NotNull Cinema cinema);
 
+    ShowTime get(ShowTime showTime);
+
 }

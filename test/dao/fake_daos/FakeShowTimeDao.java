@@ -43,4 +43,9 @@ public class FakeShowTimeDao implements ShowTimeDao {
             return List.of(CinemaDatabaseTest.getTestShowTime2());
         return List.of();
     }
+
+    @Override
+    public ShowTime get(ShowTime showTime) {
+        return showTime;
+    }
 }

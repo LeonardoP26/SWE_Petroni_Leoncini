@@ -18,8 +18,8 @@ public class ImaxHall extends Hall {
         super(hall);
     }
 
-    public ImaxHall(int hallNumber){
-        super(hallNumber);
+    public ImaxHall(int hallNumber, Cinema cinema){
+        super(hallNumber, cinema);
     }
 
     @Override

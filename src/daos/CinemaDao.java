@@ -17,4 +17,5 @@ public interface CinemaDao extends Dao{
 
     List<Cinema> get();
 
+    Cinema get(Cinema cinema);
 }

@@ -137,17 +137,17 @@ public class ShowTimeDaoImpl implements ShowTimeDao {
         try {
             Connection conn = CinemaDatabase.getConnection(dbUrl);
             try(PreparedStatement s = conn.prepareStatement(
-                    "SELECT * FROM ShowTimes JOIN Halls on ShowTimes.hall_id = Halls.hall_id WHERE movie_id = ? AND cinema_id = ?"
+                    "SELECT showtime_id, movie_id, Halls.hall_id, cinema_id, date FROM ShowTimes JOIN Halls on ShowTimes.hall_id = Halls.hall_id WHERE movie_id = ? AND cinema_id = ?"
             )) {
                 s.setInt(1, movie.getId());
                 s.setInt(2, cinema.getId());
                 try(ResultSet res = s.executeQuery()){
                     return getList(res, (showTimeList) -> {
-                        Hall hall = HallFactory.createHall(res);
+                        Hall hall = new Hall(res);
                         ShowTime showTime = new ShowTime(res);
                         showTime.setMovie(movie);
                         showTime.setHall(hall);
-                        showTime.setDate(LocalDateTime.parse(res.getString(4), DateTimeFormatter.ISO_LOCAL_DATE_TIME));
+                        showTime.setDate(LocalDateTime.parse(res.getString("date"), DateTimeFormatter.ISO_LOCAL_DATE_TIME));
                         return showTime;
                     });
                 }
@@ -160,4 +160,29 @@ public class ShowTimeDaoImpl implements ShowTimeDao {
         }
     }
 
+    @Override
+    public ShowTime get(ShowTime showTime) {
+        try {
+            Connection conn = CinemaDatabase.getConnection(dbUrl);
+            try (PreparedStatement s = conn.prepareStatement(
+                    "SELECT * FROM ShowTimes WHERE showtime_id = ?"
+            )){
+                s.setInt(1, showTime.getId());
+                try(ResultSet res = s.executeQuery()){
+                    if(res.next()){
+                        showTime.setMovie(new Movie(res));
+                        showTime.setHall(new Hall(res));
+                        showTime.setDate(LocalDateTime.parse(res.getString(4), DateTimeFormatter.ISO_LOCAL_DATE_TIME));
+                        return showTime;
+                    }
+                    return null;
+                }
+            } finally {
+                if(conn.getAutoCommit())
+                    conn.close();
+            }
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
 }

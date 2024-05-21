@@ -395,7 +395,7 @@ public class InputOutputHandler {
         };
     }
 
-    public Page editBooking(@NotNull Booking booking, User user, @NotNull Cinema cinema) {
+    public Page editBooking(@NotNull Booking booking, User user) {
         System.out.println("What would you like to do?\n1. Change seats\n2. Delete this booking\n3. Back");
         int maxChoices = 3;
         int input;
@@ -409,13 +409,7 @@ public class InputOutputHandler {
         }
         return switch(input){
             case 1 -> {
-                Hall hall;
-                try{
-                    hall = databaseService.retrieveShowTimeHall(booking.getShowTime(), cinema);
-                } catch (InvalidIdException | DatabaseFailedException e) {
-                    System.out.println(e.getMessage());
-                    hall = null;
-                }
+                Hall hall = booking.getShowTime().getHall();
                 List<Seat> seats;
                 try {
                     seats = databaseService.retrieveShowTimeHallSeats(booking.getShowTime());
@@ -431,13 +425,7 @@ public class InputOutputHandler {
                 yield SEAT_SELECTION;
             }
             case 2 -> {
-                Hall hall;
-                try{
-                    hall = databaseService.retrieveShowTimeHall(booking.getShowTime(), cinema);
-                } catch (InvalidIdException | DatabaseFailedException e) {
-                    System.out.println(e.getMessage());
-                    hall = null;
-                }
+                Hall hall = booking.getShowTime().getHall();
                 if(hall == null) {
                     System.out.println("The hall does not exist anymore. Probably the show time has been canceled.");
                     yield EDIT_BOOKINGS;

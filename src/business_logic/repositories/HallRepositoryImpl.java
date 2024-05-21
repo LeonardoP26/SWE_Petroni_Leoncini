@@ -12,9 +12,9 @@ import domain.Hall;
 import domain.ShowTime;
 import org.jetbrains.annotations.NotNull;
 
-import javax.xml.crypto.Data;
 import java.lang.ref.WeakReference;
 import java.util.HashMap;
+import java.util.Map;
 import java.util.function.Consumer;
 
 public class HallRepositoryImpl extends Subject<DatabaseEntity> implements HallRepository {
@@ -47,35 +47,34 @@ public class HallRepositoryImpl extends Subject<DatabaseEntity> implements HallR
     }
 
     @Override
-    public void insert(Hall hall, @NotNull Cinema cinema) throws DatabaseFailedException, InvalidIdException {
-        if(cinema.getId() == DatabaseEntity.ENTITY_WITHOUT_ID)
+    public void insert(Hall hall) throws DatabaseFailedException, InvalidIdException {
+        if(hall.getCinema() == null)
+            throw new DatabaseFailedException("Cinema can not be null.");
+        if(hall.getCinema().getId() == DatabaseEntity.ENTITY_WITHOUT_ID)
             throw new InvalidIdException("This cinema is not in the database.");
-        hallDao.insert(hall, cinema);
+        hallDao.insert(hall, hall.getCinema());
         entities.put(hall.getId(), new WeakReference<>(hall));
-        if(!cinema.getHalls().contains(hall))
-            cinema.getHalls().add(hall);
     }
 
     @Override
-    public void update(@NotNull Hall hall, @NotNull Cinema cinema, @NotNull Consumer<Hall> apply) throws DatabaseFailedException, InvalidIdException {
+    public void update(@NotNull Hall hall, @NotNull Consumer<Hall> apply) throws DatabaseFailedException, InvalidIdException {
         if(hall.getId() == DatabaseEntity.ENTITY_WITHOUT_ID)
             throw new InvalidIdException("This hall is not in the database.");
-        if(cinema.getId() == DatabaseEntity.ENTITY_WITHOUT_ID)
-            throw new InvalidIdException("This cinema is not in the database.");
-        if(!cinema.getHalls().contains(hall))
-            throw new DatabaseFailedException("This hall doesn't belong to this cinema");
         Hall copy = new Hall(hall);
         apply.accept(copy);
-        hallDao.update(hall, copy, cinema);
+        if(copy.getCinema() == null)
+            throw new DatabaseFailedException("Cinema can not be null.");
+        if(copy.getCinema().getId() == DatabaseEntity.ENTITY_WITHOUT_ID)
+            throw new InvalidIdException("This cinema is not in the database.");
+
+        hallDao.update(hall, copy, copy.getCinema());
         hall.copy(copy);
     }
 
     @Override
-    public void delete(@NotNull Hall hall, @NotNull Cinema cinema) throws DatabaseFailedException, InvalidIdException {
+    public void delete(@NotNull Hall hall) throws DatabaseFailedException, InvalidIdException {
         if (hall.getId() == DatabaseEntity.ENTITY_WITHOUT_ID)
             throw new InvalidIdException("This hall is not in the database.");
-        if (!cinema.getHalls().contains(hall))
-            throw new DatabaseFailedException("This hall doesn't belong to this cinema");
         try {
             CinemaDatabase.withTransaction(() -> {
                 hallDao.delete(hall);
@@ -89,33 +88,38 @@ public class HallRepositoryImpl extends Subject<DatabaseEntity> implements HallR
             throw new RuntimeException(e);
         }
         hall.resetId();
-        cinema.getHalls().remove(hall);
     }
 
     @Override
-    public Hall get(@NotNull ShowTime showTime, @NotNull Cinema cinema) throws InvalidIdException, DatabaseFailedException {
+    public Hall get(@NotNull ShowTime showTime) throws InvalidIdException, DatabaseFailedException {
         if(showTime.getId() == DatabaseEntity.ENTITY_WITHOUT_ID)
             throw new InvalidIdException("This showtime is not in the database.");
-        if(!cinema.getShowTimes().contains(showTime))
-            throw new DatabaseFailedException("This showtime doesn't belong to this cinema");
-        Hall hall = hallDao.get(showTime, cinema);
+        Hall hall = hallDao.get(showTime);
         Hall cached = entities.get(hall.getId()) != null ? entities.get(hall.getId()).get() : null;
-        if(cached == null) {
-            entities.put(hall.getId(), new WeakReference<>(hall));
-            return hall;
-        }
-        // TODO Seats are not tracked
-        cached.copy(hall);
-        return cached;
+        return findForCaching(cached);
+    }
+
+    @Override
+    public Hall get(Hall hall) throws InvalidIdException {
+        if(hall.getId() == DatabaseEntity.ENTITY_WITHOUT_ID)
+            throw new InvalidIdException("This hall is not in the database.");
+        return findForCaching(hallDao.get(hall));
     }
 
 
     @Override
     public void update(@NotNull DatabaseEntity entity) throws DatabaseFailedException, InvalidIdException {
         if (entity instanceof Cinema) {
-            for(Hall h : ((Cinema) entity).getHalls()) {
-                notifyObservers(h);
-                entities.remove(h.getId());
+            for(Map.Entry<Integer, WeakReference<Hall>> entrySet : entities.entrySet()) {
+                Hall h = entrySet.getValue() != null ? entrySet.getValue().get() : null;
+                Integer key = entrySet.getKey();
+                if(h == null)
+                    entities.remove(key);
+                else if(h.getCinema() == entity) {
+                    notifyObservers(h);
+                    entities.remove(key);
+                    h.resetId();
+                }
             }
         }
     }
@@ -125,6 +129,16 @@ public class HallRepositoryImpl extends Subject<DatabaseEntity> implements HallR
         return entities;
     }
 
-
+    private Hall findForCaching(Hall hall){
+        if(hall == null)
+            return null;
+        Hall cached = entities.get(hall.getId()) != null ? entities.get(hall.getId()).get() : null;
+        if(cached == null) {
+            entities.put(hall.getId(), new WeakReference<>(hall));
+            return hall;
+        }
+        cached.copy(hall);
+        return cached;
+    }
 
 }

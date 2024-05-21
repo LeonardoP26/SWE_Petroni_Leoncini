@@ -20,6 +20,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Objects;
 
 public class BookingDaoImpl implements BookingDao {
 
@@ -65,6 +66,8 @@ public class BookingDaoImpl implements BookingDao {
                         if (!res.next())
                             throw new DatabaseFailedException("Database insertion failed.");
                         int bookingNumber = res.getInt("booking_number");
+                        if (bookingNumber == 0)
+                            bookingNumber = 1;
                         StringBuilder sql = new StringBuilder("INSERT INTO Bookings(showtime_id, seat_id, user_id, booking_number) VALUES ");
                         for (Seat seat : seats) {
                             sql.append("(%d, %d, %d, %d), ".formatted(showTime.getId(), seat.getId(), user.getId(), bookingNumber));
@@ -192,21 +195,16 @@ public class BookingDaoImpl implements BookingDao {
             )) {
                 s.setInt(1, user.getId());
                 try(ResultSet res = s.executeQuery()){
-                    return getList(res, (bookingList) -> {
+                    List<Booking> userBookings = getList(res, (bookingList) -> {
                         Booking booking = new Booking(res);
                         Booking prevBooking;
                         if(!bookingList.isEmpty())
                             prevBooking = bookingList.getLast();
                         else
-                            prevBooking = new Booking(null,null, null);
+                            prevBooking = new Booking(null,null);
                         if(prevBooking.getBookingNumber() != booking.getBookingNumber()){
                             prevBooking = booking;
                             ShowTime showTime = new ShowTime(res);
-                            Cinema cinema = new Cinema(res);
-                            showTime.setDate(LocalDateTime.parse(res.getString(8), DateTimeFormatter.ISO_LOCAL_DATE_TIME));
-                            prevBooking.setCinema(cinema);
-                            showTime.setMovie(new Movie(res));
-                            showTime.setHall(HallFactory.createHall(res));
                             prevBooking.setShowTime(showTime);
                         } else
                             bookingList.removeLast();
@@ -217,6 +215,10 @@ public class BookingDaoImpl implements BookingDao {
                             prevBooking.getSeats().add(seat);
                         return prevBooking;
                     });
+                    if(userBookings == null)
+                        userBookings = List.of();
+                    user.setBookings(new ArrayList<>(userBookings));
+                    return userBookings;
                 }
             } finally {
                 if (conn.getAutoCommit())

@@ -63,9 +63,9 @@ public class Main {
                 }
                 case Page.EDIT_BOOKINGS -> {
                     assert userBooking != null;
-                    currentPage = ui.editBooking(userBooking, user, userBooking.getCinema());
+                    currentPage = ui.editBooking(userBooking, user);
                     if(currentPage == Page.SEAT_SELECTION) {
-                        selectedCinema = userBooking.getCinema();
+                        selectedCinema = userBooking.getShowTime().getHall().getCinema();
                         selectedMovie = userBooking.getShowTime().getMovie();
                         selectedShowTime = userBooking.getShowTime();
                         selectedSeats = userBooking.getSeats();
@@ -108,7 +108,7 @@ public class Main {
                     }
                     else {
                         assert selectedSeats != null;
-                        Booking booking = new Booking(selectedCinema, selectedShowTime, new ArrayList<>(selectedSeats));
+                        Booking booking = new Booking(selectedShowTime, new ArrayList<>(selectedSeats));
                         boolean success = ui.confirmPaymentPage(booking, user, userBooking);
                         if(success)
                             System.out.println("Booking confirmed!");
@@ -158,25 +158,25 @@ public class Main {
                 databaseService.addCinema(theSpace);
 
                 Hall[] uciHalls = new Hall[]{
-                        new Hall(1),
-                        new ImaxHall(2),
-                        new Imax3DHall(3)
+                        new Hall(1, uci),
+                        new ImaxHall(2, uci),
+                        new Imax3DHall(3, uci)
                 };
 
                 Hall[] theSpaceHalls = new Hall[]{
-                        new Hall(1),
-                        new ThreeDHall(2),
-                        new ImaxHall(3)
+                        new Hall(1, theSpace),
+                        new ThreeDHall(2, theSpace),
+                        new ImaxHall(3, theSpace)
                 };
 
                 for (Hall hall : uciHalls) {
-                    databaseService.addHall(hall, uci);
+                    databaseService.addHall(hall);
                     for (Seat seat : getSomeSeats()) {
                         databaseService.addSeat(seat, hall);
                     }
                 }
                 for (Hall hall : theSpaceHalls) {
-                    databaseService.addHall(hall, theSpace);
+                    databaseService.addHall(hall);
                     for (Seat seat : getSomeSeats()) {
                         databaseService.addSeat(seat, hall);
                     }
@@ -195,12 +195,12 @@ public class Main {
                 }
 
                 LocalDateTime showTimeDay = LocalDateTime.now().truncatedTo(ChronoUnit.DAYS).plusDays(3);
-                databaseService.addMovie(movies[0], uci, uci.getHalls().getFirst(), showTimeDay.plusHours(18).plusMinutes(30));
-                databaseService.addMovie(movies[1], uci, uci.getHalls().get(1), showTimeDay.plusHours(21));
-                databaseService.addMovie(movies[2], uci, uci.getHalls().getLast(), showTimeDay.plusHours(21).plusMinutes(30));
-                databaseService.addMovie(movies[3], theSpace, theSpace.getHalls().getFirst(), showTimeDay.plusHours(21).plusMinutes(30));
-                databaseService.addMovie(movies[4], theSpace, theSpace.getHalls().get(1), showTimeDay.plusHours(22));
-                databaseService.addMovie(movies[5], theSpace, theSpace.getHalls().getLast(), showTimeDay.plusHours(18).plusMinutes(45));
+                databaseService.addMovie(movies[0], uciHalls[0], showTimeDay.plusHours(18).plusMinutes(30));
+                databaseService.addMovie(movies[1], uciHalls[1], showTimeDay.plusHours(21));
+                databaseService.addMovie(movies[2], uciHalls[2], showTimeDay.plusHours(21).plusMinutes(30));
+                databaseService.addMovie(movies[3], theSpaceHalls[0], showTimeDay.plusHours(21).plusMinutes(30));
+                databaseService.addMovie(movies[4], theSpaceHalls[1], showTimeDay.plusHours(22));
+                databaseService.addMovie(movies[5], theSpaceHalls[2], showTimeDay.plusHours(18).plusMinutes(45));
 
                 System.out.println("Finished.");
             }

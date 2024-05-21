@@ -33,7 +33,7 @@ public class HallDaoTest {
 
     @Test
     public void insertHall_success(){
-        Hall newHall = new ImaxHall(CinemaDatabaseTest.getTestHall1().getHallNumber() + 1);
+        Hall newHall = new ImaxHall(CinemaDatabaseTest.getTestHall1().getHallNumber() + 1, CinemaDatabaseTest.getTestCinema1());
         assertDoesNotThrow(() -> hallDao.insert(newHall, CinemaDatabaseTest.getTestCinema1()));
         assertTrue(newHall.getId() > 0);
         Hall dbHall = CinemaDatabaseTest.runQuery(
@@ -41,7 +41,9 @@ public class HallDaoTest {
                 (res) -> {
                     if(!res.next())
                         return null;
-                    return HallFactory.createHall(res);
+                    Hall h = HallFactory.createHall(res);
+                    h.setHallNumber(res.getInt("hall_number"));
+                    return h;
                 }
         );
         assertNotNull(dbHall);
@@ -51,7 +53,7 @@ public class HallDaoTest {
 
     @Test
     public void insertHall_withSameHallNumber_throwsDatabaseException(){
-        Hall newHall = new Hall(CinemaDatabaseTest.getTestHall1().getHallNumber());
+        Hall newHall = new Hall(CinemaDatabaseTest.getTestHall1().getHallNumber(), CinemaDatabaseTest.getTestCinema1());
         assertThrows(DatabaseFailedException.class, () -> hallDao.insert(newHall, CinemaDatabaseTest.getTestCinema1()));
         assertEquals(DatabaseEntity.ENTITY_WITHOUT_ID, newHall.getId());
         int count = CinemaDatabaseTest.runQuery(
@@ -77,7 +79,9 @@ public class HallDaoTest {
                 (res) -> {
                     if(!res.next())
                         return null;
-                    return HallFactory.createHall(res);
+                    Hall h = HallFactory.createHall(res);
+                    h.setHallNumber(res.getInt("hall_number"));
+                    return h;
                 }
         );
         assertNotNull(dbHall);
@@ -125,14 +129,16 @@ public class HallDaoTest {
     @Test
     public void getHall_success(){
         ShowTime testShowTime1 = CinemaDatabaseTest.getTestShowTime1();
-        Hall hall = hallDao.get(testShowTime1, CinemaDatabaseTest.getTestCinema1());
+        Hall hall = hallDao.get(testShowTime1);
         Hall dbHall = CinemaDatabaseTest.runQuery(
                 "SELECT * FROM Halls JOIN ShowTimes ON Halls.hall_id = ShowTimes.hall_id WHERE showtime_id = %d"
                         .formatted(testShowTime1.getId()),
                 (res) -> {
                     if (!res.next())
                         return null;
-                    return HallFactory.createHall(res);
+                    Hall h = HallFactory.createHall(res);
+                    h.setHallNumber(res.getInt("hall_number"));
+                    return h;
                 }
         );
         assertEquals(hall.getClass(), dbHall.getClass());

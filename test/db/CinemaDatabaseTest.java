@@ -8,6 +8,7 @@ import utils.ThrowingFunction;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
@@ -52,6 +53,7 @@ public class CinemaDatabaseTest extends CinemaDatabase{
             ) {
                 if(res.next()) {
                     testCinema1 = new Cinema(res);
+                    testCinema1.setName(res.getString("cinema_name"));
                 }
             }
             try (
@@ -62,6 +64,7 @@ public class CinemaDatabaseTest extends CinemaDatabase{
             ) {
                 if(res.next()) {
                     testCinema2 = new Cinema(res);
+                    testCinema2.setName(res.getString("cinema_name"));
                 }
             }
             try (
@@ -72,6 +75,8 @@ public class CinemaDatabaseTest extends CinemaDatabase{
             ) {
                 if(res.next()) {
                     testMovie1 = new Movie(res);
+                    testMovie1.setName(res.getString("movie_name"));
+                    testMovie1.setDuration(Duration.of(res.getLong("duration"), ChronoUnit.MINUTES));
                     testCinema1.getMovies().add(testMovie1);
                 }
             }
@@ -83,6 +88,8 @@ public class CinemaDatabaseTest extends CinemaDatabase{
             ) {
                 if(res.next()) {
                     testMovie2 = new Movie(res);
+                    testMovie2.setName(res.getString("movie_name"));
+                    testMovie2.setDuration(Duration.of(res.getLong("duration"), ChronoUnit.MINUTES));
                     testCinema2.getMovies().add(testMovie2);
                 }
             }
@@ -94,6 +101,9 @@ public class CinemaDatabaseTest extends CinemaDatabase{
             ) {
                 if(res.next()) {
                     testUser1 = new User(res);
+                    testUser1.setUsername(res.getString("username"));
+                    testUser1.setPassword(res.getString("password"));
+                    testUser1.setBalance(res.getLong("balance"));
                 }
             }
             try(
@@ -104,6 +114,9 @@ public class CinemaDatabaseTest extends CinemaDatabase{
             ) {
                 if(res.next()) {
                     testUser2 = new User(res);
+                    testUser2.setUsername(res.getString("username"));
+                    testUser2.setPassword(res.getString("password"));
+                    testUser2.setBalance(res.getLong("balance"));
                 }
             }
             try(
@@ -114,7 +127,8 @@ public class CinemaDatabaseTest extends CinemaDatabase{
             ){
                 if(res.next()) {
                     testHall1 = HallFactory.createHall(res);
-                    testCinema1.getHalls().add(testHall1);
+                    testHall1.setCinema(testCinema1);
+                    testHall1.setHallNumber(res.getInt("hall_number"));
                 }
             }
             try(
@@ -125,7 +139,8 @@ public class CinemaDatabaseTest extends CinemaDatabase{
             ){
                 if(res.next()) {
                     testHall2 = HallFactory.createHall(res);
-                    testCinema2.getHalls().add(testHall2);
+                    testHall2.setCinema(testCinema2);
+                    testHall2.setHallNumber(res.getInt("hall_number"));
                 }
             }
             StringBuilder sql = new StringBuilder("INSERT OR IGNORE INTO Seats(row, number, hall_id) VALUES ");
@@ -142,6 +157,8 @@ public class CinemaDatabaseTest extends CinemaDatabase{
                 testSeats = new ArrayList<>();
                 while(res.next()){
                     Seat seat = new Seat(res);
+                    seat.setRow(res.getString("row").charAt(0));
+                    seat.setNumber(res.getInt("number"));
                     testSeats.add(seat);
                 }
                 testHall1.setSeats(testSeats);
@@ -155,7 +172,6 @@ public class CinemaDatabaseTest extends CinemaDatabase{
                         testShowTime1.setHall(testHall1);
                         testShowTime1.setMovie(testMovie1);
                         testShowTime1.setDate(now);
-                        testCinema1.getShowTimes().add(testShowTime1);
                     }
                 }
             }
@@ -168,12 +184,11 @@ public class CinemaDatabaseTest extends CinemaDatabase{
                         testShowTime2.setHall(testHall2);
                         testShowTime2.setMovie(testMovie2);
                         testShowTime2.setDate(now);
-                        testCinema2.getShowTimes().add(testShowTime2);
                     }
                 }
             }
             int numSeats = 2;
-            testBooking1 = new Booking(testCinema1, testShowTime1, new ArrayList<>(testSeats.subList(0, 2)));
+            testBooking1 = new Booking(testShowTime1, new ArrayList<>(testSeats.subList(0, 2)));
             testBooking1.getSeats().forEach(s -> s.setBooked(true));
             for(int i = 1; i <= numSeats; i++) {
                 try (PreparedStatement s = connection.prepareStatement("INSERT OR IGNORE INTO Bookings(showtime_id, seat_id, user_id, booking_number) VALUES (?, ?, ?, ?) RETURNING booking_number")) {
@@ -188,7 +203,7 @@ public class CinemaDatabaseTest extends CinemaDatabase{
             }
             testUser1.setBookings(new ArrayList<>(List.of(testBooking1)));
 
-            testBooking2 = new Booking(testCinema2, testShowTime2, new ArrayList<>(testSeats.subList(2, 4)));
+            testBooking2 = new Booking(testShowTime2, new ArrayList<>(testSeats.subList(2, 4)));
             testBooking2.getSeats().forEach(s -> s.setBooked(true));
             for(int i = testSeats.size() - numSeats; i < testSeats.size(); i++) {
                 try (PreparedStatement s = connection.prepareStatement("INSERT OR IGNORE INTO Bookings(showtime_id, seat_id, user_id, booking_number) VALUES (?, ?, ?, ?) RETURNING booking_number")) {

@@ -20,4 +20,6 @@ public interface CinemaRepository extends Observer<DatabaseEntity>  {
     void delete(@NotNull Cinema cinema) throws DatabaseFailedException, InvalidIdException;
 
     List<Cinema> get();
+
+    Cinema get(Cinema cinema) throws InvalidIdException;
 }

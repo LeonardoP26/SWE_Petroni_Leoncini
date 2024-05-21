@@ -11,10 +11,12 @@ import domain.*;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.lang.reflect.Array;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.Base64;
 import java.util.List;
 
@@ -90,8 +92,8 @@ public class DatabaseServiceImpl extends Subject<Booking> implements DatabaseSer
     }
 
     @Override
-    public void addHall(@NotNull Hall hall, @NotNull Cinema cinema) throws DatabaseFailedException, InvalidIdException {
-        hallRepo.insert(hall, cinema);
+    public void addHall(@NotNull Hall hall) throws DatabaseFailedException, InvalidIdException {
+        hallRepo.insert(hall);
     }
 
     @Override
@@ -112,8 +114,8 @@ public class DatabaseServiceImpl extends Subject<Booking> implements DatabaseSer
     }
 
     @Override
-    public void addShowTime(@NotNull ShowTime showTime, @NotNull Cinema cinema) throws DatabaseFailedException, InvalidIdException {
-        showTimeRepo.insert(showTime, cinema);
+    public void addShowTime(@NotNull ShowTime showTime) throws DatabaseFailedException, InvalidIdException {
+        showTimeRepo.insert(showTime);
     }
 
     /**
@@ -121,16 +123,15 @@ public class DatabaseServiceImpl extends Subject<Booking> implements DatabaseSer
      * Method to add a movie already in the database to a cinema creating a new {@link ShowTime#ShowTime(Movie, Hall, LocalDateTime) ShowTime}
      *
      * @param movie the movie to show
-     * @param cinema in which cinema the movie's show will take place
      * @param hall in which hall the movie's show will take place, must be a hall of the cinema
      * @param date when the movie's show will start
      * @throws DatabaseFailedException if the hall does not belong to this cinema.
      * @throws InvalidIdException if cinema id and hall id are equal to {@link DatabaseEntity#ENTITY_WITHOUT_ID ENTITY_WITHOUT_ID}
      */
     @Override
-    public void addMovie(@NotNull Movie movie, @NotNull Cinema cinema, @NotNull Hall hall, LocalDateTime date) throws DatabaseFailedException, InvalidIdException {
+    public void addMovie(@NotNull Movie movie, @NotNull Hall hall, LocalDateTime date) throws DatabaseFailedException, InvalidIdException {
         ShowTime sht = new ShowTime(movie, hall, date);
-        addShowTime(sht, cinema);
+        addShowTime(sht);
     }
 
     @Override
@@ -160,12 +161,18 @@ public class DatabaseServiceImpl extends Subject<Booking> implements DatabaseSer
 
     @Override
     public List<ShowTime> retrieveMovieShowTimes(@NotNull Movie movie, @NotNull Cinema cinema) throws InvalidIdException, DatabaseFailedException {
-        return showTimeRepo.get(movie, cinema);
+       List<ShowTime> showTimes = showTimeRepo.get(movie, cinema);
+       for(ShowTime sht : showTimes){
+           sht.setHall(hallRepo.get(sht.getHall()));
+       }
+       return showTimes;
     }
 
     @Override
     public List<Seat> retrieveShowTimeHallSeats(@NotNull ShowTime showTime) throws InvalidIdException {
-        return seatRepo.get(showTime);
+        List<Seat> seats = seatRepo.get(showTime);
+        showTime.getHall().setSeats(new ArrayList<>(seats));
+        return seats;
     }
 
     @Override
@@ -207,7 +214,19 @@ public class DatabaseServiceImpl extends Subject<Booking> implements DatabaseSer
 
     @Override
     public List<Booking> retrieveBookings(User user) throws InvalidIdException {
-        return bookingRepo.get(user);
+        List<Booking> bookings = bookingRepo.get(user);
+        for (Booking b : bookings){
+            ShowTime sht = showTimeRepo.get(b.getShowTime());
+            sht.setHall(hallRepo.get(sht.getHall()));
+            sht.setMovie(movieRepo.get(sht.getMovie()));
+            sht.getHall().setCinema(cinemaRepo.get(sht.getHall().getCinema()));
+            ArrayList<Seat> seats = new ArrayList<>();
+            for(Seat s : b.getSeats()){
+                seats.add(seatRepo.get(s));
+            }
+            b.setSeats(seats);
+        }
+        return bookings;
     }
 
     @Override
@@ -216,8 +235,8 @@ public class DatabaseServiceImpl extends Subject<Booking> implements DatabaseSer
     }
 
     @Override
-    public Hall retrieveShowTimeHall(@NotNull ShowTime showTime, @NotNull Cinema cinema) throws InvalidIdException, DatabaseFailedException {
-        return hallRepo.get(showTime, cinema);
+    public Hall retrieveShowTimeHall(@NotNull Booking booking) throws InvalidIdException, DatabaseFailedException {
+        return null;
     }
 
 

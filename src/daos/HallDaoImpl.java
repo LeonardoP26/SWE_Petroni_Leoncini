@@ -3,9 +3,7 @@ package daos;
 import business_logic.CinemaDatabase;
 import business_logic.HallFactory;
 import business_logic.exceptions.DatabaseFailedException;
-import business_logic.exceptions.InvalidIdException;
 import domain.Cinema;
-import domain.DatabaseEntity;
 import domain.Hall;
 import domain.ShowTime;
 import org.jetbrains.annotations.NotNull;
@@ -123,24 +121,55 @@ public class HallDaoImpl implements HallDao {
     }
 
     @Override
-    public Hall get(@NotNull ShowTime showTime, @NotNull Cinema cinema) {
+    public Hall get(@NotNull ShowTime showTime) {
         try {
             Connection conn = CinemaDatabase.getConnection(dbUrl);
             try(PreparedStatement s = conn.prepareStatement(
-                    "SELECT Halls.hall_id, hall_number, type FROM ShowTimes JOIN Halls ON ShowTimes.hall_id = Halls.hall_id WHERE ShowTimes.showtime_id = ? AND cinema_id = ?"
+                    "SELECT Halls.hall_id, hall_number, type FROM ShowTimes JOIN Halls ON ShowTimes.hall_id = Halls.hall_id WHERE ShowTimes.showtime_id = ?"
             )) {
                 s.setInt(1, showTime.getId());
-                s.setInt(2, cinema.getId());
                 try (ResultSet res = s.executeQuery()) {
-                    if(res.next())
-                        return HallFactory.createHall(res);
+                    if(res.next()) {
+                        Hall hall = HallFactory.createHall(res);
+                        hall.setHallNumber(res.getInt("hall_number"));
+                        return hall;
+                    }
                     return null;
                 }
+            } finally {
+                if(conn.getAutoCommit())
+                    conn.close();
             }
         } catch (SQLException e){
             throw new RuntimeException(e);
         }
 
+    }
+
+    @Override
+    public Hall get(Hall hall){
+        try {
+            Connection conn = CinemaDatabase.getConnection(dbUrl);
+            try (PreparedStatement s = conn.prepareStatement(
+                    "SELECT * FROM Halls WHERE hall_id = ?"
+            )) {
+                s.setInt(1, hall.getId());
+                try(ResultSet res = s.executeQuery()){
+                    if(res.next()) {
+                        Hall h = HallFactory.createHall(res);
+                        h.setHallNumber(res.getInt("hall_number"));
+                        h.setCinema(new Cinema(res));
+                        return h;
+                    }
+                    return null;
+                }
+            } finally {
+                if(conn.getAutoCommit())
+                    conn.close();
+            }
+        } catch (SQLException e){
+            throw new RuntimeException(e);
+        }
     }
 
 

@@ -2,9 +2,7 @@ package daos;
 
 import business_logic.CinemaDatabase;
 import business_logic.exceptions.DatabaseFailedException;
-import business_logic.exceptions.InvalidIdException;
 import domain.Cinema;
-import domain.DatabaseEntity;
 import domain.Movie;
 import org.jetbrains.annotations.NotNull;
 import org.sqlite.SQLiteErrorCode;
@@ -15,6 +13,8 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.time.Duration;
+import java.time.temporal.ChronoUnit;
 import java.util.HashMap;
 import java.util.List;
 
@@ -130,7 +130,37 @@ public class MovieDaoImpl implements MovieDao {
             )) {
                 s.setInt(1, cinema.getId());
                 try(ResultSet res = s.executeQuery()){
-                    return getList(res, (movieList) -> new Movie(res));
+                    return getList(res, (movieList) -> {
+                        Movie m = new Movie(res);
+                        m.setName(res.getString("movie_name"));
+                        m.setDuration(Duration.of(res.getLong("duration"), ChronoUnit.MINUTES));
+                        return m;
+                    });
+                }
+            } finally {
+                if(conn.getAutoCommit())
+                    conn.close();
+            }
+        } catch (Exception e){
+            throw new RuntimeException(e);
+        }
+    }
+
+    @Override
+    public Movie get(Movie movie){
+        try {
+            Connection conn = CinemaDatabase.getConnection(dbUrl);
+            try(PreparedStatement s = conn.prepareStatement(
+                    "SELECT * FROM Movies WHERE movie_id = ?"
+            )){
+                s.setInt(1, movie.getId());
+                try(ResultSet res = s.executeQuery()){
+                    if(res.next()) {
+                        movie.setName(res.getString("movie_name"));
+                        movie.setDuration(Duration.of(res.getLong("duration"), ChronoUnit.MINUTES));
+                        return movie;
+                    }
+                    return null;
                 }
             } finally {
                 if(conn.getAutoCommit())

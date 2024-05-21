@@ -2,8 +2,6 @@ package daos;
 
 import business_logic.CinemaDatabase;
 import business_logic.exceptions.DatabaseFailedException;
-import business_logic.exceptions.InvalidIdException;
-import domain.DatabaseEntity;
 import domain.Hall;
 import domain.Seat;
 import domain.ShowTime;
@@ -139,6 +137,8 @@ public class SeatDaoImpl implements SeatDao {
                 try(ResultSet res = s.executeQuery()){
                     return getList(res, (seatList) -> {
                         Seat seat = new Seat(res);
+                        seat.setRow(res.getString("row").charAt(0));
+                        seat.setNumber(res.getInt("number"));
                         seat.setBooked(res.getInt("booking_number") > 0);
                         return seat;
                     });
@@ -151,5 +151,31 @@ public class SeatDaoImpl implements SeatDao {
             throw new RuntimeException(e);
         }
     }
+
+    @Override
+    public Seat get(Seat seat){
+        try {
+            Connection conn = CinemaDatabase.getConnection(dbUrl);
+            try(PreparedStatement s = conn.prepareStatement(
+                    "SELECT * FROM Seats WHERE seat_id = ?"
+            )){
+                s.setInt(1, seat.getId());
+                try(ResultSet res = s.executeQuery()){
+                    if(res.next()){
+                        seat.setRow(res.getString("row").charAt(0));
+                        seat.setNumber(res.getInt("number"));
+                        return seat;
+                    }
+                    return null;
+                }
+            } finally {
+            if(conn.getAutoCommit())
+                conn.close();
+        }
+    } catch (Exception e){
+        throw new RuntimeException(e);
+    }
+    }
+
 
 }

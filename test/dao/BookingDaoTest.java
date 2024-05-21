@@ -33,7 +33,7 @@ public class BookingDaoTest {
         ShowTime testShowTime1 = CinemaDatabaseTest.getTestShowTime1();
         User testUser1 = CinemaDatabaseTest.getTestUser1();
         ArrayList<Seat> seats = new ArrayList<>(List.of(CinemaDatabaseTest.getTestSeats().get(4)));
-        Booking newBooking = new Booking(CinemaDatabaseTest.getTestCinema1(), testShowTime1, seats);
+        Booking newBooking = new Booking( testShowTime1, seats);
         User copy = new User(testUser1);
         assertDoesNotThrow(() ->
                 copy.setBalance(copy.getBalance() - (long) newBooking.getShowTime().getHall().getCost() * newBooking.getSeats().size())
@@ -44,7 +44,9 @@ public class BookingDaoTest {
                 (res) -> {
                     if(!res.next())
                         return null;
-                    return new User(res);
+                    User usr = new User(res);
+                    usr.setBalance(res.getLong("balance"));
+                    return usr;
                 }
         );
         assertNotNull(user);
@@ -56,7 +58,7 @@ public class BookingDaoTest {
         ShowTime testShowTime1 = CinemaDatabaseTest.getTestShowTime1();
         User testUser1 = CinemaDatabaseTest.getTestUser1();
         ArrayList<Seat> seats = new ArrayList<>(List.of(CinemaDatabaseTest.getTestSeats().getFirst()));
-        Booking newBooking = new Booking(CinemaDatabaseTest.getTestCinema1(), testShowTime1, seats);
+        Booking newBooking = new Booking(testShowTime1, seats);
         User copy = new User(testUser1);
         assertDoesNotThrow(() ->
                 copy.setBalance(copy.getBalance() - (long) newBooking.getShowTime().getHall().getCost() * newBooking.getSeats().size())
@@ -67,7 +69,9 @@ public class BookingDaoTest {
                 (res) -> {
                     if(!res.next())
                         return null;
-                    return new User(res);
+                    User usr = new User(res);
+                    usr.setBalance(res.getLong("balance"));
+                    return usr;
                 }
         );
         assertNotNull(user);
@@ -76,7 +80,7 @@ public class BookingDaoTest {
     
     @Test
     public void insertBooking_withNullValues_throwsDatabaseFailedException(){
-        Booking newbooking = new Booking(null, null, null);
+        Booking newbooking = new Booking(null, null);
         User copy = new User(CinemaDatabaseTest.getTestUser1());
         assertThrows(DatabaseFailedException.class, () -> bookingDao.insert(newbooking, CinemaDatabaseTest.getTestUser1(), copy));
     }
@@ -84,7 +88,7 @@ public class BookingDaoTest {
     @Test
     public void updateBooking_success(){
         Booking oldBooking = CinemaDatabaseTest.getTestBooking1();
-        Booking newBooking = new Booking(oldBooking.getCinema(), oldBooking.getShowTime(), new ArrayList<>(CinemaDatabaseTest.getTestSeats().subList(4, 6)));
+        Booking newBooking = new Booking(oldBooking.getShowTime(), new ArrayList<>(CinemaDatabaseTest.getTestSeats().subList(4, 6)));
         long newCost = (long) oldBooking.getShowTime().getHall().getCost() * oldBooking.getSeats().size() -
                 (long) newBooking.getShowTime().getHall().getCost() * newBooking.getSeats().size();
         User testUser1 = CinemaDatabaseTest.getTestUser1();
@@ -115,7 +119,7 @@ public class BookingDaoTest {
     @Test
     public void updateBooking_toNullValues_throwsDatabaseFailedException(){
         Booking oldBooking = CinemaDatabaseTest.getTestBooking1();
-        Booking newBooking = new Booking(oldBooking.getCinema(), oldBooking.getShowTime(), null);
+        Booking newBooking = new Booking(oldBooking.getShowTime(), null);
         User testUser1 = CinemaDatabaseTest.getTestUser1();
         User copy = new User(testUser1);
         assertThrows(DatabaseFailedException.class, () -> bookingDao.update(oldBooking, newBooking, testUser1, copy));
@@ -142,7 +146,9 @@ public class BookingDaoTest {
                 (res) -> {
                     if(!res.next())
                         return null;
-                    return new User(res);
+                    User user = new User(res);
+                    user.setBalance(res.getLong("balance"));
+                    return user;
                 }
         );
         assertNotNull(dbUser);

@@ -132,8 +132,6 @@ public class BookingRepositoryImpl implements BookingRepository {
                 cached.setShowTime(b.getShowTime());
                 cached.setSeats(b.getSeats());
             }
-            if(!user.getBookings().contains(cached))
-                user.getBookings().add(cached);
             return cached;
         }).toList();
     }

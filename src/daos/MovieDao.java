@@ -17,4 +17,6 @@ public interface MovieDao extends Dao {
     void delete(@NotNull Movie movie) throws DatabaseFailedException;
 
     List<Movie> get(@NotNull Cinema cinema);
+
+    Movie get(Movie movie);
 }

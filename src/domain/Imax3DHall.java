@@ -17,16 +17,16 @@ public class Imax3DHall extends Hall {
         imaxHall = new ImaxHall(res);
     }
 
-    public Imax3DHall (int hallNumber){
-        super(hallNumber);
-        hall3d = new ThreeDHall(hallNumber);
-        imaxHall = new ImaxHall(hallNumber);
+    public Imax3DHall (int hallNumber, Cinema cinema){
+        super(hallNumber, cinema);
+        hall3d = new ThreeDHall(hallNumber, cinema);
+        imaxHall = new ImaxHall(hallNumber, cinema);
     }
 
     public Imax3DHall(@NotNull Imax3DHall hall){
         super(hall);
-        hall3d = new ThreeDHall(hall.getHallNumber());
-        imaxHall = new ImaxHall(hall.getHallNumber());
+        hall3d = new ThreeDHall(hall.getHallNumber(), hall.getCinema());
+        imaxHall = new ImaxHall(hall.getHallNumber(), hall.getCinema());
     }
 
     @Override

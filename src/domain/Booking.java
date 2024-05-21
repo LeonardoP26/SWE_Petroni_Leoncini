@@ -11,22 +11,19 @@ public class Booking implements DatabaseEntity {
     private int bookingNumber = ENTITY_WITHOUT_ID;
     private ArrayList<Seat> seats = new ArrayList<>();
     private ShowTime showTime;
-    private Cinema cinema;
 
     public Booking(ResultSet res) throws SQLException {
         this.bookingNumber = res.getInt("booking_number");
     }
 
-    public Booking(Cinema cinema, ShowTime showTime, ArrayList<Seat> seats) {
+    public Booking(ShowTime showTime, ArrayList<Seat> seats) {
         this.showTime = showTime;
         this.seats = seats;
-        this.cinema = cinema;
     }
 
     public Booking(@NotNull Booking booking){
         this.showTime = booking.getShowTime();
         this.seats = booking.getSeats();
-        this.cinema = booking.getCinema();
     }
 
 
@@ -36,7 +33,7 @@ public class Booking implements DatabaseEntity {
 
     @Override
     public String getName() {
-        return bookingNumber +  " - " + showTime.getMovie().getName() + " - " + showTime.getName() + " - " + cinema.getName();
+        return bookingNumber +  " - " + showTime.getMovie().getName() + " - " + showTime.getName() + " - " + showTime.getHall().getCinema().getName();
     }
 
     public void setBookingNumber(@NotNull ResultSet resultSet) throws SQLException {
@@ -59,14 +56,6 @@ public class Booking implements DatabaseEntity {
         this.showTime = showTime;
     }
 
-    public Cinema getCinema() {
-        return cinema;
-    }
-
-    public void setCinema(Cinema cinema) {
-        this.cinema = cinema;
-    }
-
     @Override
     public int getId() {
         return getBookingNumber();
@@ -80,7 +69,6 @@ public class Booking implements DatabaseEntity {
     public void copy(@NotNull Booking booking){
         this.showTime = booking.getShowTime();
         this.seats = booking.getSeats();
-        this.cinema = booking.getCinema();
     }
 
     public long getCost(){

@@ -20,8 +20,8 @@ public class Movie implements DatabaseEntity {
 
     public Movie(@NotNull ResultSet res) throws SQLException {
         id = res.getInt("movie_id");
-        name = res.getString("movie_name");
-        duration = Duration.of(res.getLong("duration"), ChronoUnit.MINUTES);
+//        name = res.getString("movie_name");
+//        duration = Duration.of(res.getLong("duration"), ChronoUnit.MINUTES);
     }
 
     public Movie(@NotNull Movie movie){

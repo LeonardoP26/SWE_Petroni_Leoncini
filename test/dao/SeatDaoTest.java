@@ -34,7 +34,10 @@ public class SeatDaoTest {
                 (res) -> {
                     if(!res.next())
                         return null;
-                    return new Seat(res);
+                    Seat seat = new Seat(res);
+                    seat.setRow(res.getString("row").charAt(0));
+                    seat.setNumber(res.getInt("number"));
+                    return seat;
                 }
         );
         assertEquals(newSeat.getRow(), dbMovie.getRow());
@@ -70,7 +73,10 @@ public class SeatDaoTest {
                 (res) -> {
                     if(!res.next())
                         return null;
-                    return new Seat(res);
+                    Seat seat = new Seat(res);
+                    seat.setRow(res.getString("row").charAt(0));
+                    seat.setNumber(res.getInt("number"));
+                    return seat;
                 }
         );
         assertNotNull(dbMovie);

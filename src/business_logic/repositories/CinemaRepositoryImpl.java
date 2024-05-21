@@ -82,15 +82,14 @@ public class CinemaRepositoryImpl extends Subject<DatabaseEntity> implements Cin
     @Override
     public List<Cinema> get(){
         List<Cinema> cinemas = cinemaDao.get();
-        return cinemas.stream().map(c ->{
-            Cinema cached = entities.get(c.getId()) != null ? entities.get(c.getId()).get() : null;
-            if(cached == null) {
-                entities.put(c.getId(), new WeakReference<>(c));
-                return c;
-            }
-            cached.setName(c.getName());
-            return cached;
-        }).toList();
+        return cinemas.stream().map(this::findForCaching).toList();
+    }
+
+    @Override
+    public Cinema get(Cinema cinema) throws InvalidIdException {
+        if(cinema.getId() == DatabaseEntity.ENTITY_WITHOUT_ID)
+            throw new InvalidIdException("This cinema is not in the database.");
+        return findForCaching(cinemaDao.get(cinema));
     }
 
     @Override
@@ -103,4 +102,17 @@ public class CinemaRepositoryImpl extends Subject<DatabaseEntity> implements Cin
             });
         }
     }
+
+    private Cinema findForCaching(Cinema cinema){
+        if(cinema == null)
+            return null;
+        Cinema cached = entities.get(cinema.getId()) != null ? entities.get(cinema.getId()).get() : null;
+        if(cached == null) {
+            entities.put(cinema.getId(), new WeakReference<>(cinema));
+            return cinema;
+        }
+        cached.setName(cinema.getName());
+        return cached;
+    }
+
 }
