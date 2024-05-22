@@ -10,10 +10,7 @@ import domain.*;
 import org.jetbrains.annotations.NotNull;
 
 import java.lang.ref.WeakReference;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Stream;
 
 public class BookingRepositoryImpl implements BookingRepository {
@@ -140,17 +137,14 @@ public class BookingRepositoryImpl implements BookingRepository {
     @Override
     public void update(@NotNull DatabaseEntity entity) {
         if(entity instanceof User || entity instanceof ShowTime || entity instanceof Seat){
-            for(Map.Entry<Integer, WeakReference<Booking>> entrySet : entities.entrySet()) {
-                WeakReference<Booking> value = entrySet.getValue();
-                Integer key = entrySet.getKey();
-                Booking b = value != null ? value.get() : null;
-                if (b == null) {
-                    entities.remove(key);
-                } else if (entity instanceof User && ((User) entity).getBookings().contains(b)){
-                    entities.remove(b.getId());
-                    b.resetId();
-                } else if (entity == b.getShowTime() || (entity instanceof Seat && b.getSeats().contains(entity))){
-                    entities.remove(b.getId());
+            for(Iterator<Integer> it = entities.keySet().iterator(); it.hasNext();){
+                int id = it.next();
+                Booking b = entities.get(id) != null ? entities.get(id).get() : null;
+                if(b == null)
+                    it.remove();
+                else if (entity instanceof User && ((User) entity).getBookings().contains(b) ||
+                        entity == b.getShowTime() || (entity instanceof Seat && b.getSeats().contains(entity))) {
+                    it.remove();
                     b.resetId();
                 }
             }

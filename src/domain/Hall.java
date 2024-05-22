@@ -83,6 +83,7 @@ public class Hall implements DatabaseEntity {
 
     public void copy(@NotNull Hall hall){
         this.setHallNumber(hall.getHallNumber());
+        this.setCinema(hall.getCinema());
     }
 
     @Override

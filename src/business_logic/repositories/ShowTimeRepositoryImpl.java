@@ -14,6 +14,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.lang.ref.WeakReference;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
@@ -111,14 +112,14 @@ public class ShowTimeRepositoryImpl extends Subject<DatabaseEntity> implements S
 
     @Override
     public void update(@NotNull DatabaseEntity entity) throws DatabaseFailedException, InvalidIdException {
-        for(Map.Entry<Integer, WeakReference<ShowTime>> entrySet: entities.entrySet()){
-            Integer key = entrySet.getKey();
-            ShowTime st = entrySet.getValue() != null ? entrySet.getValue().get() : null;
-            if (st == null) {
-                entities.remove(key);
-            } else if (st.getHall() == entity || st.getMovie() == entity) {
+        for(Iterator<Integer> it = entities.keySet().iterator(); it.hasNext();){
+            int key = it.next();
+            ShowTime st = entities.get(key) != null ? entities.get(key).get() : null;
+            if(st == null)
+                it.remove();
+            else if(st.getHall() == entity || st.getMovie() == entity) {
                 notifyObservers(st);
-                entities.remove(key);
+                it.remove();
                 st.resetId();
             }
         }

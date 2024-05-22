@@ -103,6 +103,12 @@ public class CinemaRepositoryImpl extends Subject<DatabaseEntity> implements Cin
         }
     }
 
+    @Override
+    public WeakHashMap<Integer, WeakReference<Cinema>> getEntities() {
+        return entities;
+    }
+
+
     private Cinema findForCaching(Cinema cinema){
         if(cinema == null)
             return null;

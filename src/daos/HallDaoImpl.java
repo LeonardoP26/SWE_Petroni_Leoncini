@@ -40,14 +40,14 @@ public class HallDaoImpl implements HallDao {
     }
 
     @Override
-    public void insert(@NotNull Hall hall, @NotNull Cinema cinema) throws DatabaseFailedException {
+    public void insert(@NotNull Hall hall) throws DatabaseFailedException {
         try {
             Connection conn = CinemaDatabase.getConnection(dbUrl);
             try (PreparedStatement s = conn.prepareStatement(
                     "INSERT OR IGNORE INTO Halls(hall_number, cinema_id, type) VALUES (?, ?, ?) RETURNING hall_id"
             )) {
                 s.setInt(1, hall.getHallNumber());
-                s.setInt(2, cinema.getId());
+                s.setInt(2, hall.getCinema().getId());
                 s.setString(3, hall.getHallType().toString());
                 try (ResultSet res = s.executeQuery()) {
                     if(!res.next())
@@ -72,14 +72,14 @@ public class HallDaoImpl implements HallDao {
     }
 
     @Override
-    public void update(@NotNull Hall hall, @NotNull Hall copy, @NotNull Cinema cinema) throws DatabaseFailedException {
+    public void update(@NotNull Hall hall, @NotNull Hall copy) throws DatabaseFailedException {
         try {
             Connection conn = CinemaDatabase.getConnection(dbUrl);
             try (PreparedStatement s = conn.prepareStatement(
                     "UPDATE Halls SET hall_number = ?, cinema_id = ?, type = ? WHERE hall_id = ?"
             )) {
                 s.setInt(1, copy.getHallNumber());
-                s.setInt(2, cinema.getId());
+                s.setInt(2, copy.getCinema().getId());
                 s.setString(3, copy.getHallType().toString());
                 s.setInt(4, hall.getId());
                 if(s.executeUpdate() == 0)

@@ -14,6 +14,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.lang.ref.WeakReference;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.function.Consumer;
 
@@ -52,7 +53,7 @@ public class HallRepositoryImpl extends Subject<DatabaseEntity> implements HallR
             throw new DatabaseFailedException("Cinema can not be null.");
         if(hall.getCinema().getId() == DatabaseEntity.ENTITY_WITHOUT_ID)
             throw new InvalidIdException("This cinema is not in the database.");
-        hallDao.insert(hall, hall.getCinema());
+        hallDao.insert(hall);
         entities.put(hall.getId(), new WeakReference<>(hall));
     }
 
@@ -67,7 +68,7 @@ public class HallRepositoryImpl extends Subject<DatabaseEntity> implements HallR
         if(copy.getCinema().getId() == DatabaseEntity.ENTITY_WITHOUT_ID)
             throw new InvalidIdException("This cinema is not in the database.");
 
-        hallDao.update(hall, copy, copy.getCinema());
+        hallDao.update(hall, copy);
         hall.copy(copy);
     }
 
@@ -79,6 +80,8 @@ public class HallRepositoryImpl extends Subject<DatabaseEntity> implements HallR
             CinemaDatabase.withTransaction(() -> {
                 hallDao.delete(hall);
                 notifyObservers(hall);
+                entities.remove(hall.getId());
+                hall.resetId();
             });
         } catch (Exception e) {
             if (e instanceof DatabaseFailedException)
@@ -110,14 +113,14 @@ public class HallRepositoryImpl extends Subject<DatabaseEntity> implements HallR
     @Override
     public void update(@NotNull DatabaseEntity entity) throws DatabaseFailedException, InvalidIdException {
         if (entity instanceof Cinema) {
-            for(Map.Entry<Integer, WeakReference<Hall>> entrySet : entities.entrySet()) {
-                Hall h = entrySet.getValue() != null ? entrySet.getValue().get() : null;
-                Integer key = entrySet.getKey();
+            for(Iterator<Integer> it = entities.keySet().iterator(); it.hasNext();){
+                int key = it.next();
+                Hall h = entities.get(key) != null ? entities.get(key).get() : null;
                 if(h == null)
                     entities.remove(key);
                 else if(h.getCinema() == entity) {
                     notifyObservers(h);
-                    entities.remove(key);
+                    it.remove();
                     h.resetId();
                 }
             }

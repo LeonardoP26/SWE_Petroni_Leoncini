@@ -34,7 +34,7 @@ public class HallDaoTest {
     @Test
     public void insertHall_success(){
         Hall newHall = new ImaxHall(CinemaDatabaseTest.getTestHall1().getHallNumber() + 1, CinemaDatabaseTest.getTestCinema1());
-        assertDoesNotThrow(() -> hallDao.insert(newHall, CinemaDatabaseTest.getTestCinema1()));
+        assertDoesNotThrow(() -> hallDao.insert(newHall));
         assertTrue(newHall.getId() > 0);
         Hall dbHall = CinemaDatabaseTest.runQuery(
                 "SELECT * FROM Halls WHERE hall_id = %d".formatted(newHall.getId()),
@@ -54,7 +54,7 @@ public class HallDaoTest {
     @Test
     public void insertHall_withSameHallNumber_throwsDatabaseException(){
         Hall newHall = new Hall(CinemaDatabaseTest.getTestHall1().getHallNumber(), CinemaDatabaseTest.getTestCinema1());
-        assertThrows(DatabaseFailedException.class, () -> hallDao.insert(newHall, CinemaDatabaseTest.getTestCinema1()));
+        assertThrows(DatabaseFailedException.class, () -> hallDao.insert(newHall));
         assertEquals(DatabaseEntity.ENTITY_WITHOUT_ID, newHall.getId());
         int count = CinemaDatabaseTest.runQuery(
                 "SELECT COUNT(hall_number) FROM Halls WHERE hall_number = %d AND cinema_id = %d"
@@ -73,7 +73,7 @@ public class HallDaoTest {
         Hall testHall1 = CinemaDatabaseTest.getTestHall1();
         Hall copy = HallFactory.createHall(testHall1);
         copy.setHallNumber(testHall1.getHallNumber() + 1);
-        assertDoesNotThrow(() -> hallDao.update(testHall1, copy, CinemaDatabaseTest.getTestCinema1()));
+        assertDoesNotThrow(() -> hallDao.update(testHall1, copy));
         Hall dbHall = CinemaDatabaseTest.runQuery(
                 "SELECT * FROM Halls WHERE hall_id = %d".formatted(testHall1.getId()),
                 (res) -> {
@@ -92,7 +92,8 @@ public class HallDaoTest {
     public void updateHall_toSameHallNumber_throwsDatabaseFailedException(){
         Hall testHall1 = CinemaDatabaseTest.getTestHall1();
         Hall copy = HallFactory.createHall(testHall1);
-        assertThrows(DatabaseFailedException.class, () -> hallDao.update(testHall1, copy, CinemaDatabaseTest.getTestCinema2()));
+        copy.setCinema(CinemaDatabaseTest.getTestCinema2());
+        assertThrows(DatabaseFailedException.class, () -> hallDao.update(testHall1, copy));
         int count = CinemaDatabaseTest.runQuery(
                 "SELECT COUNT(*) FROM Halls WHERE hall_number = %d AND cinema_id = %d"
                         .formatted(testHall1.getHallNumber(), CinemaDatabaseTest.getTestCinema2().getId()),
