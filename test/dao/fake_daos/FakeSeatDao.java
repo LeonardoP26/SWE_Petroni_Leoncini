@@ -2,6 +2,7 @@ package dao.fake_daos;
 
 import business_logic.exceptions.DatabaseFailedException;
 import daos.SeatDao;
+import db.CinemaDatabaseTest;
 import domain.Hall;
 import domain.Seat;
 import domain.ShowTime;
@@ -13,7 +14,14 @@ public class FakeSeatDao implements SeatDao {
 
     @Override
     public void insert(@NotNull Seat seat, @NotNull Hall hall) {
-
+        CinemaDatabaseTest.runQuery(
+                "SELECT MAX(seat_id) + 1 AS seat_id FROM seats",
+                (res) -> {
+                    if(res.next())
+                        seat.setId(res);
+                    return null;
+                }
+        );
     }
 
     @Override

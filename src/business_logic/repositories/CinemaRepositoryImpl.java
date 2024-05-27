@@ -99,6 +99,8 @@ public class CinemaRepositoryImpl extends Subject<DatabaseEntity> implements Cin
                 Cinema cinema = value != null ? value.get() : null;
                 if (cinema != null)
                     cinema.getMovies().remove(entity);
+                else
+                    entities.remove(key);
             });
         }
     }

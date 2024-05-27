@@ -52,14 +52,13 @@ public class MovieRepositoryImpl extends Subject<DatabaseEntity> implements Movi
     }
 
     @Override
-    public void update(@NotNull Movie movie, @NotNull Cinema cinema, @NotNull Consumer<Movie> edits) throws DatabaseFailedException, InvalidIdException {
+    public void update(@NotNull Movie movie, @NotNull Consumer<Movie> edits) throws DatabaseFailedException, InvalidIdException {
         if(movie.getId() == DatabaseEntity.ENTITY_WITHOUT_ID)
             throw new InvalidIdException("This movie is not in the database.");
         Movie copy = new Movie(movie);
         edits.accept(copy);
         movieDao.update(movie, copy);
         movie.copy(copy);
-        cinema.getMovies().add(movie);
     }
 
     @Override
@@ -95,6 +94,11 @@ public class MovieRepositoryImpl extends Subject<DatabaseEntity> implements Movi
         if(movie.getId() == DatabaseEntity.ENTITY_WITHOUT_ID)
             throw new InvalidIdException("This movie is not in the database.");
         return findForCaching(movieDao.get(movie));
+    }
+
+    @Override
+    public HashMap<Integer, WeakReference<Movie>> getEntities() {
+        return entities;
     }
 
     private Movie findForCaching(Movie movie){
