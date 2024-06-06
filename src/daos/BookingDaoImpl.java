@@ -1,12 +1,12 @@
 package daos;
 
 import business_logic.CinemaDatabase;
-import business_logic.HallFactory;
 import business_logic.exceptions.DatabaseFailedException;
-import business_logic.exceptions.InvalidIdException;
-import domain.*;
+import domain.Booking;
+import domain.Seat;
+import domain.ShowTime;
+import domain.User;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import org.sqlite.SQLiteErrorCode;
 import org.sqlite.SQLiteException;
 
@@ -15,12 +15,9 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Objects;
 
 public class BookingDaoImpl implements BookingDao {
 

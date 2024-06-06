@@ -3,7 +3,6 @@ package business_logic.repositories;
 import business_logic.Observer;
 import business_logic.exceptions.DatabaseFailedException;
 import business_logic.exceptions.InvalidIdException;
-import domain.Cinema;
 import domain.DatabaseEntity;
 import domain.Hall;
 import domain.ShowTime;

@@ -2,7 +2,6 @@ package dao;
 
 import business_logic.CinemaDatabase;
 import business_logic.exceptions.DatabaseFailedException;
-import business_logic.exceptions.InvalidIdException;
 import daos.CinemaDao;
 import daos.CinemaDaoImpl;
 import db.CinemaDatabaseTest;

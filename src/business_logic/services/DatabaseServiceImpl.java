@@ -11,7 +11,6 @@ import domain.*;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.lang.reflect.Array;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -208,6 +207,19 @@ public class DatabaseServiceImpl extends Subject<Booking> implements DatabaseSer
     }
 
     @Override
+    public void updateUser(@NotNull User user, @NotNull String newUsername, @NotNull String newPassword) throws DatabaseFailedException, InvalidIdException {
+        String encryptedPassword = newPassword.equals(user.getPassword()) ? user.getPassword() : encryptPassword(newPassword);
+        try {
+            userRepo.update(user, (u) -> {
+                u.setUsername(newUsername);
+                u.setPassword(encryptedPassword);
+            });
+        } catch (NotEnoughFundsException e){
+            throw new RuntimeException(e);
+        }
+    }
+
+    @Override
     public void deleteUser(User user) throws DatabaseFailedException, InvalidIdException {
         userRepo.delete(user);
     }
@@ -217,6 +229,7 @@ public class DatabaseServiceImpl extends Subject<Booking> implements DatabaseSer
         List<Booking> bookings = bookingRepo.get(user);
         for (Booking b : bookings){
             ShowTime sht = showTimeRepo.get(b.getShowTime());
+            b.setShowTime(sht);
             sht.setHall(hallRepo.get(sht.getHall()));
             sht.setMovie(movieRepo.get(sht.getMovie()));
             sht.getHall().setCinema(cinemaRepo.get(sht.getHall().getCinema()));

@@ -73,13 +73,14 @@ public class CinemaDatabase {
                 );
                 stmt.execute(
                         "CREATE TABLE IF NOT EXISTS Bookings(" +
-                                "showtime_id INTEGER, " +
-                                "seat_id INTEGER, " +
-                                "user_id INTEGER, " +
+                                "showtime_id INTEGER NOT NULL, " +
+                                "seat_id INTEGER NOT NULL, " +
+                                "user_id INTEGER NOT NULL, " +
                                 "booking_number INTEGER NOT NULL ON CONFLICT ROLLBACK, " +
                                 "FOREIGN KEY(showtime_id) REFERENCES ShowTimes(showtime_id) ON DELETE CASCADE ON UPDATE CASCADE, " +
                                 "FOREIGN KEY(seat_id) REFERENCES Seats(seat_id) ON DELETE CASCADE ON UPDATE CASCADE, " +
                                 "FOREIGN KEY(user_id) REFERENCES Users(user_id) ON DELETE CASCADE ON UPDATE CASCADE, " +
+                                "UNIQUE(seat_id, showtime_id), " +
                                 "PRIMARY KEY(showtime_id, seat_id, user_id)" +
                                 ")"
                 );

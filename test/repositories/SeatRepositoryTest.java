@@ -1,19 +1,20 @@
 package repositories;
 
+import business_logic.exceptions.DatabaseFailedException;
 import business_logic.exceptions.InvalidIdException;
 import business_logic.repositories.*;
 import dao.fake_daos.FakeBookingDao;
 import dao.fake_daos.FakeSeatDao;
-import dao.fake_daos.FakeShowTimeDao;
 import dao.fake_daos.FakeUserDao;
 import db.CinemaDatabaseTest;
-import domain.Hall;
-import domain.Seat;
+import domain.*;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.lang.ref.WeakReference;
+import java.util.List;
+import java.util.Objects;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -72,6 +73,90 @@ public class SeatRepositoryTest {
         );
     }
 
+    @Test
+    public void updateSeat_success(){
+        Hall testSeatHall = CinemaDatabaseTest.getTestHall1();
+        Seat testSeat = testSeatHall.getSeats().getFirst();
+        assertDoesNotThrow(() -> seatRepo.update(testSeat, testSeatHall, (s) -> {
+            s.setNumber(10);
+            s.setRow('b');
+        }));
+        assertEquals(10, testSeat.getNumber());
+        assertEquals('b', testSeat.getRow());
+    }
 
+    @Test
+    public void updateSeat_withInvalidIds_throwsInvalidIdException(){
+        Seat testSeat = new Seat('a', 1);
+        assertThrows(InvalidIdException.class, () -> seatRepo.update(testSeat, CinemaDatabaseTest.getTestHall1(), (s) -> {
+
+        }));
+        Seat testSeat1 = CinemaDatabaseTest.getTestSeats().getFirst();
+        assertThrows(InvalidIdException.class, () ->
+                seatRepo.update(testSeat1, new Hall(1, CinemaDatabaseTest.getTestCinema1()), (s) -> {})
+        );
+    }
+
+    @Test
+    public void updateSeat_withWrongHall_throwsDatabaseFailedException(){
+        Seat testSeat = CinemaDatabaseTest.getTestHall1().getSeats().getFirst();
+        assertThrows(DatabaseFailedException.class, () -> seatRepo.update(testSeat, CinemaDatabaseTest.getTestHall2(), (s) -> { }));
+    }
+
+    @Test
+    public void deleteSeat_success(){
+        User testUser = CinemaDatabaseTest.getTestUser1();
+        Booking testBooking = testUser.getBookings().getFirst();
+        long newBalance = testUser.getBalance() + testBooking.getShowTime().getHall().getCost();
+        Seat testSeat = testBooking.getSeats().getFirst();
+        Hall testSeatHall = testBooking.getShowTime().getHall();
+        assertDoesNotThrow(() -> seatRepo.delete(testSeat, testSeatHall));
+        assertFalse(testBooking.getSeats().contains(testSeat));
+        assertFalse(testSeatHall.getSeats().contains(testSeat));
+        assertEquals(newBalance, testUser.getBalance());
+    }
+
+    @Test
+    public void deleteSeat_notInDatabase_throwsInvalidIdException() {
+        assertThrows(InvalidIdException.class, () ->
+                seatRepo.delete(new Seat('a', 1), CinemaDatabaseTest.getTestHall1())
+        );
+    }
+
+    @Test
+    public void deleteSeat_withWrongHall_throwsDatabaseFailedException() {
+        Seat testSeat = CinemaDatabaseTest.getTestHall1().getSeats().getFirst();
+        assertThrows(DatabaseFailedException.class, () -> seatRepo.delete(testSeat, CinemaDatabaseTest.getTestHall2()));
+    }
+
+    @Test
+    public void getSeat_withShowTime_success(){
+        List<Seat> seats = assertDoesNotThrow(() -> seatRepo.get(CinemaDatabaseTest.getTestShowTime1()));
+        List<Integer> seatIds = seats.stream().map(Seat::getId).toList();
+        List<Seat> cachedSeat = seatRepo.getEntities().entrySet().stream().map((entry) -> {
+            if(seatIds.contains(entry.getKey()))
+                return entry.getValue().get();
+            return null;
+        }).filter(Objects::nonNull).toList();
+        assertEquals(seats.size(), cachedSeat.size());
+        assertTrue(seats.containsAll(cachedSeat));
+    }
+
+    @Test
+    public void getSeat_withShowTimeNotInDatabase_throwsInvalidIdException(){
+        assertThrows(InvalidIdException.class, () -> seatRepo.get(new ShowTime(null, null, null)));
+    }
+
+    @Test
+    public void getSeat_withId_success(){
+        Seat testSeat = CinemaDatabaseTest.getTestSeats().getFirst();
+        Seat s = assertDoesNotThrow(() -> seatRepo.get(testSeat));
+        assertSame(s, testSeat);
+    }
+
+    @Test
+    public void getSeat_withSeatNotInDatabase_throwsInvalidIdException(){
+        assertThrows(InvalidIdException.class, () -> seatRepo.get(new Seat('a', 1)));
+    }
 
 }

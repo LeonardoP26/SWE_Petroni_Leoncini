@@ -1,12 +1,12 @@
 package daos;
 
 import business_logic.CinemaDatabase;
-import business_logic.HallFactory;
 import business_logic.exceptions.DatabaseFailedException;
-import business_logic.exceptions.InvalidIdException;
-import domain.*;
+import domain.Cinema;
+import domain.Hall;
+import domain.Movie;
+import domain.ShowTime;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import org.sqlite.SQLiteErrorCode;
 import org.sqlite.SQLiteException;
 

@@ -2,18 +2,16 @@ package dao;
 
 import business_logic.HallFactory;
 import business_logic.exceptions.DatabaseFailedException;
-import business_logic.exceptions.InvalidIdException;
-import daos.CinemaDao;
-import daos.CinemaDaoImpl;
 import daos.HallDao;
 import daos.HallDaoImpl;
 import db.CinemaDatabaseTest;
-import domain.*;
+import domain.DatabaseEntity;
+import domain.Hall;
+import domain.ImaxHall;
+import domain.ShowTime;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-
-import java.time.LocalDateTime;
 
 import static org.junit.jupiter.api.Assertions.*;
 

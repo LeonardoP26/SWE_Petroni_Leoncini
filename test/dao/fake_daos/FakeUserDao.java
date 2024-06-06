@@ -1,13 +1,9 @@
 package dao.fake_daos;
 
-import business_logic.CinemaDatabase;
-import business_logic.exceptions.DatabaseFailedException;
 import daos.UserDao;
 import db.CinemaDatabaseTest;
 import domain.User;
 import org.jetbrains.annotations.NotNull;
-
-import java.util.Objects;
 
 public class FakeUserDao implements UserDao {
 
@@ -28,12 +24,17 @@ public class FakeUserDao implements UserDao {
 
     @Override
     public User get(String username, String password) {
-        if(Objects.equals(CinemaDatabaseTest.getTestUser1().getUsername(), username)
-                && Objects.equals(CinemaDatabaseTest.getTestUser1().getPassword(), password))
-            return CinemaDatabaseTest.getTestUser1();
-        if(Objects.equals(CinemaDatabaseTest.getTestUser2().getUsername(), username)
-                && Objects.equals(CinemaDatabaseTest.getTestUser2().getPassword(), password))
-            return CinemaDatabaseTest.getTestUser2();
-        return null;
+        return CinemaDatabaseTest.runQuery(
+                "SELECT * FROM Users WHERE username = '%s' AND password = '%s'".formatted(username, password),
+                (res) -> {
+                    if(!res.next())
+                        return null;
+                    User user = new User(res);
+                    user.setUsername(res.getString("username"));
+                    user.setPassword(res.getString("password"));
+                    user.setBalance(res.getLong("balance"));
+                    return user;
+                }
+        );
     }
 }

@@ -10,7 +10,6 @@ import business_logic.services.DatabaseServiceImpl;
 import domain.*;
 import org.jetbrains.annotations.NotNull;
 
-import javax.xml.crypto.Data;
 import java.util.*;
 
 import static ui.InputOutputHandler.Page.*;
@@ -394,6 +393,56 @@ public class InputOutputHandler {
             default -> HOMEPAGE;
         };
     }
+
+    public Page editAccount(@NotNull User user){
+        System.out.println("What do you want to change?\n1. Username\n2. Password\n3. Charge account\n4. Back");
+        int maxChoices = 4;
+        int input;
+        while(true){
+            try{
+                input = readInput(maxChoices);
+                break;
+            } catch (NoSuchElementException | IllegalStateException e){
+                System.out.println("Choose a number between 1 and " + maxChoices);
+            }
+        }
+        return switch(input){
+            case 1, 2 -> changeUserData(user, input);
+            case 3 -> {
+                rechargeAccount(user);
+                yield EDIT_ACCOUNT;
+            }
+            case 4 -> MANAGE_ACCOUNT;
+            default -> HOMEPAGE;
+        };
+    }
+
+    private Page changeUserData(@NotNull User user, int _case) {
+        while (true) {
+            if (_case == 1)
+                System.out.print("Choose a new username or leave it blank to go back:\n>> ");
+            else
+                System.out.print("Choose a new password or leave it blank to go back:\n>> ");
+            Scanner sc = new Scanner(System.in);
+            String newValue = sc.nextLine();
+            if (newValue.isEmpty())
+                return editAccount(user);
+            try {
+                if (_case == 1)
+                    databaseService.updateUser(user, newValue, user.getPassword());
+                else
+                    databaseService.updateUser(user, user.getUsername(), newValue);
+            } catch (DatabaseFailedException e){
+                System.out.println(e.getMessage());
+                continue;
+            } catch (InvalidIdException e){
+                System.out.println(e.getMessage());
+                return HOMEPAGE;
+            }
+            return EDIT_ACCOUNT;
+        }
+    }
+
 
     public Page editBooking(@NotNull Booking booking, User user) {
         System.out.println("What would you like to do?\n1. Change seats\n2. Delete this booking\n3. Back");

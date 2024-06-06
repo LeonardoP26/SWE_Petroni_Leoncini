@@ -1,7 +1,6 @@
 package daos;
 
 import business_logic.exceptions.DatabaseFailedException;
-import business_logic.exceptions.InvalidIdException;
 import domain.Hall;
 import domain.Seat;
 import domain.ShowTime;

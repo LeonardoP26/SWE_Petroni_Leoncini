@@ -1,10 +1,8 @@
 package dao.fake_daos;
 
 import business_logic.HallFactory;
-import business_logic.exceptions.DatabaseFailedException;
 import daos.HallDao;
 import db.CinemaDatabaseTest;
-import domain.Cinema;
 import domain.Hall;
 import domain.ShowTime;
 import org.jetbrains.annotations.NotNull;

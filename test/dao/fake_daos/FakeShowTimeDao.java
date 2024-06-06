@@ -1,6 +1,5 @@
 package dao.fake_daos;
 
-import business_logic.exceptions.DatabaseFailedException;
 import daos.ShowTimeDao;
 import db.CinemaDatabaseTest;
 import domain.Cinema;

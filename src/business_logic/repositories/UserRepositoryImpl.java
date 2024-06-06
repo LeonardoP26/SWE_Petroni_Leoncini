@@ -14,7 +14,6 @@ import domain.User;
 import org.jetbrains.annotations.NotNull;
 import utils.ThrowingConsumer;
 
-import javax.xml.crypto.Data;
 import java.lang.ref.WeakReference;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -106,7 +105,6 @@ public class UserRepositoryImpl extends Subject<DatabaseEntity> implements UserR
 
     @Override
     public void update(@NotNull DatabaseEntity entity) throws DatabaseFailedException, InvalidIdException {
-        notifyObservers(entity);
         if(!(entity instanceof User)) {
             for (Map.Entry<Integer, WeakReference<User>> entrySet : entities.entrySet()) {
                 WeakReference<User> value = entrySet.getValue();
@@ -117,13 +115,24 @@ public class UserRepositoryImpl extends Subject<DatabaseEntity> implements UserR
                 } else {
                     for (Iterator<Booking> it = usr.getBookings().iterator(); it.hasNext();) {
                         Booking b = it.next();
-                        if (entity == b.getShowTime() || (entity instanceof Seat && b.getSeats().contains(entity))) {
+                        if(entity == b.getShowTime()){
                             try {
+                                notifyObservers(entity);
                                 update(usr, (u) -> u.setBalance(u.getBalance() + b.getCost()));
+                                it.remove();
                             } catch (NotEnoughFundsException e) {
                                 throw new RuntimeException(e);
                             }
-                            it.remove();
+                        }
+                        else if (entity instanceof Seat && b.getSeats().contains(entity)) {
+                            try {
+                                notifyObservers(entity);
+                                update(usr, (u) -> u.setBalance(u.getBalance() + b.getShowTime().getHall().getCost()));
+                            } catch (NotEnoughFundsException e) {
+                                throw new RuntimeException(e);
+                            }
+                            if(b.getSeats().isEmpty())
+                                it.remove();
                         }
                     }
                 }

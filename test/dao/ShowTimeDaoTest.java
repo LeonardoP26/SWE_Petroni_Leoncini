@@ -1,25 +1,17 @@
 package dao;
 
-import business_logic.HallFactory;
 import business_logic.exceptions.DatabaseFailedException;
-import daos.MovieDao;
-import daos.MovieDaoImpl;
 import daos.ShowTimeDao;
 import daos.ShowTimeDaoImpl;
 import db.CinemaDatabaseTest;
-import domain.Movie;
 import domain.ShowTime;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import java.time.Duration;
 import java.time.LocalDateTime;
-import java.time.temporal.ChronoUnit;
-import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class ShowTimeDaoTest {
 

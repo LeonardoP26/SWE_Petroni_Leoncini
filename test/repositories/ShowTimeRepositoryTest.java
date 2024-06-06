@@ -1,11 +1,9 @@
 package repositories;
 
-import business_logic.CinemaDatabase;
 import business_logic.exceptions.DatabaseFailedException;
 import business_logic.exceptions.InvalidIdException;
 import business_logic.repositories.*;
 import dao.fake_daos.FakeBookingDao;
-import dao.fake_daos.FakeSeatDao;
 import dao.fake_daos.FakeShowTimeDao;
 import dao.fake_daos.FakeUserDao;
 import db.CinemaDatabaseTest;
@@ -14,13 +12,11 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import javax.xml.crypto.Data;
 import java.lang.ref.WeakReference;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
-import java.util.function.Consumer;
 
 import static org.junit.jupiter.api.Assertions.*;
 

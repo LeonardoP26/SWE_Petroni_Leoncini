@@ -1,14 +1,17 @@
 package dao;
 
 import business_logic.exceptions.DatabaseFailedException;
-import daos.*;
+import daos.BookingDao;
+import daos.BookingDaoImpl;
 import db.CinemaDatabaseTest;
-import domain.*;
+import domain.Booking;
+import domain.Seat;
+import domain.ShowTime;
+import domain.User;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import java.sql.ResultSet;
 import java.util.ArrayList;
 import java.util.List;
 

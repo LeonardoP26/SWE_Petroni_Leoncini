@@ -52,6 +52,10 @@ public class Main {
                 case Page.MANAGE_ACCOUNT -> {
                     currentPage = ui.accountManagementPage(user);
                 }
+                case Page.EDIT_ACCOUNT -> {
+                    assert user != null;
+                    currentPage = ui.editAccount(user);
+                }
                 case Page.DELETE_ACCOUNT -> {
                     user = null;
                     currentPage = Page.HOMEPAGE;

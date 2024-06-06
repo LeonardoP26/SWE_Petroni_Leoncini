@@ -15,7 +15,6 @@ import org.jetbrains.annotations.NotNull;
 import java.lang.ref.WeakReference;
 import java.util.HashMap;
 import java.util.Iterator;
-import java.util.Map;
 import java.util.function.Consumer;
 
 public class HallRepositoryImpl extends Subject<DatabaseEntity> implements HallRepository {

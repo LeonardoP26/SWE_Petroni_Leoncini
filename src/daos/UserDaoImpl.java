@@ -2,8 +2,6 @@ package daos;
 
 import business_logic.CinemaDatabase;
 import business_logic.exceptions.DatabaseFailedException;
-import business_logic.exceptions.InvalidIdException;
-import domain.DatabaseEntity;
 import domain.User;
 import org.jetbrains.annotations.NotNull;
 import org.sqlite.SQLiteErrorCode;

@@ -1,11 +1,9 @@
 package dao;
 
-import business_logic.HallFactory;
 import business_logic.exceptions.DatabaseFailedException;
 import daos.MovieDao;
 import daos.MovieDaoImpl;
 import db.CinemaDatabaseTest;
-import domain.Hall;
 import domain.Movie;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;

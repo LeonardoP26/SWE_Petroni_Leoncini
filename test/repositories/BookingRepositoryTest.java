@@ -1,16 +1,12 @@
 package repositories;
 
-import business_logic.exceptions.DatabaseFailedException;
-import business_logic.exceptions.InvalidIdException;
 import business_logic.repositories.BookingRepository;
 import business_logic.repositories.BookingRepositoryImpl;
 import dao.fake_daos.FakeBookingDao;
-import daos.BookingDao;
 import db.CinemaDatabaseTest;
 import domain.Booking;
 import domain.DatabaseEntity;
 import domain.User;
-import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;

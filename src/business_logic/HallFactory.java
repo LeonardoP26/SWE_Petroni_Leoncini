@@ -1,6 +1,9 @@
 package business_logic;
 
-import domain.*;
+import domain.Hall;
+import domain.Imax3DHall;
+import domain.ImaxHall;
+import domain.ThreeDHall;
 import org.jetbrains.annotations.NotNull;
 
 import java.sql.ResultSet;

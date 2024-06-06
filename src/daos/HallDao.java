@@ -1,8 +1,6 @@
 package daos;
 
 import business_logic.exceptions.DatabaseFailedException;
-import business_logic.exceptions.InvalidIdException;
-import domain.Cinema;
 import domain.Hall;
 import domain.ShowTime;
 import org.jetbrains.annotations.NotNull;

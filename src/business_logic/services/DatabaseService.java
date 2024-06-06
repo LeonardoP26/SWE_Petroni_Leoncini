@@ -45,6 +45,8 @@ public interface DatabaseService {
 
     void pay(@NotNull Booking booking, @Nullable Booking oldBooking, @NotNull User owner, long cost) throws NotEnoughFundsException, InvalidSeatException, DatabaseFailedException, InvalidIdException;
 
+    void updateUser(@NotNull User user, @NotNull String newUsername, @NotNull String newPassword) throws DatabaseFailedException, InvalidIdException;
+
     void deleteUser(User user) throws DatabaseFailedException, InvalidIdException;
 
     List<Booking> retrieveBookings(User user) throws InvalidIdException;

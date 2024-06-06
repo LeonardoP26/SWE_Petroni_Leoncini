@@ -10,7 +10,9 @@ import domain.*;
 import org.jetbrains.annotations.NotNull;
 
 import java.lang.ref.WeakReference;
-import java.util.*;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
 import java.util.stream.Stream;
 
 public class BookingRepositoryImpl implements BookingRepository {
@@ -142,10 +144,15 @@ public class BookingRepositoryImpl implements BookingRepository {
                 Booking b = entities.get(id) != null ? entities.get(id).get() : null;
                 if(b == null)
                     it.remove();
-                else if (entity instanceof User && ((User) entity).getBookings().contains(b) ||
-                        entity == b.getShowTime() || (entity instanceof Seat && b.getSeats().contains(entity))) {
+                else if (entity instanceof User && ((User) entity).getBookings().contains(b) || entity == b.getShowTime()) {
                     it.remove();
                     b.resetId();
+                } else if(entity instanceof Seat && b.getSeats().contains(entity)){
+                    if(b.getSeats().size() == 1) {
+                        it.remove();
+                        b.resetId();
+                    }
+                    b.getSeats().remove(entity);
                 }
             }
         }
