@@ -1,7 +1,5 @@
 package business_logic.services;
 
-import business_logic.ReceiptPrinter;
-import business_logic.Subject;
 import business_logic.exceptions.DatabaseFailedException;
 import business_logic.exceptions.InvalidIdException;
 import business_logic.exceptions.InvalidSeatException;
@@ -10,7 +8,6 @@ import business_logic.repositories.*;
 import domain.*;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -19,7 +16,7 @@ import java.util.ArrayList;
 import java.util.Base64;
 import java.util.List;
 
-public class CinemaServiceImpl extends Subject<Booking> implements CinemaService {
+public class CinemaServiceImpl implements CinemaService {
 
     private static CinemaService instance = null;
     private final BookingRepository bookingRepo;
@@ -76,7 +73,6 @@ public class CinemaServiceImpl extends Subject<Booking> implements CinemaService
         this.seatRepo = seatRepo;
         this.userRepo = userRepo;
         this.bookingRepo = bookingRepo;
-        addObserver(ReceiptPrinter.getInstance());
     }
 
     private CinemaServiceImpl() {
