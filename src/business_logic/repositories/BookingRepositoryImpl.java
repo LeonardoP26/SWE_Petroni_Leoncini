@@ -53,7 +53,7 @@ public class BookingRepositoryImpl implements BookingRepository {
         if (user.getId() == DatabaseEntity.ENTITY_WITHOUT_ID)
             throw new InvalidIdException("This user is not in the database");
         User copy = new User(user);
-        copy.setBalance(copy.getBalance() - (long) booking.getSeats().size() * booking.getShowTime().getHall().getCost());
+        copy.setBalance(copy.getBalance() - booking.getCost());
         bookingDao.insert(booking, user, copy);
         entities.put(booking.getId(), new WeakReference<>(booking));
         user.setBalance(copy.getBalance());

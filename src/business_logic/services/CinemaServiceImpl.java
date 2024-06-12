@@ -194,14 +194,10 @@ public class CinemaServiceImpl extends Subject<Booking> implements CinemaService
     public void pay(@NotNull Booking booking, @Nullable Booking oldBooking, @NotNull User user) throws NotEnoughFundsException, InvalidSeatException, DatabaseFailedException, InvalidIdException {
         if(booking.getSeats().stream().anyMatch(Seat::isBooked))
             throw new InvalidSeatException("Some of these seats are already taken.");
-        long cost = booking.getCost();
-        if(oldBooking != null) {
+        if(oldBooking != null)
             bookingRepo.update(oldBooking, booking, user);
-            cost -= oldBooking.getCost();
-        }
         else
             bookingRepo.insert(booking, user);
-        user.setBalance(user.getBalance() - cost);
     }
 
     @Override
