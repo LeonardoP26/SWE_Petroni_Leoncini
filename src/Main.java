@@ -1,8 +1,8 @@
 import business_logic.CinemaDatabase;
 import business_logic.exceptions.DatabaseFailedException;
 import business_logic.exceptions.InvalidIdException;
-import business_logic.services.DatabaseService;
-import business_logic.services.DatabaseServiceImpl;
+import business_logic.services.CinemaService;
+import business_logic.services.CinemaServiceImpl;
 import domain.*;
 import org.jetbrains.annotations.NotNull;
 import ui.InputOutputHandler;
@@ -154,12 +154,12 @@ public class Main {
             if(CinemaDatabase.isDatabaseEmpty()) {
                 System.out.println("Populating the database...");
                 CinemaDatabase.getConnection(CinemaDatabase.DB_URL);
-                DatabaseService databaseService = DatabaseServiceImpl.getInstance();
+                CinemaService cinemaService = CinemaServiceImpl.getInstance();
 
                 Cinema uci = new Cinema("UCI Cinema");
                 Cinema theSpace = new Cinema("The Space");
-                databaseService.addCinema(uci);
-                databaseService.addCinema(theSpace);
+                cinemaService.addCinema(uci);
+                cinemaService.addCinema(theSpace);
 
                 Hall[] uciHalls = new Hall[]{
                         new Hall(1, uci),
@@ -174,15 +174,15 @@ public class Main {
                 };
 
                 for (Hall hall : uciHalls) {
-                    databaseService.addHall(hall);
+                    cinemaService.addHall(hall);
                     for (Seat seat : getSomeSeats()) {
-                        databaseService.addSeat(seat, hall);
+                        cinemaService.addSeat(seat, hall);
                     }
                 }
                 for (Hall hall : theSpaceHalls) {
-                    databaseService.addHall(hall);
+                    cinemaService.addHall(hall);
                     for (Seat seat : getSomeSeats()) {
-                        databaseService.addSeat(seat, hall);
+                        cinemaService.addSeat(seat, hall);
                     }
                 }
 
@@ -195,16 +195,16 @@ public class Main {
                         new Movie("Pulp Fiction", Duration.of(154, ChronoUnit.MINUTES))
                 };
                 for (Movie movie : movies) {
-                    databaseService.addMovie(movie);
+                    cinemaService.addMovie(movie);
                 }
 
                 LocalDateTime showTimeDay = LocalDateTime.now().truncatedTo(ChronoUnit.DAYS).plusDays(3);
-                databaseService.addMovie(movies[0], uciHalls[0], showTimeDay.plusHours(18).plusMinutes(30));
-                databaseService.addMovie(movies[1], uciHalls[1], showTimeDay.plusHours(21));
-                databaseService.addMovie(movies[2], uciHalls[2], showTimeDay.plusHours(21).plusMinutes(30));
-                databaseService.addMovie(movies[3], theSpaceHalls[0], showTimeDay.plusHours(21).plusMinutes(30));
-                databaseService.addMovie(movies[4], theSpaceHalls[1], showTimeDay.plusHours(22));
-                databaseService.addMovie(movies[5], theSpaceHalls[2], showTimeDay.plusHours(18).plusMinutes(45));
+                cinemaService.addMovie(movies[0], uciHalls[0], showTimeDay.plusHours(18).plusMinutes(30));
+                cinemaService.addMovie(movies[1], uciHalls[1], showTimeDay.plusHours(21));
+                cinemaService.addMovie(movies[2], uciHalls[2], showTimeDay.plusHours(21).plusMinutes(30));
+                cinemaService.addMovie(movies[3], theSpaceHalls[0], showTimeDay.plusHours(21).plusMinutes(30));
+                cinemaService.addMovie(movies[4], theSpaceHalls[1], showTimeDay.plusHours(22));
+                cinemaService.addMovie(movies[5], theSpaceHalls[2], showTimeDay.plusHours(18).plusMinutes(45));
 
                 System.out.println("Finished.");
             }

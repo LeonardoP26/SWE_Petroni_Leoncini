@@ -5,8 +5,8 @@ import business_logic.exceptions.DatabaseFailedException;
 import business_logic.exceptions.InvalidIdException;
 import business_logic.exceptions.InvalidSeatException;
 import business_logic.exceptions.NotEnoughFundsException;
-import business_logic.services.DatabaseService;
-import business_logic.services.DatabaseServiceImpl;
+import business_logic.services.CinemaService;
+import business_logic.services.CinemaServiceImpl;
 import domain.*;
 import org.jetbrains.annotations.NotNull;
 
@@ -32,12 +32,12 @@ public class InputOutputHandler {
         BOOKING_CONFIRMED
     }
 
-    private final DatabaseService databaseService;
+    private final CinemaService cinemaService;
     private static InputOutputHandler instance = null;
 
-    public static InputOutputHandler getInstance(DatabaseService databaseService){
+    public static InputOutputHandler getInstance(CinemaService cinemaService){
         if(instance == null)
-            instance = new InputOutputHandler(databaseService);
+            instance = new InputOutputHandler(cinemaService);
         return instance;
     }
 
@@ -47,11 +47,11 @@ public class InputOutputHandler {
         return instance;
     }
 
-    private InputOutputHandler(DatabaseService databaseService){
-        this.databaseService = databaseService;
+    private InputOutputHandler(CinemaService cinemaService){
+        this.cinemaService = cinemaService;
     }
     private InputOutputHandler(){
-        this.databaseService = DatabaseServiceImpl.getInstance();
+        this.cinemaService = CinemaServiceImpl.getInstance();
     }
 
     public Page homePage(boolean alreadyLoggedIn){
@@ -110,7 +110,7 @@ public class InputOutputHandler {
             }
             switch (input) {
                 case 1 -> {
-                    user = databaseService.login(username, password);
+                    user = cinemaService.login(username, password);
                     if (user != null)
                         return user;
                     else
@@ -118,7 +118,7 @@ public class InputOutputHandler {
                 }
                 case 2 -> {
                     try{
-                        user = databaseService.register(username, password);
+                        user = cinemaService.register(username, password);
                         if (user != null)
                             return user;
                         else
@@ -137,7 +137,7 @@ public class InputOutputHandler {
 
 
     public Cinema cinemaSelectionPage(){
-        List<Cinema> cinemas = databaseService.retrieveCinemas();
+        List<Cinema> cinemas = cinemaService.retrieveCinemas();
         int input = chooseOption(cinemas.stream().map(Cinema::getName).toList(), "Choose a cinema:");
         if (input == cinemas.size())
             return null;
@@ -146,7 +146,7 @@ public class InputOutputHandler {
 
     public Movie movieSelectionPage(@NotNull Cinema cinema) {
         try {
-            List<Movie> movies = databaseService.retrieveCinemaMovies(cinema);
+            List<Movie> movies = cinemaService.retrieveCinemaMovies(cinema);
             if(movies == null)
                 movies = List.of();
             cinema.setMovies(new ArrayList<>(movies));
@@ -162,7 +162,7 @@ public class InputOutputHandler {
 
     public ShowTime showTimeSelectionPage(@NotNull Movie movie, @NotNull Cinema cinema) {
         try {
-            List<ShowTime> showTimes = databaseService.retrieveMovieShowTimes(movie, cinema);
+            List<ShowTime> showTimes = cinemaService.retrieveMovieShowTimes(movie, cinema);
             int input = chooseOption(showTimes.stream().map(ShowTime::getName).toList(), "Choose a show time");
             if (input == showTimes.size())
                 return null;
@@ -175,7 +175,7 @@ public class InputOutputHandler {
 
     public Booking bookingManagePage(@NotNull User user) {
         try {
-            List<Booking> bookings = databaseService.retrieveBookings(user);
+            List<Booking> bookings = cinemaService.retrieveBookings(user);
             if (bookings == null)
                 bookings = List.of();
             user.setBookings(new ArrayList<>(bookings));
@@ -191,7 +191,7 @@ public class InputOutputHandler {
 
     public List<Seat> seatsSelectionPage(@NotNull ShowTime showTime, Booking currentBooking) {
         try {
-            List<Seat> seats = databaseService.retrieveShowTimeHallSeats(showTime);
+            List<Seat> seats = cinemaService.retrieveShowTimeHallSeats(showTime);
             System.out.println("Choose your seats following this pattern \"a1-a2-a3\" or leave it blank to return to the previous page:");
             if (currentBooking != null)
                 System.out.println("Seats signed with \"C\" are your current seats.");
@@ -272,7 +272,7 @@ public class InputOutputHandler {
         }
         if (input == 1) {
             try {
-                databaseService.pay(booking, oldBooking, owner, cost);
+                cinemaService.pay(booking, oldBooking, owner);
                 return true;
             } catch (NotEnoughFundsException e) {
                 System.out.println(e.getMessage());
@@ -313,7 +313,7 @@ public class InputOutputHandler {
             }
         }
         try{
-            databaseService.rechargeAccount(user, input);
+            cinemaService.rechargeAccount(user, input);
         } catch (DatabaseFailedException e) {
             System.out.println("Recharge failed. Do you want to try again?\n1. Yes\n2. No");
             int input1;
@@ -383,7 +383,7 @@ public class InputOutputHandler {
             case 2 -> EDIT_ACCOUNT;
             case 3 -> {
                 try {
-                    databaseService.deleteUser(user);
+                    cinemaService.deleteUser(user);
                     yield DELETE_ACCOUNT;
                 } catch (DatabaseFailedException | InvalidIdException e) {
                     System.out.println(e.getMessage());
@@ -429,9 +429,9 @@ public class InputOutputHandler {
                 return editAccount(user);
             try {
                 if (_case == 1)
-                    databaseService.updateUser(user, newValue, user.getPassword());
+                    cinemaService.updateUser(user, newValue, user.getPassword());
                 else
-                    databaseService.updateUser(user, user.getUsername(), newValue);
+                    cinemaService.updateUser(user, user.getUsername(), newValue);
             } catch (DatabaseFailedException e){
                 System.out.println(e.getMessage());
                 continue;
@@ -461,7 +461,7 @@ public class InputOutputHandler {
                 Hall hall = booking.getShowTime().getHall();
                 List<Seat> seats;
                 try {
-                    seats = databaseService.retrieveShowTimeHallSeats(booking.getShowTime());
+                    seats = cinemaService.retrieveShowTimeHallSeats(booking.getShowTime());
                 } catch (InvalidIdException e){
                     seats = null;
                 }
@@ -498,8 +498,8 @@ public class InputOutputHandler {
             CinemaDatabase.withTransaction(() -> {
                 long refund = (long) booking.getShowTime().getHall().getCost() * booking.getSeats().size();
                 try {
-                    databaseService.rechargeAccount(user, user.getBalance() + refund);
-                    databaseService.deleteBooking(booking, user);
+                    cinemaService.rechargeAccount(user, user.getBalance() + refund);
+                    cinemaService.deleteBooking(booking, user);
                 } catch (DatabaseFailedException e){
                     System.out.println(e.getMessage());
                 }
