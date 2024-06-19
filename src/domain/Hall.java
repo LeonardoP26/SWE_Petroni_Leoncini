@@ -22,7 +22,6 @@ public class Hall implements DatabaseEntity {
 
     public Hall(@NotNull ResultSet res) throws SQLException {
         this.id = res.getInt("hall_id");
-//        this.hallNumber = res.getInt("hall_number");
     }
 
     public Hall(@NotNull Hall hall) {
