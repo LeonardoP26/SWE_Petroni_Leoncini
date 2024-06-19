@@ -14,7 +14,6 @@ public class Cinema implements DatabaseEntity {
 
     public Cinema (@NotNull ResultSet res) throws SQLException {
         id = res.getInt("cinema_id");
-//        name = res.getString("cinema_name");
     }
 
     public Cinema(String name){
