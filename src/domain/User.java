@@ -10,9 +10,7 @@ import java.util.ArrayList;
 public class User implements DatabaseEntity {
 
     public User(@NotNull ResultSet res) throws SQLException {
-//        this(res.getString("username"), res.getString("password"));
         this.id = res.getInt("user_id");
-//        this.balance = res.getLong("balance");
     }
 
     public User(String username, String password) {
