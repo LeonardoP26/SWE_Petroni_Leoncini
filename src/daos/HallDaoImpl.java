@@ -65,7 +65,7 @@ public class HallDaoImpl implements HallDao {
                 throw new DatabaseFailedException("Database insertion failed: ensure hall id, hall number, cinema id and type are not null.");
             else if (e.getResultCode() == SQLiteErrorCode.SQLITE_CONSTRAINT_FOREIGNKEY)
                 throw new DatabaseFailedException("Database insertion failed: ensure that cinema id is valid.");
-            else throw new RuntimeException(e); // TODO throw it as DatabaseInsertionFailedException
+            else throw new RuntimeException(e);
         } catch (SQLException e){
             throw new RuntimeException(e);
         }
@@ -95,7 +95,7 @@ public class HallDaoImpl implements HallDao {
                 throw new DatabaseFailedException("Database update failed: ensure hall id, hall number, cinema id and type are not null.");
             else if (e.getResultCode() == SQLiteErrorCode.SQLITE_CONSTRAINT_FOREIGNKEY)
                 throw new DatabaseFailedException("Database update failed: ensure that cinema id is valid.");
-            else throw new RuntimeException(e); // TODO throw it as DatabaseInsertionFailedException
+            else throw new RuntimeException(e);
         } catch (SQLException e){
             throw new RuntimeException(e);
         }

@@ -85,7 +85,7 @@ public class BookingDaoImpl implements BookingDao {
                 }
                 else if(((SQLiteException) e).getResultCode() == SQLiteErrorCode.SQLITE_CONSTRAINT_PRIMARYKEY)
                     throw new DatabaseFailedException("This booking already exists.");
-                else throw new RuntimeException(e); // TODO throw it as DatabaseInsertionFailedException
+                else throw new RuntimeException(e);
             } finally {
                 conn.setAutoCommit(oldAutoCommit);
                 if (conn.getAutoCommit())
@@ -95,8 +95,6 @@ public class BookingDaoImpl implements BookingDao {
             throw  new RuntimeException(ex);
         }
     }
-
-    // TODO Add update, delete and get methods to respect CRUD principle
 
 
     @Override
@@ -137,7 +135,7 @@ public class BookingDaoImpl implements BookingDao {
                 }
                 else if(((SQLiteException) e).getResultCode() == SQLiteErrorCode.SQLITE_CONSTRAINT_PRIMARYKEY)
                     throw new DatabaseFailedException("This booking already exists.");
-                else throw new RuntimeException(e); // TODO throw it as DatabaseInsertionFailedException
+                else throw new RuntimeException(e);
             } finally {
                 conn.setAutoCommit(oldAutoCommit);
                 if(conn.getAutoCommit())

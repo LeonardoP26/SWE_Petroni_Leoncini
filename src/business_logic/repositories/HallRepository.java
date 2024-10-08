@@ -20,7 +20,7 @@ public interface HallRepository extends Observer<DatabaseEntity> {
 
     void delete(@NotNull Hall hall) throws DatabaseFailedException, InvalidIdException;
 
-    Hall get(@NotNull ShowTime showTime) throws InvalidIdException, DatabaseFailedException;
+    Hall get(@NotNull ShowTime showTime) throws InvalidIdException;
 
     Hall get(Hall hall) throws InvalidIdException;
 

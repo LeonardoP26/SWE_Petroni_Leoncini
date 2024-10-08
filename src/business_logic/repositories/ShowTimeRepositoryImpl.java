@@ -96,7 +96,7 @@ public class ShowTimeRepositoryImpl extends Subject<DatabaseEntity> implements S
     }
 
     @Override
-    public List<ShowTime> get(@NotNull Movie movie, @NotNull Cinema cinema) throws InvalidIdException, DatabaseFailedException {
+    public List<ShowTime> get(@NotNull Movie movie, @NotNull Cinema cinema) throws InvalidIdException {
         if(movie.getId() == DatabaseEntity.ENTITY_WITHOUT_ID)
             throw new InvalidIdException("This movie is not in the database.");
 

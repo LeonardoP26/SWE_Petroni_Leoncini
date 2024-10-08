@@ -17,22 +17,22 @@ import java.util.function.Consumer;
 public class FakeShowTimeRepository implements ShowTimeRepository {
 
     @Override
-    public void insert(@NotNull ShowTime showTime) throws DatabaseFailedException, InvalidIdException {
+    public void insert(@NotNull ShowTime showTime) {
 
     }
 
     @Override
-    public void update(@NotNull ShowTime showTime, @NotNull Consumer<ShowTime> edits) throws DatabaseFailedException, InvalidIdException {
+    public void update(@NotNull ShowTime showTime, @NotNull Consumer<ShowTime> edits) {
 
     }
 
     @Override
-    public void delete(@NotNull ShowTime showTime) throws DatabaseFailedException, InvalidIdException {
+    public void delete(@NotNull ShowTime showTime) {
 
     }
 
     @Override
-    public List<ShowTime> get(@NotNull Movie movie, @NotNull Cinema cinema) throws InvalidIdException, DatabaseFailedException {
+    public List<ShowTime> get(@NotNull Movie movie, @NotNull Cinema cinema) {
         return List.of();
     }
 
@@ -42,12 +42,12 @@ public class FakeShowTimeRepository implements ShowTimeRepository {
     }
 
     @Override
-    public ShowTime get(ShowTime showTime) throws InvalidIdException {
+    public ShowTime get(ShowTime showTime) {
         return null;
     }
 
     @Override
-    public void update(@NotNull DatabaseEntity entity) throws DatabaseFailedException, InvalidIdException {
+    public void update(@NotNull DatabaseEntity entity) {
 
     }
 }

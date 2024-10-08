@@ -16,22 +16,22 @@ import java.util.List;
 public class FakeBookingRepository implements BookingRepository {
 
     @Override
-    public void insert(@NotNull Booking booking, @NotNull User user) throws DatabaseFailedException, InvalidIdException, NotEnoughFundsException {
+    public void insert(@NotNull Booking booking, @NotNull User user) {
 
     }
 
     @Override
-    public void update(@NotNull Booking oldBooking, @NotNull Booking newBooking, @NotNull User user) throws NotEnoughFundsException, DatabaseFailedException, InvalidIdException {
+    public void update(@NotNull Booking oldBooking, @NotNull Booking newBooking, @NotNull User user) {
 
     }
 
     @Override
-    public void delete(@NotNull Booking booking, @NotNull User user) throws DatabaseFailedException, InvalidIdException {
+    public void delete(@NotNull Booking booking, @NotNull User user) {
 
     }
 
     @Override
-    public List<Booking> get(@NotNull User user) throws InvalidIdException {
+    public List<Booking> get(@NotNull User user) {
         return List.of();
     }
 
@@ -41,7 +41,7 @@ public class FakeBookingRepository implements BookingRepository {
     }
 
     @Override
-    public void update(@NotNull DatabaseEntity entity) throws DatabaseFailedException, InvalidIdException {
+    public void update(@NotNull DatabaseEntity entity) {
 
     }
 }

@@ -15,27 +15,27 @@ import java.util.function.Consumer;
 public class FakeMovieRepository implements MovieRepository {
 
     @Override
-    public void insert(@NotNull Movie movie) throws DatabaseFailedException {
+    public void insert(@NotNull Movie movie) {
 
     }
 
     @Override
-    public void update(@NotNull Movie movie, @NotNull Consumer<Movie> edits) throws DatabaseFailedException, InvalidIdException {
+    public void update(@NotNull Movie movie, @NotNull Consumer<Movie> edits) {
 
     }
 
     @Override
-    public void delete(@NotNull Movie movie) throws DatabaseFailedException, InvalidIdException {
+    public void delete(@NotNull Movie movie) {
 
     }
 
     @Override
-    public List<Movie> get(@NotNull Cinema cinema) throws InvalidIdException {
+    public List<Movie> get(@NotNull Cinema cinema) {
         return List.of();
     }
 
     @Override
-    public Movie get(Movie movie) throws InvalidIdException {
+    public Movie get(Movie movie) {
         return null;
     }
 

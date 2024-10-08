@@ -15,17 +15,17 @@ import java.util.HashMap;
 public class FakeUserRepository implements UserRepository {
 
     @Override
-    public void insert(@NotNull User user) throws DatabaseFailedException {
+    public void insert(@NotNull User user) {
 
     }
 
     @Override
-    public void update(@NotNull User user, ThrowingConsumer<User> edits) throws NotEnoughFundsException, DatabaseFailedException, InvalidIdException {
+    public void update(@NotNull User user, ThrowingConsumer<User> edits) {
 
     }
 
     @Override
-    public void delete(@NotNull User user) throws DatabaseFailedException, InvalidIdException {
+    public void delete(@NotNull User user) {
 
     }
 
@@ -40,7 +40,7 @@ public class FakeUserRepository implements UserRepository {
     }
 
     @Override
-    public void update(@NotNull DatabaseEntity entity) throws DatabaseFailedException, InvalidIdException {
+    public void update(@NotNull DatabaseEntity entity) {
 
     }
 }

@@ -15,17 +15,17 @@ import java.util.function.Consumer;
 public class FakeCinemaRepository implements CinemaRepository {
 
     @Override
-    public void insert(@NotNull Cinema cinema) throws DatabaseFailedException {
+    public void insert(@NotNull Cinema cinema) {
 
     }
 
     @Override
-    public void update(@NotNull Cinema cinema, @NotNull Consumer<Cinema> edits) throws DatabaseFailedException, InvalidIdException {
+    public void update(@NotNull Cinema cinema, @NotNull Consumer<Cinema> edits) {
 
     }
 
     @Override
-    public void delete(@NotNull Cinema cinema) throws DatabaseFailedException, InvalidIdException {
+    public void delete(@NotNull Cinema cinema) {
 
     }
 
@@ -35,7 +35,7 @@ public class FakeCinemaRepository implements CinemaRepository {
     }
 
     @Override
-    public Cinema get(Cinema cinema) throws InvalidIdException {
+    public Cinema get(Cinema cinema) {
         return null;
     }
 
@@ -45,7 +45,7 @@ public class FakeCinemaRepository implements CinemaRepository {
     }
 
     @Override
-    public void update(@NotNull DatabaseEntity entity) throws DatabaseFailedException, InvalidIdException {
+    public void update(@NotNull DatabaseEntity entity) {
 
     }
 }

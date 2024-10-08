@@ -17,27 +17,27 @@ import java.util.function.Consumer;
 public class FakeSeatRepository implements SeatRepository {
 
     @Override
-    public void insert(@NotNull Seat seat, @NotNull Hall hall) throws DatabaseFailedException, InvalidIdException {
+    public void insert(@NotNull Seat seat, @NotNull Hall hall) {
 
     }
 
     @Override
-    public void update(@NotNull Seat seat, @NotNull Hall hall, Consumer<Seat> edits) throws InvalidIdException, DatabaseFailedException {
+    public void update(@NotNull Seat seat, @NotNull Hall hall, Consumer<Seat> edits) {
 
     }
 
     @Override
-    public void delete(@NotNull Seat seat, @NotNull Hall hall) throws DatabaseFailedException, InvalidIdException {
+    public void delete(@NotNull Seat seat, @NotNull Hall hall) {
 
     }
 
     @Override
-    public List<Seat> get(@NotNull ShowTime showTime) throws InvalidIdException {
+    public List<Seat> get(@NotNull ShowTime showTime) {
         return List.of();
     }
 
     @Override
-    public Seat get(Seat seat) throws InvalidIdException {
+    public Seat get(Seat seat) {
         return null;
     }
 
@@ -47,7 +47,7 @@ public class FakeSeatRepository implements SeatRepository {
     }
 
     @Override
-    public void update(@NotNull DatabaseEntity entity) throws DatabaseFailedException, InvalidIdException {
+    public void update(@NotNull DatabaseEntity entity) {
 
     }
 }

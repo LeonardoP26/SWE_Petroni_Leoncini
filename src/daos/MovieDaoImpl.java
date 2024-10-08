@@ -69,7 +69,7 @@ public class MovieDaoImpl implements MovieDao {
                 throw new DatabaseFailedException("Database insertion failed: this movie already exists.");
             else if (e.getResultCode() == SQLiteErrorCode.SQLITE_CONSTRAINT_NOTNULL)
                 throw new DatabaseFailedException("Database insertion failed: ensure movie id, name and duration are not null.");
-            else throw new RuntimeException(e); // TODO throw it as DatabaseInsertionFailedException
+            else throw new RuntimeException(e);
         } catch (SQLException e){
             throw new RuntimeException(e);
         }
@@ -96,7 +96,7 @@ public class MovieDaoImpl implements MovieDao {
                 throw new DatabaseFailedException("Database update failed: this movie already exists.");
             else if (e.getResultCode() == SQLiteErrorCode.SQLITE_CONSTRAINT_NOTNULL)
                 throw new DatabaseFailedException("Database update failed: ensure movie id, name and duration are not null.");
-            else throw new RuntimeException(e); // TODO throw it as DatabaseInsertionFailedException
+            else throw new RuntimeException(e);
         } catch (SQLException e){
             throw new RuntimeException(e);
         }

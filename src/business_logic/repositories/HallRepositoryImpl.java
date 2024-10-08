@@ -93,7 +93,7 @@ public class HallRepositoryImpl extends Subject<DatabaseEntity> implements HallR
     }
 
     @Override
-    public Hall get(@NotNull ShowTime showTime) throws InvalidIdException, DatabaseFailedException {
+    public Hall get(@NotNull ShowTime showTime) throws InvalidIdException {
         if(showTime.getId() == DatabaseEntity.ENTITY_WITHOUT_ID)
             throw new InvalidIdException("This showtime is not in the database.");
         Hall hall = hallDao.get(showTime);

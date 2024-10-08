@@ -211,6 +211,7 @@ public class InputOutputHandler {
             }
             System.out.println();
             List<String> strings = new ArrayList<>();
+            List<Seat> selectedSeats = new ArrayList<>();
             boolean inputNotValid = true;
             while (inputNotValid) {
                 System.out.print(">> ");
@@ -219,36 +220,23 @@ public class InputOutputHandler {
                 if (input.isBlank()) {
                     return null;
                 }
-                while (!input.isEmpty()) {
-                    if (!Character.isDigit(input.charAt(input.length() - 1)))
+                for (String token : input.split("-")) {
+                    if (!token.matches("[a-z]([0-9]+)"))
                         break;
-                    String subString;
-                    if (input.indexOf('-') != -1) {
-                        subString = input.substring(0, input.indexOf('-'));
-                        input = input.replace(subString + "-", "");
-                    } else {
-                        subString = input;
-                        input = "";
-                    }
-                    if (seats.stream().noneMatch(s -> s.getRow() == subString.charAt(0)))
+                    List<Seat> rowSeat = seats.stream().filter(s -> s.getRow() == token.charAt(0)).toList();
+                    if (rowSeat.isEmpty())
                         break;
                     try {
-                        int number = Integer.parseInt(subString.substring(1));
-                        if (seats.stream().noneMatch(s -> s.getNumber() == number))
-                            break;
-                    } catch (NumberFormatException e) {
+                        int number = Integer.parseInt(token.substring(1));
+                        Seat selectedSeat = rowSeat.stream().filter(s -> s.getNumber() == number).toList().getFirst();
+                        selectedSeats.add(selectedSeat);
+                    } catch (NumberFormatException | NoSuchElementException e) {
                         break;
                     }
-                    strings.add(subString);
+                    inputNotValid = false;
                 }
-                inputNotValid = false;
             }
-            return seats.stream().filter(s ->
-                    strings.stream().anyMatch(c ->
-                            s.getRow() == c.charAt(0) &&
-                                    String.valueOf(s.getNumber()).equals(c.substring(1))
-                    )
-            ).toList();
+            return selectedSeats;
         } catch (InvalidIdException e) {
             System.out.println(e.getMessage());
             return null;
@@ -330,7 +318,8 @@ public class InputOutputHandler {
                 rechargeAccount(user);
             else return false;
         } catch (InvalidIdException e){
-            // TODO
+            System.out.println(e);
+            return false;
         } catch (NotEnoughFundsException e) {
             // It won't throw, input will be always > 0
             throw new RuntimeException(e);
@@ -497,21 +486,16 @@ public class InputOutputHandler {
         try {
             CinemaDatabase.withTransaction(() -> {
                 long refund = (long) booking.getShowTime().getHall().getCost() * booking.getSeats().size();
-                try {
                     cinemaService.rechargeAccount(user, user.getBalance() + refund);
                     cinemaService.deleteBooking(booking, user);
-                } catch (DatabaseFailedException e){
-                    System.out.println(e.getMessage());
-                }
-                catch (NotEnoughFundsException e) {
-                    // It won't throw, user balance will be surely positive.
-                    throw new RuntimeException(e);
-                }
             });
             return true;
         } catch (Exception e) {
-            // It won't throw
-            throw new RuntimeException(e);
+            if(e instanceof DatabaseFailedException) {
+                System.out.println(e.getMessage());
+                return false;
+            } else
+                throw new RuntimeException(e);
         }
     }
 

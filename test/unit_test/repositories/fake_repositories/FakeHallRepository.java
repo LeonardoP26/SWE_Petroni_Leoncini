@@ -15,27 +15,27 @@ import java.util.function.Consumer;
 public class FakeHallRepository implements HallRepository {
 
     @Override
-    public void insert(Hall hall) throws DatabaseFailedException, InvalidIdException {
+    public void insert(Hall hall) {
 
     }
 
     @Override
-    public void update(@NotNull Hall hall, @NotNull Consumer<Hall> apply) throws DatabaseFailedException, InvalidIdException {
+    public void update(@NotNull Hall hall, @NotNull Consumer<Hall> apply) {
 
     }
 
     @Override
-    public void delete(@NotNull Hall hall) throws DatabaseFailedException, InvalidIdException {
+    public void delete(@NotNull Hall hall) {
 
     }
 
     @Override
-    public Hall get(@NotNull ShowTime showTime) throws InvalidIdException, DatabaseFailedException {
+    public Hall get(@NotNull ShowTime showTime) {
         return null;
     }
 
     @Override
-    public Hall get(Hall hall) throws InvalidIdException {
+    public Hall get(Hall hall) {
         return null;
     }
 
@@ -45,7 +45,7 @@ public class FakeHallRepository implements HallRepository {
     }
 
     @Override
-    public void update(@NotNull DatabaseEntity entity) throws DatabaseFailedException, InvalidIdException {
+    public void update(@NotNull DatabaseEntity entity) {
 
     }
 }

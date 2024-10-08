@@ -16,7 +16,6 @@ public class CinemaDatabase {
     protected static Connection connection = null;
 
     public final static String DB_URL = "jdbc:sqlite:./db/cinema.sqlite";
-    private static boolean inTransaction = false;
 
     private static Connection connect(String dbUrl) throws SQLException {
         connection = DriverManager.getConnection(dbUrl);
@@ -107,7 +106,6 @@ public class CinemaDatabase {
     }
 
     public static void withTransaction(@NotNull ThrowingRunnable lambda) throws Exception {
-        inTransaction = true;
         try (Connection conn = getConnection(DB_URL)) {
             boolean oldAutoCommit = true;
             try {
@@ -124,7 +122,6 @@ public class CinemaDatabase {
             }
             conn.setAutoCommit(oldAutoCommit);
         } finally {
-            inTransaction = false;
         }
     }
 

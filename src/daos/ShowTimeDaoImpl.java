@@ -76,7 +76,7 @@ public class ShowTimeDaoImpl implements ShowTimeDao {
                 throw new DatabaseFailedException("Database insertion failed: movie, hall and date can not be null.");
             else if (((SQLiteException) e).getErrorCode() == SQLiteErrorCode.SQLITE_CONSTRAINT_FOREIGNKEY.code)
                 throw new DatabaseFailedException("Database insertion failed: be sure that both the movie and hall have a valid ids.");
-            else throw new RuntimeException(e); // TODO throw it as DatabaseInsertionFailedException
+            else throw new RuntimeException(e);
         } catch (SQLException e){
             throw new RuntimeException(e);
         }
@@ -106,7 +106,7 @@ public class ShowTimeDaoImpl implements ShowTimeDao {
                 throw new DatabaseFailedException("Database update failed: this showtime already exists.");
             else if (((SQLiteException) e).getResultCode() == SQLiteErrorCode.SQLITE_CONSTRAINT_FOREIGNKEY)
                 throw new DatabaseFailedException("Database update failed: be sure that both the movie and hall have a valid ids.");
-            else throw new RuntimeException(e); // TODO throw it as DatabaseInsertionFailedException
+            else throw new RuntimeException(e);
         } catch (SQLException e){
             throw new RuntimeException(e);
         }

@@ -66,7 +66,7 @@ public class UserDaoImpl implements UserDao {
                 throw new DatabaseFailedException("Username already exists.");
             else if (e.getResultCode() == SQLiteErrorCode.SQLITE_CONSTRAINT_NOTNULL)
                 throw new DatabaseFailedException("Username and password can not be blank.");
-            else throw new RuntimeException(e); // TODO throw it as DatabaseInsertionFailedException
+            else throw new RuntimeException(e);
         } catch (SQLException ex) {
             throw new RuntimeException(ex);
         }
@@ -94,7 +94,7 @@ public class UserDaoImpl implements UserDao {
                 throw new DatabaseFailedException("Username already exists.");
             else if (e.getResultCode() == SQLiteErrorCode.SQLITE_CONSTRAINT_NOTNULL)
                 throw new DatabaseFailedException("Username and password can not be null");
-            else throw new RuntimeException(e); // TODO throw it as DatabaseInsertionFailedException
+            else throw new RuntimeException(e);
         } catch (SQLException ex) {
             throw new RuntimeException(ex);
         }

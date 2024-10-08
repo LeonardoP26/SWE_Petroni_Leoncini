@@ -6,7 +6,6 @@ import business_logic.services.CinemaServiceImpl;
 import domain.*;
 import org.jetbrains.annotations.NotNull;
 import ui.InputOutputHandler;
-
 import java.sql.SQLException;
 import java.time.Duration;
 import java.time.LocalDateTime;
@@ -49,9 +48,7 @@ public class Main {
                     user = ui.loginOrRegisterPage();
                     currentPage = selectedSeats == null ? Page.HOMEPAGE : Page.BOOKING_CONFIRMED;
                 }
-                case Page.MANAGE_ACCOUNT -> {
-                    currentPage = ui.accountManagementPage(user);
-                }
+                case Page.MANAGE_ACCOUNT -> currentPage = ui.accountManagementPage(user);
                 case Page.EDIT_ACCOUNT -> {
                     assert user != null;
                     currentPage = ui.editAccount(user);
@@ -211,13 +208,6 @@ public class Main {
 
         } catch (SQLException e){
             throw new RuntimeException(e);
-            /*
-             * Since we are populating the database i.e.
-             * we are setting up the workspace every exception launched
-             * in this process should make the program stops.
-             */
-//            System.out.println(e.getMessage());
-//            System.exit(-1);
         }
     }
 

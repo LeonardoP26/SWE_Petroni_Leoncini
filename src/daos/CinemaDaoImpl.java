@@ -66,7 +66,7 @@ public class CinemaDaoImpl implements CinemaDao {
                 throw new DatabaseFailedException("Database insertion failed: this cinema already exists.");
             else if (e.getResultCode() == SQLiteErrorCode.SQLITE_CONSTRAINT_NOTNULL)
                 throw new DatabaseFailedException("Database insertion failed: ensure cinema's id and name are not null.");
-            else throw new RuntimeException(e); // TODO throw it as DatabaseInsertionFailedException
+            else throw new RuntimeException(e);
         } catch (SQLException e){
             throw new RuntimeException(e);
         }
@@ -92,7 +92,7 @@ public class CinemaDaoImpl implements CinemaDao {
                 throw new DatabaseFailedException("This cinema already exists.");
             else if (e.getResultCode() == SQLiteErrorCode.SQLITE_CONSTRAINT_NOTNULL)
                 throw new DatabaseFailedException("Ensure cinema's id and name are not null.");
-            else throw new RuntimeException(e); // TODO throw it as DatabaseInsertionFailedException
+            else throw new RuntimeException(e);
         } catch (SQLException e){
             throw new RuntimeException(e);
         }

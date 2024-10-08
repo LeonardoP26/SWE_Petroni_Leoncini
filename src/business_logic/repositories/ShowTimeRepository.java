@@ -23,7 +23,7 @@ public interface ShowTimeRepository extends Observer<DatabaseEntity> {
 
     void delete(@NotNull ShowTime showTime) throws DatabaseFailedException, InvalidIdException;
 
-    List<ShowTime> get(@NotNull Movie movie, @NotNull Cinema cinema) throws InvalidIdException, DatabaseFailedException;
+    List<ShowTime> get(@NotNull Movie movie, @NotNull Cinema cinema) throws InvalidIdException;
 
     HashMap<Integer, WeakReference<ShowTime>> getEntities();
 

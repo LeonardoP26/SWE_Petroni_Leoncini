@@ -71,7 +71,7 @@ public class SeatDaoImpl implements SeatDao {
                 throw new DatabaseFailedException("Database insertion failed: ensure seat id, row, number and hall are not null.");
             else if(e.getResultCode() == SQLiteErrorCode.SQLITE_CONSTRAINT_FOREIGNKEY)
                 throw new DatabaseFailedException("Database insertion failed: ensure that hall id is valid.");
-            else throw new RuntimeException(e); // TODO throw it as DatabaseInsertionFailedException
+            else throw new RuntimeException(e);
         } catch (SQLException e){
             throw new RuntimeException(e);
         }
@@ -101,7 +101,7 @@ public class SeatDaoImpl implements SeatDao {
                 throw new DatabaseFailedException("Database update failed: ensure seat id, row, number and hall are not null.");
             else if(e.getResultCode() == SQLiteErrorCode.SQLITE_CONSTRAINT_FOREIGNKEY)
                 throw new DatabaseFailedException("Database update failed: ensure that hall id is valid.");
-            else throw new RuntimeException(e); // TODO throw it as DatabaseInsertionFailedException
+            else throw new RuntimeException(e);
         } catch (SQLException e){
             throw new RuntimeException(e);
         }
