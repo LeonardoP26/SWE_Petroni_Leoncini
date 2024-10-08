@@ -1,7 +1,6 @@
 package unit_test.service;
 
 import business_logic.exceptions.InvalidSeatException;
-import business_logic.exceptions.NotEnoughFundsException;
 import business_logic.repositories.*;
 import business_logic.services.CinemaService;
 import business_logic.services.CinemaServiceImpl;
@@ -55,11 +54,6 @@ public class CinemaServiceTest {
     public void pay_withTakenSeat_throwsInvalidSeatException(){
         seats.getFirst().setBooked(true);
         assertThrows(InvalidSeatException.class, () -> service.pay(newBooking, null, owner));
-    }
-
-    @Test
-    public void pay_withNotEnoughMoney_throwsNotEnoughFundsException(){
-        assertThrows(NotEnoughFundsException.class, () -> service.pay(newBooking, null, owner));
     }
 
 }

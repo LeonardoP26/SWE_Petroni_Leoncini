@@ -3,11 +3,15 @@ package business_logic;
 import org.jetbrains.annotations.NotNull;
 import utils.ThrowingRunnable;
 
+import java.io.File;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.sql.*;
 
 public class CinemaDatabase {
 
-    protected CinemaDatabase() { }
+    protected CinemaDatabase() {
+    }
 
     protected static Connection connection = null;
 
@@ -17,7 +21,7 @@ public class CinemaDatabase {
     private static Connection connect(String dbUrl) throws SQLException {
         connection = DriverManager.getConnection(dbUrl);
         if (connection != null) {
-            try(Statement stmt = connection.createStatement()) {
+            try (Statement stmt = connection.createStatement()) {
                 stmt.execute("PRAGMA foreign_keys = ON");
                 stmt.execute(
                         "CREATE TABLE IF NOT EXISTS Cinemas(" +
@@ -97,14 +101,14 @@ public class CinemaDatabase {
                     throw new RuntimeException("Unable to open the database.");
             }
             return connection;
-        } catch(SQLException e){
+        } catch (SQLException e) {
             throw new RuntimeException(e);
         }
     }
 
     public static void withTransaction(@NotNull ThrowingRunnable lambda) throws Exception {
         inTransaction = true;
-        try(Connection conn = getConnection(DB_URL)) {
+        try (Connection conn = getConnection(DB_URL)) {
             boolean oldAutoCommit = true;
             try {
                 oldAutoCommit = conn.getAutoCommit();
@@ -125,6 +129,8 @@ public class CinemaDatabase {
     }
 
     public static boolean isDatabaseEmpty() throws SQLException {
+        if(Files.notExists(Path.of("./db")))
+            new File("./db/").mkdir();
         try (
                 Connection conn = DriverManager.getConnection(DB_URL);
                 Statement s = conn.createStatement()
@@ -134,9 +140,5 @@ public class CinemaDatabase {
                 return res.getInt(1) == 0;
             return true;
         }
-    }
-
-    public static boolean isInTransaction() {
-        return inTransaction;
     }
 }
