@@ -83,10 +83,8 @@ public class BookingRepositoryImpl implements BookingRepository {
                 (long) oldBooking.getShowTime().getHall().getCost() * oldBooking.getSeats().size());
         copy.setBalance(copy.getBalance() - newCost);
         bookingDao.update(oldBooking, newBooking, user, copy);
-        user.getBookings().remove(oldBooking);
-        user.getBookings().add(newBooking);
+        oldBooking.copy(newBooking);
         user.setBalance(copy.getBalance());
-        oldBooking.resetId();
     }
 
 
