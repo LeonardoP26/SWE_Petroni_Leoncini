@@ -1,8 +1,5 @@
 package unit_test.repositories.fake_repositories;
 
-import business_logic.exceptions.DatabaseFailedException;
-import business_logic.exceptions.InvalidIdException;
-import business_logic.exceptions.NotEnoughFundsException;
 import business_logic.repositories.BookingRepository;
 import domain.Booking;
 import domain.DatabaseEntity;

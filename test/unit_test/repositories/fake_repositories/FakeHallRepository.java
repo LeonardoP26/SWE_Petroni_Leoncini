@@ -1,7 +1,5 @@
 package unit_test.repositories.fake_repositories;
 
-import business_logic.exceptions.DatabaseFailedException;
-import business_logic.exceptions.InvalidIdException;
 import business_logic.repositories.HallRepository;
 import domain.DatabaseEntity;
 import domain.Hall;

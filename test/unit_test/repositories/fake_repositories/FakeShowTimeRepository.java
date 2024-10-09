@@ -1,7 +1,5 @@
 package unit_test.repositories.fake_repositories;
 
-import business_logic.exceptions.DatabaseFailedException;
-import business_logic.exceptions.InvalidIdException;
 import business_logic.repositories.ShowTimeRepository;
 import domain.Cinema;
 import domain.DatabaseEntity;

@@ -8,8 +8,8 @@ import domain.DatabaseEntity;
 import org.jetbrains.annotations.NotNull;
 
 import java.lang.ref.WeakReference;
+import java.util.HashMap;
 import java.util.List;
-import java.util.WeakHashMap;
 import java.util.function.Consumer;
 
 public interface CinemaRepository extends Observer<DatabaseEntity>  {
@@ -25,5 +25,5 @@ public interface CinemaRepository extends Observer<DatabaseEntity>  {
 
     Cinema get(Cinema cinema) throws InvalidIdException;
 
-    WeakHashMap<Integer, WeakReference<Cinema>> getEntities();
+    HashMap<Integer, WeakReference<Cinema>> getEntities();
 }

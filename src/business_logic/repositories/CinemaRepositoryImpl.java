@@ -12,14 +12,14 @@ import domain.Movie;
 import org.jetbrains.annotations.NotNull;
 
 import java.lang.ref.WeakReference;
+import java.util.HashMap;
 import java.util.List;
-import java.util.WeakHashMap;
 import java.util.function.Consumer;
 
 public class CinemaRepositoryImpl extends Subject<DatabaseEntity> implements CinemaRepository {
 
     private static WeakReference<CinemaRepository> instance = null;
-    private final WeakHashMap<Integer, WeakReference<Cinema>> entities = new WeakHashMap<>();
+    private final HashMap<Integer, WeakReference<Cinema>> entities = new HashMap<>();
     private final CinemaDao cinemaDao;
 
     private CinemaRepositoryImpl(CinemaDao cinemaDao, HallRepository hallRepo){
@@ -106,7 +106,7 @@ public class CinemaRepositoryImpl extends Subject<DatabaseEntity> implements Cin
     }
 
     @Override
-    public WeakHashMap<Integer, WeakReference<Cinema>> getEntities() {
+    public HashMap<Integer, WeakReference<Cinema>> getEntities() {
         return entities;
     }
 

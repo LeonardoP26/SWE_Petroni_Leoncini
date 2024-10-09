@@ -1,15 +1,13 @@
 package unit_test.repositories.fake_repositories;
 
-import business_logic.exceptions.DatabaseFailedException;
-import business_logic.exceptions.InvalidIdException;
 import business_logic.repositories.CinemaRepository;
 import domain.Cinema;
 import domain.DatabaseEntity;
 import org.jetbrains.annotations.NotNull;
 
 import java.lang.ref.WeakReference;
+import java.util.HashMap;
 import java.util.List;
-import java.util.WeakHashMap;
 import java.util.function.Consumer;
 
 public class FakeCinemaRepository implements CinemaRepository {
@@ -40,7 +38,7 @@ public class FakeCinemaRepository implements CinemaRepository {
     }
 
     @Override
-    public WeakHashMap<Integer, WeakReference<Cinema>> getEntities() {
+    public HashMap<Integer, WeakReference<Cinema>> getEntities() {
         return null;
     }
 

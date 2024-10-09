@@ -6,6 +6,7 @@ import business_logic.services.CinemaServiceImpl;
 import domain.*;
 import org.jetbrains.annotations.NotNull;
 import ui.InputOutputHandler;
+
 import java.sql.SQLException;
 import java.time.Duration;
 import java.time.LocalDateTime;
