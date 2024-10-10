@@ -106,8 +106,9 @@ public class CinemaDatabase {
     }
 
     public static void withTransaction(@NotNull ThrowingRunnable lambda) throws Exception {
-        try (Connection conn = getConnection(DB_URL)) {
-            boolean oldAutoCommit = true;
+        Connection conn = getConnection(DB_URL);
+        boolean oldAutoCommit = true;
+        try{
             try {
                 oldAutoCommit = conn.getAutoCommit();
                 conn.setAutoCommit(false);
@@ -120,8 +121,10 @@ public class CinemaDatabase {
                     throw new RuntimeException(ex);
                 }
             }
-            conn.setAutoCommit(oldAutoCommit);
         } finally {
+            conn.setAutoCommit(oldAutoCommit);
+            if (oldAutoCommit)
+                conn.close();
         }
     }
 

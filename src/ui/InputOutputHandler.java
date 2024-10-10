@@ -1,6 +1,5 @@
 package ui;
 
-import business_logic.CinemaDatabase;
 import business_logic.exceptions.DatabaseFailedException;
 import business_logic.exceptions.InvalidIdException;
 import business_logic.exceptions.InvalidSeatException;
@@ -210,7 +209,6 @@ public class InputOutputHandler {
                     System.out.print("X\t");
             }
             System.out.println();
-            List<String> strings = new ArrayList<>();
             List<Seat> selectedSeats = new ArrayList<>();
             boolean inputNotValid = true;
             while (inputNotValid) {
@@ -318,7 +316,7 @@ public class InputOutputHandler {
                 rechargeAccount(user);
             else return false;
         } catch (InvalidIdException e){
-            System.out.println(e);
+            System.out.println(e.getMessage());
             return false;
         } catch (NotEnoughFundsException e) {
             // It won't throw, input will be always > 0
@@ -484,18 +482,11 @@ public class InputOutputHandler {
 
     private boolean refundUser(Booking booking, User user) {
         try {
-            CinemaDatabase.withTransaction(() -> {
-                long refund = (long) booking.getShowTime().getHall().getCost() * booking.getSeats().size();
-                    cinemaService.rechargeAccount(user, user.getBalance() + refund);
-                    cinemaService.deleteBooking(booking, user);
-            });
+            cinemaService.deleteBooking(booking, user);
             return true;
-        } catch (Exception e) {
-            if(e instanceof DatabaseFailedException) {
-                System.out.println(e.getMessage());
-                return false;
-            } else
-                throw new RuntimeException(e);
+        } catch (DatabaseFailedException | InvalidIdException e) {
+            System.out.println(e.getMessage());
+            return false;
         }
     }
 

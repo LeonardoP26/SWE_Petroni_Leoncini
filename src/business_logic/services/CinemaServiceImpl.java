@@ -151,12 +151,12 @@ public class CinemaServiceImpl implements CinemaService {
     }
 
     @Override
-    public List<ShowTime> retrieveMovieShowTimes(@NotNull Movie movie, @NotNull Cinema cinema) throws InvalidIdException, DatabaseFailedException {
-       List<ShowTime> showTimes = showTimeRepo.get(movie, cinema);
-       for(ShowTime sht : showTimes){
-           sht.setHall(hallRepo.get(sht.getHall()));
-       }
-       return showTimes;
+    public List<ShowTime> retrieveMovieShowTimes(@NotNull Movie movie, @NotNull Cinema cinema) throws InvalidIdException {
+        List<ShowTime> showTimes = showTimeRepo.get(movie, cinema);
+        for(ShowTime sht : showTimes){
+            sht.setHall(hallRepo.get(sht.getHall()));
+        }
+        return showTimes;
     }
 
     @Override
@@ -189,12 +189,18 @@ public class CinemaServiceImpl implements CinemaService {
 
     @Override
     public void pay(@NotNull Booking booking, @Nullable Booking oldBooking, @NotNull User user) throws NotEnoughFundsException, InvalidSeatException, DatabaseFailedException, InvalidIdException {
-        if(booking.getSeats().stream().anyMatch(Seat::isBooked))
-            throw new InvalidSeatException("Some of these seats are already taken.");
-        if(oldBooking != null)
+        if(oldBooking != null) {
+            List<Seat> diverse = new ArrayList<>(booking.getSeats());
+            diverse.removeAll(oldBooking.getSeats());
+            if (diverse.stream().anyMatch(Seat::isBooked))
+                throw new InvalidSeatException("Some of these seats are already taken.");
             bookingRepo.update(oldBooking, booking, user);
-        else
+        }
+        else {
+            if (booking.getSeats().stream().anyMatch(Seat::isBooked))
+                throw new InvalidSeatException("Some of these seats are already taken.");
             bookingRepo.insert(booking, user);
+        }
     }
 
     @Override

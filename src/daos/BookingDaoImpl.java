@@ -111,20 +111,20 @@ public class BookingDaoImpl implements BookingDao {
                 s1.executeUpdate();
                 for(Seat seat : newBooking.getSeats()) {
                     try (PreparedStatement s2 = conn.prepareStatement(
-                            "INSERT OR ROLLBACK INTO Bookings(showtime_id, seat_id, user_id, booking_number) VALUES (?, ?, ?, ?)"
-                    )){
+                            "INSERT INTO Bookings(showtime_id, seat_id, user_id, booking_number) VALUES (?, ?, ?, ?)"
+                    )) {
                         s2.setInt(1, newBooking.getShowTime().getId());
                         s2.setInt(2, seat.getId());
                         s2.setInt(3, user.getId());
                         s2.setInt(4, oldBooking.getBookingNumber());
                         s2.executeUpdate();
-                        try(PreparedStatement s3 = conn.prepareStatement(
-                                "UPDATE Users SET balance = ? WHERE user_id = ?"
-                        )){
-                            s3.setLong(1, copy.getBalance());
-                            s3.setInt(2, user.getId());
-                            s3.executeUpdate();
-                        }
+                    }
+                    try(PreparedStatement s3 = conn.prepareStatement(
+                            "UPDATE Users SET balance = ? WHERE user_id = ?"
+                    )){
+                        s3.setLong(1, copy.getBalance());
+                        s3.setInt(2, user.getId());
+                        s3.executeUpdate();
                     }
                 }
                 conn.commit();

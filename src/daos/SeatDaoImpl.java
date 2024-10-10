@@ -169,12 +169,12 @@ public class SeatDaoImpl implements SeatDao {
                     return null;
                 }
             } finally {
-            if(conn.getAutoCommit())
-                conn.close();
+                if(conn.getAutoCommit())
+                    conn.close();
+            }
+        } catch (Exception e){
+            throw new RuntimeException(e);
         }
-    } catch (Exception e){
-        throw new RuntimeException(e);
-    }
     }
 
 
