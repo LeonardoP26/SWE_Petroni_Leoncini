@@ -33,7 +33,11 @@ public class Booking implements DatabaseEntity {
 
     @Override
     public String getName() {
-        return bookingNumber +  " - " + showTime.getMovie().getName() + " - " + showTime.getName() + " - " + showTime.getHall().getCinema().getName();
+        StringBuilder sb = new StringBuilder();
+        for (Seat seat : seats) {
+            sb.append(seat.getName().toUpperCase()).append(" - ");
+        }
+        return showTime.getMovie().getName() + " - " + showTime.getName() + " - " + sb + showTime.getHall().getCinema().getName();
     }
 
     public void setBookingNumber(@NotNull ResultSet resultSet) throws SQLException {

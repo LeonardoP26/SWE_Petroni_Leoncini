@@ -37,7 +37,7 @@ public class Seat implements DatabaseEntity {
 
     @Override
     public String getName(){
-        return String.valueOf(row + number);
+        return row + String.valueOf(number);
     }
 
     public char getRow() {
