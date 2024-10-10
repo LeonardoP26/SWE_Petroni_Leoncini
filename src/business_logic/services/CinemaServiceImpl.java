@@ -189,15 +189,15 @@ public class CinemaServiceImpl implements CinemaService {
 
     @Override
     public void pay(@NotNull Booking booking, @Nullable Booking oldBooking, @NotNull User user) throws NotEnoughFundsException, InvalidSeatException, DatabaseFailedException, InvalidIdException {
+        List<Seat> diverse = new ArrayList<>(booking.getSeats());
         if(oldBooking != null) {
-            List<Seat> diverse = new ArrayList<>(booking.getSeats());
             diverse.removeAll(oldBooking.getSeats());
             if (diverse.stream().anyMatch(Seat::isBooked))
                 throw new InvalidSeatException("Some of these seats are already taken.");
             bookingRepo.update(oldBooking, booking, user);
         }
         else {
-            if (booking.getSeats().stream().anyMatch(Seat::isBooked))
+            if (diverse.stream().anyMatch(Seat::isBooked))
                 throw new InvalidSeatException("Some of these seats are already taken.");
             bookingRepo.insert(booking, user);
         }

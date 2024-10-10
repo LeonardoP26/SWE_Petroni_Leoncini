@@ -128,11 +128,11 @@ public class UserRepositoryImpl extends Subject<DatabaseEntity> implements UserR
                             try {
                                 notifyObservers(entity);
                                 update(usr, (u) -> u.setBalance(u.getBalance() + b.getShowTime().getHall().getCost()));
+                                if(b.getSeats().isEmpty())
+                                    it.remove();
                             } catch (NotEnoughFundsException e) {
                                 throw new RuntimeException(e);
                             }
-                            if(b.getSeats().isEmpty())
-                                it.remove();
                         }
                     }
                 }
